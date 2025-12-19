@@ -1,0 +1,281 @@
+<style>
+  .file-box {
+    width: 50px;
+    height: 50px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    overflow: hidden;
+    background: #f1f1f1;
+    margin-right: 6px;
+    cursor: pointer;
+    vertical-align: middle;
+  }
+
+  .file-box img {
+    display: block;
+  }
+
+  .file-thumb {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .img-name {
+    font-size: 11px;
+    color: #555;
+    word-break: break-all;
+  }
+
+  .pagination-container {
+    margin-top: 25px;
+    padding: 12px 10px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid #ddd;
+    gap: 12px;
+  }
+
+  .pagination-left,
+  .pagination-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .pg-btn {
+    padding: 6px 12px;
+    border: 1px solid #007bff;
+    color: #007bff;
+    border-radius: 4px;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .pg-btn:hover {
+    background: #007bff;
+    color: #fff;
+  }
+
+  .pg-input {
+    width: 45px;
+    text-align: center;
+    padding: 5px;
+    border: 1px solid #aaa;
+    border-radius: 4px;
+  }
+
+  .card-header {
+    gap: 10px;
+  }
+
+  .filter-form {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .card-header .form-control {
+    border-radius: 0 !important;
+  }
+.table thead th,
+.table tbody td {
+  text-align: center;
+  vertical-align: middle;
+}
+
+
+</style>
+
+<div class="main-content">
+  <section class="section">
+    <div class="card">
+
+     <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
+
+  <!-- 🔹 LEFT SIDE -->
+  <div class="d-flex align-items-center gap-3 flex-wrap">
+    <h4 class="mb-0">Service List</h4>
+
+    <div class="d-flex gap-2 flex-wrap">
+      <a href="/servises/1"
+         class="btn btn-sm <%= status == 1 ? 'btn-primary' : 'btn-secondary' %>"
+         style="border-radius:0;">
+        Active Services
+      </a>
+
+      <a href="/servises/0"
+         class="btn btn-sm <%= status == 0 ? 'btn-primary' : 'btn-secondary' %>"
+         style="border-radius:0;">
+        Inactive Services
+      </a>
+    </div>
+  </div>
+
+  <!-- 🔹 RIGHT SIDE -->
+  <div class="d-flex align-items-center gap-2 flex-wrap">
+    <input
+      type="text"
+      id="tableSearch"
+      placeholder="Search..."
+      class="form-control"
+      style="width:220px;"
+    />&nbsp;&nbsp;
+
+    <form class="filter-form d-flex align-items-center gap-2" method="GET">
+      <input type="date" name="from" value="<%= from || '' %>" class="form-control" style="width:150px;">
+      <input type="date" name="to" value="<%= to || '' %>" class="form-control" style="width:150px;">
+      <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+
+      <% if (isFiltered) { %>
+        <a href="" class="btn btn-secondary btn-sm">Reset</a>
+      <% } %>
+    </form>
+  </div>
+
+</div>
+
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-bordered table-striped">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Category</th>
+                <th>Sub Category</th>
+                <th>Title</th>
+                <th>Service Image</th>
+                <th>Price</th>
+                <th>Rating</th>
+                <th>FAQs</th>
+                <th>Status</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <% if (services && services.length > 0) { %>
+                <% services.forEach(service => { %>
+                  <tr>
+                    <td><%= service.id %></td>
+
+                    <!-- CATEGORY -->
+                   <td>
+  <div class="d-flex align-items-center gap-2">
+    <% if (service.category_image) { %>
+      <div class="file-box">
+        <img src="/<%= service.category_image %>" class="file-thumb">
+      </div>
+    <% } %>
+    <strong><%= service.category_name %></strong>
+  </div>
+</td>
+
+
+                    <!-- SUB CATEGORY -->
+                   <td>
+  <div class="d-flex align-items-center gap-2">
+    <% if (service.subcategory_image) { %>
+      <div class="file-box">
+        <img src="/<%= service.subcategory_image %>" class="file-thumb">
+      </div>
+    <% } %>
+    <strong><%= service.subcategory_name %></strong>
+  </div>
+</td>
+
+
+                    <td><%= service.title %></td>
+
+                    <!-- SERVICE IMAGE -->
+                   <td>
+  <% if (service.service_image) { %>
+    <div class="file-box">
+      <img src="/<%= service.service_image %>" class="file-thumb">
+    </div>
+  <% } else { %>
+    N/A
+  <% } %>
+</td>
+
+
+                    <td>₹ <%= service.price %></td>
+                    <td><%= service.rating %></td>
+
+                    <!-- FAQS -->
+                    <td>
+                      <%
+                        let faqs = [];
+                        try { faqs = JSON.parse(service.faqs); } catch(e) {}
+                      %>
+                      <% if (faqs.length) { %>
+                        <ul style="padding-left:15px;margin:0;">
+                          <% faqs.forEach(f => { %>
+                            <li><%= f.question %></li>
+                          <% }) %>
+                        </ul>
+                      <% } else { %>
+                        No FAQs
+                      <% } %>
+                    </td>
+
+                    <td><%= service.status == 1 ? 'Active' : 'Inactive' %></td>
+                    <td><%= service.created_at %></td>
+                  </tr>
+                <% }) %>
+              <% } else { %>
+                <tr>
+                  <td colspan="10" class="text-center">No records found</td>
+                </tr>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- PAGINATION -->
+        <div class="pagination-container">
+          <div class="pagination-left">
+            <select onchange="changePerPage(this.value)">
+              <option value="8" <%= perPage == 8 ? 'selected' : '' %>>8</option>
+              <option value="10" <%= perPage == 10 ? 'selected' : '' %>>10</option>
+              <option value="15" <%= perPage == 15 ? 'selected' : '' %>>15</option>
+              <option value="20" <%= perPage == 20 ? 'selected' : '' %>>20</option>
+            </select>
+            <span>
+              <%= (page - 1) * perPage + 1 %> –
+              <%= Math.min(page * perPage, total) %> of <%= total %>
+            </span>
+          </div>
+
+          <div class="pagination-right">
+            <a href="?page=1&perPage=<%= perPage %>" class="pg-btn">&laquo;</a>
+            <a href="?page=<%= page > 1 ? page - 1 : 1 %>&perPage=<%= perPage %>" class="pg-btn">Previous</a>
+            <input type="text" readonly value="<%= page %>" class="pg-input">
+            <span>of <%= totalPages %></span>
+            <a href="?page=<%= page < totalPages ? page + 1 : totalPages %>&perPage=<%= perPage %>" class="pg-btn">Next</a>
+            <a href="?page=<%= totalPages %>&perPage=<%= perPage %>" class="pg-btn">&raquo;</a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+function changePerPage(val){
+  window.location.href = "?page=1&perPage=" + val;
+}
+
+document.getElementById("tableSearch").addEventListener("keyup", function(){
+  let value = this.value.toLowerCase();
+  document.querySelectorAll("table tbody tr").forEach(row => {
+    row.style.display = row.innerText.toLowerCase().includes(value) ? "" : "none";
+  });
+});
+</script>

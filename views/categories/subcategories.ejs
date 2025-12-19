@@ -1,0 +1,405 @@
+<style>
+  .file-box {
+    width: 50px;
+    height: 50px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    overflow: hidden;
+    background: #f1f1f1;
+    margin-right: 6px;
+    cursor: pointer;
+    vertical-align: middle;
+  }
+  .file-thumb { width: 100%; height: 100%; object-fit: cover; }
+
+  .card-header { gap: 10px; }
+  #searchBox, #categoryFilter { border-radius:0; }
+
+  .pagination-container {
+    margin-top: 25px;
+    padding: 12px 10px;
+    display:flex;
+    flex-wrap:wrap;
+    justify-content: space-between;
+    align-items:center;
+    border-top:1px solid #ddd;
+    gap:12px;
+  }
+
+  .pg-btn {
+    padding:6px 12px;
+    border:1px solid #007bff;
+    color:#007bff;
+    border-radius:4px;
+    text-decoration:none;
+    cursor:pointer;
+    margin-right:4px;
+  }
+  .pg-btn:hover { background:#007bff; color:#fff; }
+
+  .pg-btn.active {
+    background:#007bff !important;
+    color:#fff !important;
+  }
+</style>
+
+
+<div class="main-content">
+  <section class="section">
+    <div class="card">
+
+      <!-- HEADER -->
+      <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
+
+        <h4 class="mb-0">Subcategories</h4>
+
+        <!-- CATEGORY FILTER -->
+        <select id="categoryFilter" class="form-control" style="width:200px;">
+          <option value="0">All Categories</option>
+          <% categories.forEach(cat => { %>
+            <option value="<%= cat.id %>"><%= cat.name %></option>
+          <% }) %>
+        </select>
+
+        <!-- SEARCH -->
+        <input 
+          type="text"
+          id="searchBox"
+          class="form-control"
+          style="width:220px;"
+          placeholder="Search..."
+        />
+
+
+<button class="btn btn-primary btn-sm"
+        style="border-radius:0;"
+        onclick="openAddSubcategoryModal()">
+  + Add Subcategory
+</button>
+
+
+
+      </div>
+
+
+      <!-- TABLE -->
+      <div class="card-body">
+        <div class="table-responsive">
+
+          <table class="table table-bordered table-striped">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Category</th>
+                <th>Subcategory</th>
+                <th>Subcategory Status</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+
+            <tbody id="subcategoryTable"></tbody>
+
+          </table>
+        </div>
+
+
+        <!-- PAGINATION -->
+        <div class="pagination-container">
+
+          <div class="pagination-left">
+            Items per page:
+            <select id="perPage" onchange="loadData()" style="width:70px;">
+              <option value="8">8</option>
+              <option value="10">10</option>
+              <option value="15">15</option>
+              <option value="20">20</option>
+            </select>
+          </div>
+
+          <div class="pagination-right" id="paginationButtons"></div>
+
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+</div>
+
+
+
+<!-- IMAGE MODAL -->
+<div id="imageModal" style="
+  display:none; position:fixed;
+  top:0; left:0; width:100%; height:100%;
+  background:rgba(0,0,0,0.7);
+  justify-content:center; align-items:center;
+  z-index:9999;">
+  
+  <span onclick="closeModal()"
+        style="position:absolute; top:20px; right:30px;
+               font-size:30px; color:white; cursor:pointer;">×</span>
+
+  <img id="modalImage" style="max-width:80%; max-height:80%; border-radius:10px;">
+</div>
+
+
+
+
+
+
+
+
+<div id="addSubcategoryModal"
+     style="
+       display:none; position:fixed; top:0; left:0;
+       width:100%; height:100%; background:rgba(0,0,0,0.6);
+       justify-content:center; align-items:center; z-index:999999;
+     ">
+
+  <div style="
+      width:420px; background:white;
+      padding:25px; border-radius:4px;
+      box-shadow:0 0 25px rgba(0,0,0,0.3);
+      position:relative;
+  ">
+
+    <!-- CLOSE -->
+    <span onclick="closeAddSubcategoryModal()"
+          style="
+            position:absolute; right:15px; top:8px;
+            font-size:28px; font-weight:bold; cursor:pointer;
+          ">
+      ×
+    </span>
+
+    <h5 style="margin-bottom:18px;">Add New Subcategory</h5>
+
+    <form action="/subcategory-add" method="POST" enctype="multipart/form-data">
+
+      <!-- CATEGORY DROPDOWN -->
+      <label style="font-weight:600;">Select Category</label>
+      <select name="category_id" required
+              class="form-control"
+              style="border-radius:0; margin-bottom:15px;">
+        
+        <option value="">Choose Category</option>
+
+        <% categories.forEach(cat => { %>
+          <option value="<%= cat.id %>"><%= cat.name %></option>
+        <% }) %>
+
+      </select>
+
+
+      <!-- SUBCATEGORY NAME -->
+      <label style="font-weight:600;">Subcategory Name</label>
+      <input type="text" name="name" required
+             class="form-control"
+             style="border-radius:0; margin-bottom:15px;">
+
+
+      <!-- IMAGE UPLOAD -->
+      <label style="font-weight:600;">Subcategory Image</label>
+
+      <input type="file" 
+             name="image" 
+             accept="image/*"
+             required
+             class="form-control"
+             style="border-radius:0; margin-bottom:12px;"
+             onchange="previewSubcatImage(event)">
+
+      <!-- PREVIEW BOX (same UI file-box) -->
+      <div id="subcatPreviewBox" class="file-box" 
+           style="display:none; margin-bottom:15px;">
+        <img id="subcatPreviewImg" class="file-thumb">
+      </div>
+
+
+      <!-- SUBMIT -->
+      <button type="submit"
+              class="btn btn-primary btn-sm"
+              style="width:100%; border-radius:0; margin-top:8px;">
+        Add Subcategory
+      </button>
+
+    </form>
+
+  </div>
+
+</div>
+
+
+
+
+
+
+
+
+<script>
+function openAddSubcategoryModal(){
+  document.getElementById("addSubcategoryModal").style.display = "flex";
+}
+
+function closeAddSubcategoryModal(){
+  document.getElementById("addSubcategoryModal").style.display = "none";
+}
+
+function previewSubcatImage(e){
+  const img = document.getElementById("subcatPreviewImg");
+  const box = document.getElementById("subcatPreviewBox");
+
+  img.src = URL.createObjectURL(e.target.files[0]);
+  box.style.display = "inline-flex";
+}
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script>
+function openImageModal(src){
+  document.getElementById("modalImage").src = src;
+  document.getElementById("imageModal").style.display = "flex";
+}
+function closeModal(){
+  document.getElementById("imageModal").style.display = "none";
+}
+
+
+let currentPage = 1;
+
+function loadData(page = 1) {
+
+  currentPage = page;
+
+  const params = new URLSearchParams({
+    category_id: document.getElementById("categoryFilter").value,
+    search: document.getElementById("searchBox").value,
+    perPage: document.getElementById("perPage").value,
+    page
+  });
+
+  fetch(`/subcategories-list?${params.toString()}`)
+    .then(res => res.json())
+    .then(res => {
+
+      let html = "";
+
+      res.data.forEach(row => {
+
+        html += `
+          <tr>
+            <td>${row.id}</td>
+
+            <td>
+              <div class="file-box">
+                <img class="file-thumb" src="/${row.category_image}" onclick="openImageModal('/${row.category_image}')">
+              </div>
+              ${row.category_name}
+            </td>
+
+            <td>
+  <div class="file-box">
+    <img class="file-thumb" src="/${row.image}" onclick="openImageModal('/${row.image}')">
+  </div>
+
+  <span style="
+    color:${row.status == 0 ? 'red' : 'black'};
+    font-weight:${row.status == 0 ? '700' : '500'};
+  ">
+    ${row.name}
+  </span>
+</td>
+
+
+            <td>
+              <select onchange="changeSubStatus('${row.id}', this.value)"
+                style="
+                  width:110px;
+                  padding:3px 6px;
+                  font-size:13px;
+                  border-radius:3px;
+                  cursor:pointer;
+                  font-weight:600;
+                  border:1px solid ${row.status == 1 ? '#28a745' : '#dc3545'};
+                  color:${row.status == 1 ? '#28a745' : '#dc3545'};
+                "
+              >
+                <option value="1" style="color:green;font-weight:600" ${row.status == 1 ? "selected" : ""}>Active</option>
+                <option value="0" style="color:red;font-weight:600" ${row.status == 0 ? "selected" : ""}>Inactive</option>
+              </select>
+            </td>
+
+            <td>${row.created_at}</td>
+          </tr>
+        `;
+      });
+
+      document.getElementById("subcategoryTable").innerHTML = html;
+
+
+      // ⭐ PAGINATION BUTTONS
+      let pg = "";
+      for (let i = 1; i <= res.totalPages; i++) {
+        pg += `
+          <a class="pg-btn ${i === page ? 'active' : ''}" onclick="loadData(${i})">
+            ${i}
+          </a>
+        `;
+      }
+
+      document.getElementById("paginationButtons").innerHTML = pg;
+
+    });
+}
+
+document.getElementById("categoryFilter").onchange = () => loadData();
+document.getElementById("searchBox").onkeyup = () => loadData();
+
+loadData();
+
+
+
+/* ⭐ STATUS UPDATE – NO AJAX, ONLY SWEETALERT */
+function changeSubStatus(id, status){
+
+  let msg = status == 1 
+    ? "Do you want to activate this subcategory?"
+    : "Do you want to deactivate this subcategory?";
+
+  swal({
+    title: "Are you sure?",
+    text: msg,
+    icon: "warning",
+    buttons: true,
+    dangerMode: true,
+  }).then(ok => {
+
+    if (!ok) return location.reload();
+
+    window.location.href = `/subcategory-status-update/${id}?status=${status}`;
+  });
+}
+</script>
+
+<script src="/assets/bundles/sweetalert/sweetalert.min.js"></script>
+<script src="/assets/js/page/sweetalert.js"></script>

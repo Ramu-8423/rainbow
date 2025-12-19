@@ -1,0 +1,354 @@
+<style>
+  .file-box {
+    width: 50px;
+    height: 50px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    overflow: hidden;
+    background: #f1f1f1;
+    margin-right: 6px;
+    cursor: pointer;
+    vertical-align: middle;
+  }
+
+  .file-thumb { width: 100%; height: 100%; object-fit: cover; }
+
+  .pagination-container {
+    margin-top: 25px;
+    padding: 12px 10px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid #ddd;
+    gap: 12px;
+  }
+  .pagination-left, .pagination-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .pg-btn {
+    padding: 6px 12px;
+    border: 1px solid #007bff;
+    color: #007bff;
+    border-radius: 4px;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .pg-btn:hover { background:#007bff; color:#fff; }
+
+  .pg-input { width:45px; text-align:center; padding:5px; border:1px solid #aaa; border-radius:4px; }
+
+  @media(max-width:600px){
+    .pagination-container { flex-direction:column; }
+    .pagination-right, .pagination-left { width:100%; justify-content:space-between; }
+  }
+
+  .card-header { gap:10px; }
+  .card-header .form-control { border-radius:0!important; }
+</style>
+
+<div class="main-content">
+  <section class="section">
+
+    <div class="card">
+
+      <!-- HEADER -->
+      <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
+
+        <h4 class="mb-0">Categories List</h4>
+
+        <!-- STATUS BUTTONS -->
+        <div class="d-flex gap-2 flex-wrap">
+
+          <a href="/categories"
+             class="btn btn-sm <%= !status ? 'btn-primary' : 'btn-secondary' %>"
+             style="border-radius:0;">
+            All
+          </a>
+
+          <a href="/categories?status=1"
+             class="btn btn-sm <%= status == 1 ? 'btn-primary' : 'btn-secondary' %>"
+             style="border-radius:0;">
+            Active
+          </a>
+
+          <a href="/categories?status=0"
+             class="btn btn-sm <%= status == 0 ? 'btn-primary' : 'btn-secondary' %>"
+             style="border-radius:0;">
+            Inactive
+          </a>
+
+        </div>
+
+        <!-- SEARCH -->
+        <input type="text" id="tableSearch" placeholder="Search..."
+          class="form-control mx-3" style="width:220px;" />
+
+
+<button class="btn btn-primary btn-sm" 
+        style="border-radius:0; margin-left:auto; margin-right:10px;"
+        onclick="openAddCategoryModal()">
+  + Add Category
+</button>
+
+
+      </div>
+
+
+
+
+
+      <!-- TABLE -->
+      <div class="card-body">
+        <div class="table-responsive">
+
+          <table class="table table-bordered table-striped">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Image</th>
+                <th>Status</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <% if(categories.length > 0){ %>
+
+              <% categories.forEach(c => { %>
+                <tr>
+
+                  <td><%= c.id %></td>
+                  <td><%= c.name %></td>
+
+                  <td>
+                    <% if(c.image){ %>
+                      <div class="file-box">
+                        <img src="/<%= c.image %>" onclick="openImageModal('/<%= c.image %>')" class="file-thumb">
+                      </div>
+                    <% } else { %> — <% } %>
+                  </td>
+
+                  <td>
+                    <select onchange="changeStatus('<%= c.id %>', this.value)"
+                      style="
+                        width:110px;
+                        padding:3px 6px;
+                        border-radius:3px;
+                        cursor:pointer;
+                        font-weight:600;
+                        font-size:13px;
+                        border:1px solid <%= c.status == 1 ? '#28a745' : '#dc3545' %>;
+                        color:<%= c.status == 1 ? '#28a745' : '#dc3545' %>;
+                      ">
+                      
+                      <option value="1" style="color:green;font-weight:600;"
+                        <%= c.status == 1 ? 'selected' : '' %>>Active</option>
+
+                      <option value="0" style="color:red;font-weight:600;"
+                        <%= c.status == 0 ? 'selected' : '' %>>Inactive</option>
+
+                    </select>
+                  </td>
+
+                  <td><%= c.created_at %></td>
+
+                </tr>
+              <% }) %>
+
+              <% } else { %>
+                <tr><td colspan="5" class="text-center">No Categories Found</td></tr>
+              <% } %>
+            </tbody>
+
+          </table>
+        </div>
+
+
+        <!-- PAGINATION -->
+        <div class="pagination-container">
+
+          <div class="pagination-left">
+            <span>Items per page:</span>
+
+            <select onchange="changePerPage(this.value)">
+              <option value="8" <%= perPage == 8 ? 'selected' : '' %>>8</option>
+              <option value="10" <%= perPage == 10 ? 'selected' : '' %>>10</option>
+              <option value="15" <%= perPage == 15 ? 'selected' : '' %>>15</option>
+              <option value="20" <%= perPage == 20 ? 'selected' : '' %>>20</option>
+            </select>
+
+            <span>
+              <%= (page - 1) * perPage + 1 %> -
+              <%= Math.min(page * perPage, total) %> of <%= total %>
+            </span>
+          </div>
+
+
+          <div class="pagination-right">
+
+            <a href="?page=1&perPage=<%= perPage %>&status=<%= status %>" class="pg-btn">&laquo;</a>
+
+            <a href="?page=<%= page > 1 ? page - 1 : 1 %>&perPage=<%= perPage %>&status=<%= status %>"
+              class="pg-btn">Previous</a>
+
+            <input type="text" class="pg-input" readonly value="<%= page %>">
+            <span>of <%= totalPages %></span>
+
+            <a href="?page=<%= page < totalPages ? page + 1 : totalPages %>&perPage=<%= perPage %>&status=<%= status %>"
+              class="pg-btn">Next</a>
+
+            <a href="?page=<%= totalPages %>&perPage=<%= perPage %>&status=<%= status %>"
+              class="pg-btn">&raquo;</a>
+
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+
+  </section>
+</div>
+
+
+<!-- IMAGE VIEW MODAL -->
+<div id="imageModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+  background:rgba(0,0,0,0.7); justify-content:center; align-items:center; z-index:9999;">
+  <span onclick="closeModal()" style="position:absolute; top:20px; right:30px; font-size:35px; color:white; cursor:pointer;">×</span>
+  <img id="modalImage" style="max-width:80%; max-height:80%; border-radius:10px;">
+</div>
+
+
+<script>
+function openImageModal(src){
+  document.getElementById("modalImage").src = src;
+  document.getElementById("imageModal").style.display = "flex";
+}
+function closeModal(){
+  document.getElementById("imageModal").style.display = "none";
+}
+
+function changePerPage(val){
+  const url = new URL(window.location.href);
+  url.searchParams.set("perPage", val);
+  url.searchParams.set("page", 1);
+  window.location.href = url.toString();
+}
+
+document.getElementById("tableSearch").addEventListener("keyup", function(){
+  let val = this.value.toLowerCase();
+  document.querySelectorAll("table tbody tr").forEach(r => {
+    r.style.display = r.innerText.toLowerCase().includes(val) ? "" : "none";
+  });
+});
+
+function changeStatus(id, status){
+  swal({
+    title: "Are you sure?",
+    text: status == 1 ? "Activate this category?" : "Deactivate this category?",
+    icon: "warning",
+    buttons: true,
+    dangerMode: true,
+  }).then(ok => {
+    if(ok){
+      window.location.href = `/category-status-update/${id}?status=${status}`;
+    } else {
+      location.reload();
+    }
+  });
+}
+</script>
+<script src="/assets/bundles/sweetalert/sweetalert.min.js"></script>
+
+
+
+
+
+
+
+<!-- ADD CATEGORY BUTTON -->
+
+
+
+<!-- ADD CATEGORY MODAL -->
+<div id="addCategoryModal" 
+     style="
+       display:none; position:fixed; top:0; left:0; 
+       width:100%; height:100%; background:rgba(0,0,0,0.6);
+       justify-content:center; align-items:center; z-index:99999;
+     ">
+
+  <div style="
+      background:#fff; padding:25px; width:400px; 
+      border-radius:4px; position:relative;
+      box-shadow:0 0 25px rgba(0,0,0,0.3);
+  ">
+
+    <!-- CLOSE BUTTON -->
+    <span onclick="closeAddCategoryModal()" 
+          style="position:absolute; right:15px; top:10px;
+                 font-size:25px; cursor:pointer;">×</span>
+
+    <h5 style="margin-bottom:20px;">Add New Category</h5>
+
+    <form action="/category-add" method="POST" enctype="multipart/form-data">
+
+      <!-- CATEGORY NAME -->
+      <label>Category Name</label>
+      <input type="text" name="name" required
+             class="form-control"
+             style="border-radius:0; margin-bottom:15px;">
+
+      <!-- IMAGE UPLOAD -->
+      <label>Category Image</label>
+      <input type="file" name="image" accept="image/*" required
+             class="form-control"
+             style="border-radius:0; margin-bottom:15px;"
+             onchange="previewCatImage(event)">
+
+      <!-- IMAGE PREVIEW -->
+      <div id="catPreviewBox" 
+           style="display:none; margin-bottom:15px;"
+           class="file-box">
+        <img id="catPreviewImg" class="file-thumb">
+      </div>
+
+      <!-- SUBMIT -->
+      <button class="btn btn-primary btn-sm" type="submit" 
+              style="border-radius:0; width:100%;">
+        Add Category
+      </button>
+
+    </form>
+
+  </div>
+</div>
+
+
+
+
+
+
+
+<script>
+function openAddCategoryModal(){
+  document.getElementById("addCategoryModal").style.display = "flex";
+}
+
+function closeAddCategoryModal(){
+  document.getElementById("addCategoryModal").style.display = "none";
+}
+
+function previewCatImage(e){
+  const img = document.getElementById("catPreviewImg");
+  img.src = URL.createObjectURL(e.target.files[0]);
+  document.getElementById("catPreviewBox").style.display = "inline-flex";
+}
+</script>
