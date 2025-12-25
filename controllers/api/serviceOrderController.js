@@ -1098,7 +1098,7 @@ export async function getServicemanRatings(req, res) {
       });
     }
 
-    // ✅ SAME BASE_URL PATTERN (as used everywhere else)
+
     const BASE_URL = process.env.BASE_URL || "";
 
     const [rows] = await db.query(

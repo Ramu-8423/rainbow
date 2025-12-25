@@ -32,10 +32,60 @@
       text-overflow: ellipsis;
     }
   </style>
+ 
+ 
+<style>
+/* Full screen loader wrapper */
+.page-loader{
+  position: fixed;
+  inset: 0;
+  background: rgba(255,255,255,0.96);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+}
+
+/* NEW loader class */
+.cute-loader{
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  border: 6px solid #e5e7eb;
+  border-top-color: #6777ef;
+  border-right-color: #ffa426;
+  animation: spinCute 1s linear infinite;
+  box-shadow: 0 0 18px rgba(103,119,239,0.35);
+}
+
+@keyframes spinCute{
+  to{
+    transform: rotate(360deg);
+  }
+}
+
+</style>
+
 </head>
 
 <body>
-  <div class="loader"></div>
+ 
+ 
+ <div class="page-loader">
+  <div class="cute-loader"></div>
+</div>
+
+ 
+  
+<script>
+  window.addEventListener("load", function () {
+    const loader = document.querySelector(".page-loader");
+    if (loader) loader.style.display = "none";
+  });
+</script>
+
+
+
   <div id="app">
     <div class="main-wrapper main-wrapper-1">
       <div class="navbar-bg"></div>

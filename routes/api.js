@@ -73,15 +73,40 @@ vehicles
 } from "../controllers/api/cabBookingController.js";
 
 
+
+
+
+
+import {
+driverOnlineStatus,
+getVehicleAmountList,
+getDriverCanDiscount,
+cabOrder,
+getDriverProfilePhotos,
+addOrUpdateDriverOffer
+} from "../controllers/api/CaborderController.js";
+
+
 import {
 driverRegister,
-getDriverProfile
+getDriverProfile,
+getBrandByVehicle,
+getModelByBrand,
+getColors
 } from "../controllers/api/driverController.js";
 
 
 
 
 const router = express.Router();
+
+
+
+import { sendOtp, verifyOtp, getOTPCount} from "../controllers/api/otpVerifyController.js";
+
+router.post("/send-otp", sendOtp);
+router.post("/verify-otp", verifyOtp);
+
 
 /* =======================
    USER AUTH & PROFILE
@@ -221,13 +246,18 @@ router.post(
 );
 
 
-
-
 router.post("/driver_profile", getDriverProfile);
+router.post("/get-brand", getBrandByVehicle);
+router.post("/get-model", getModelByBrand);
+router.get("/colors", getColors);
+router.post("/driver-online-status", driverOnlineStatus);
+router.post("/vehicle-amount-list", getVehicleAmountList);
+router.post("/driver-can-discount", getDriverCanDiscount);
+router.post("/cab_order", cabOrder);
+router.post("/driver-profile-photos", getDriverProfilePhotos);
+router.post("/driver-offer", addOrUpdateDriverOffer);
 
-
-
-
+router.get("/count_otp", getOTPCount);
 
 
 

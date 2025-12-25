@@ -23,7 +23,11 @@ updateRequestStatus
 
 
 import { 
-allServisesa
+allServisesa,
+getSubcategoriesByCategory,
+storeService,
+updateServiceStatus,
+deleteService
 } from "../controllers/serviceController.js";
 
 import { uploadImageDynamic } from "../middleware/upload.js";
@@ -76,5 +80,24 @@ router.get(
 
 
 router.get("/servises/:id", allServisesa);
+
+
+router.get("/ajax/subcategories/:category_id", getSubcategoriesByCategory);
+router.post(
+  "/ajax/add-service",
+  uploadImageDynamic("serviceImage").single("image"),
+  storeService
+);
+
+
+router.get(
+  "/service-status-update/:id",
+  updateServiceStatus
+);
+
+router.get(
+  "/service-delete/:id",
+  deleteService
+);
 
 export default router;

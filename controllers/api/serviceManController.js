@@ -85,7 +85,6 @@ export const servicemanRegisterValidation = [
 ];
 
 
-
 export const servicemanRegister = [
   ...servicemanRegisterValidation,
 
@@ -186,6 +185,7 @@ export const servicemanRegister = [
       return res.status(201).json({
         success: true,
         message: "Serviceman registered successfully",
+        platform_type: 1,
         serviceman_id: result.insertId
       });
 
@@ -201,12 +201,11 @@ export const servicemanRegister = [
 ];
 
 
-
 export async function servicemanLogin(req, res) {
   const { phone, fcm_token, device_id } = req.body;
+
   if (!phone) {
     return res.status(400).json({
-      success: false,
       message: "Phone number is required",
       data: null,
       errors: null
@@ -215,7 +214,6 @@ export async function servicemanLogin(req, res) {
 
   if (!fcm_token) {
     return res.status(400).json({
-      success: false,
       message: "FCM token is required",
       data: null,
       errors: null
@@ -224,7 +222,6 @@ export async function servicemanLogin(req, res) {
 
   if (!device_id) {
     return res.status(400).json({
-      success: false,
       message: "Device ID is required",
       data: null,
       errors: null
@@ -247,7 +244,6 @@ export async function servicemanLogin(req, res) {
 
       if (man.login_status === 0) {
         return res.status(403).json({
-          success: false,
           message: "Your account is deactivated. Please contact support.",
           data: null,
           errors: null
@@ -262,26 +258,24 @@ export async function servicemanLogin(req, res) {
       );
 
       return res.status(200).json({
-        success: true,
         message: "Login successful",
         role: "serviceman",
         serviceman_id: man.id,
+        platform_type: 1,          
         errors: null
       });
     }
 
     /* =====================================================
        STEP 2: CHECK DRIVER REGISTRATION TABLE
-       (mobile field, not phone)
     ===================================================== */
     const [drivers] = await db.query(
-      "SELECT id, platform_type FROM driver_registration WHERE mobile = ? LIMIT 1",
+      "SELECT id FROM driver_registration WHERE mobile = ? LIMIT 1",
       [phone]
     );
 
     if (drivers.length === 0) {
       return res.status(404).json({
-        success: false,
         message: "User not found",
         data: null,
         errors: null
@@ -290,27 +284,24 @@ export async function servicemanLogin(req, res) {
 
     const driver = drivers[0];
 
-    // Update FCM + Device ID in driver_registration
     await db.query(
       `UPDATE driver_registration
-       SET fcm_token = ?, device_id = ?, updated_at = ?
+       SET fcm_token = ?, device_id = ?, updated_at = ?, platform_type = 2
        WHERE id = ?`,
       [fcm_token, device_id, Current_time, driver.id]
     );
 
     return res.status(200).json({
-      success: true,
       message: "Login successful",
       role: "driver",
       driver_id: driver.id,
-      platform_type: driver.platform_type,
+      platform_type: 2,          
       errors: null
     });
 
   } catch (err) {
     console.log("Combined Login Error:", err);
     return res.status(500).json({
-      success: false,
       message: "Internal Server Error",
       data: null,
       errors: err.message
@@ -321,9 +312,9 @@ export async function servicemanLogin(req, res) {
 
 
 
-export async function servicemanProfile(req, res) {
 
-  // STEP 1: Check body exists (same style as login API)
+export async function servicemanProfile(req, res) {
+    
   if (!req.body || Object.keys(req.body).length === 0) {
     return res.status(400).json({
       success: false,

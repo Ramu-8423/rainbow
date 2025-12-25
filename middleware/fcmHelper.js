@@ -19,6 +19,8 @@ export const FCMHelper = {
         key: serviceAccount.private_key,
         scopes: ["https://www.googleapis.com/auth/firebase.messaging"],
       });
+      
+    
 
       const accessTokenResponse = await client.authorize();
       const accessToken = accessTokenResponse.access_token;
