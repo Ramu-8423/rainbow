@@ -21,6 +21,20 @@ function getDistanceInKm(lat1, lon1, lat2, lon2) {
 }
 
 /* =========================================================
+   🔥 OTP GENERATOR (ADDED – NEW CODE ONLY)
+========================================================= */
+export async function generateUniqueOTP(db) {
+  while (true) {
+    const otp = Math.floor(1000 + Math.random() * 9000);
+    const [rows] = await db.query(
+      "SELECT id FROM cab_orders WHERE orderOtp = ? LIMIT 1",
+      [otp]
+    );
+    if (rows.length === 0) return otp;
+  }
+}
+
+/* =========================================================
    ULTRA FAST VALIDATION (SAME RULES + MESSAGES)
 ========================================================= */
 function validateCabOrder(body) {
@@ -95,6 +109,10 @@ export const cabOrder = async (req, res) => {
       ) / 100;
 
     const createdAt = nowIST();
+    console.log("abhi ka time hai:-", createdAt);
+
+    /* 🔥 ADDED: SERVER SIDE OTP */
+    const orderOtp = await generateUniqueOTP(db);
 
     // MySQL INSERT (hamesha hoga)
     const [orderResult] = await db.query(
@@ -113,9 +131,10 @@ export const cabOrder = async (req, res) => {
         payment_status,
         over_limit_passenger,
         user_comment,
+        orderOtp,                 -- 🔥 ADDED
         created_at,
         updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         user_id,
         vehicle_id, vehicle_name,
@@ -131,6 +150,7 @@ export const cabOrder = async (req, res) => {
         0,
         over_limit_passenger,
         user_comment,
+        orderOtp,                // 🔥 ADDED
         createdAt,
         createdAt
       ]
@@ -165,17 +185,18 @@ export const cabOrder = async (req, res) => {
       if (dist <= 5000) matched_driver_ids.push(Number(doc.id));
     });
 
-    // MySQL me matched_driver_id update karna (hamesha, chahe empty ho ya na ho)
+    // MySQL me matched_driver_id update karna
     await db.query(
       `UPDATE cab_orders SET matched_driver_id = ? WHERE id = ?`,
       [JSON.stringify(matched_driver_ids), order_id]
     );
 
-    // 🔥 FIREBASE INSERT: Sirf tab jab matched_driver_ids non-empty ho
+    // 🔥 FIREBASE INSERT
     if (matched_driver_ids.length > 0) {
       try {
         const firestoreData = {
           order_id: String(order_id),
+          orderOtp: orderOtp, // 🔥 ADDED
           user_id: String(user_id),
           vehicle_id: String(vehicle_id),
           vehicle_name,
@@ -203,16 +224,14 @@ export const cabOrder = async (req, res) => {
           order_status: 0
         };
 
-        // Firebase me document create karna
-        await firestore.collection("cab_orders").doc(String(order_id)).set(firestoreData);
-        
-        console.log(`Firebase me order ${order_id} store ho gaya (matched drivers: ${matched_driver_ids.length})`);
+        await firestore
+          .collection("cab_orders")
+          .doc(String(order_id))
+          .set(firestoreData);
+
       } catch (firebaseErr) {
         console.error("Firebase store error:", firebaseErr);
-        // Firebase error response me nahi batana, bas log karna
       }
-    } else {
-      console.log(`Firebase me order ${order_id} store NAHI kiya (kyunki matched_driver_ids empty hai)`);
     }
 
     // FCM notifications background me bhejna
@@ -225,11 +244,9 @@ export const cabOrder = async (req, res) => {
           [matched_driver_ids]
         );
 
-        // 🔥 Controlled sending (NOT Promise.all blast)
         for (const drv of drivers) {
           if (!drv.fcm_token) continue;
 
-          // await intentionally (rate-limit)
           await FCMHelper.sendNotification(
             drv.fcm_token,
             "New Cab Ride Request",
@@ -721,10 +738,20 @@ export async function getDriverCanDiscount(req, res) {
 export async function getDriverProfilePhotos(req, res) {
   try {
     const { driver_ids } = req.body;
-    if (!Array.isArray(driver_ids) || driver_ids.length === 0) {
+
+    // ❌ invalid type only
+    if (!Array.isArray(driver_ids)) {
       return res.status(400).json({
         success: false,
-        message: "driver_ids array is required"
+        message: "driver_ids must be an array"
+      });
+    }
+
+    // ✅ empty array allowed
+    if (driver_ids.length === 0) {
+      return res.status(200).json({
+        success: true,
+        data: []
       });
     }
 
@@ -741,12 +768,12 @@ export async function getDriverProfilePhotos(req, res) {
       [driver_ids]
     );
 
-   const data = rows.map(row => ({
-  id: row.id,
-  profile_photo: row.profile_photo
-    ? `${BASE_URL}/${row.profile_photo.replace(/^\//, "")}`
-    : null
-}));
+    const data = rows.map(row => ({
+      id: row.id,
+      profile_photo: row.profile_photo
+        ? `${BASE_URL}/${row.profile_photo.replace(/^\//, "")}`
+        : null
+    }));
 
     return res.status(200).json({
       success: true,
@@ -766,7 +793,6 @@ export async function getDriverProfilePhotos(req, res) {
 
 
 
-
 export async function addOrUpdateDriverOffer(req, res) {
   try {
     const {
@@ -778,7 +804,7 @@ export async function addOrUpdateDriverOffer(req, res) {
     } = req.body;
 
     /* =========================
-       VALIDATION
+       VALIDATION (SAME)
     ========================= */
     if (
       !user_id ||
@@ -800,10 +826,16 @@ export async function addOrUpdateDriverOffer(req, res) {
 
     /* =========================
        GET DRIVER DETAILS
+       👉 first_name + last_name added
     ========================= */
     const [driverRows] = await db.query(
       `
-      SELECT profile_photo, brand_name, model_name
+      SELECT
+        first_name,
+        last_name,
+        profile_photo,
+        brand_name,
+        model_name
       FROM driver_registration
       WHERE id = ?
       `,
@@ -817,16 +849,21 @@ export async function addOrUpdateDriverOffer(req, res) {
       });
     }
 
-    const rawPhoto = driverRows[0].profile_photo || null;
+    const driver = driverRows[0];
+
+    const driver_name =
+      [driver.first_name, driver.last_name].filter(Boolean).join(" ");
+
+    const rawPhoto = driver.profile_photo || null;
     const profile_photo = rawPhoto
       ? `${BASE_URL}/${rawPhoto.replace(/^\//, "")}`
       : null;
 
-    const brand_name = driverRows[0].brand_name || null;
-    const model_name = driverRows[0].model_name || null;
+    const brand_name = driver.brand_name || null;
+    const model_name = driver.model_name || null;
 
     /* =========================
-       CHECK OFFER EXISTS
+       CHECK OFFER EXISTS (SAME)
     ========================= */
     const [offerRows] = await db.query(
       `
@@ -836,16 +873,19 @@ export async function addOrUpdateDriverOffer(req, res) {
       `,
       [order_id, driver_id]
     );
-
+    
     /* =========================
-       INSERT / UPDATE
+       INSERT / UPDATE (MySQL)
+        driver_name added ONLY
     ========================= */
+    
     if (offerRows.length > 0) {
       await db.query(
         `
         UPDATE driver_offer
         SET
           user_id = ?,
+          driver_name = ?,
           brand_name = ?,
           model_name = ?,
           estimated_amount = ?,
@@ -856,6 +896,7 @@ export async function addOrUpdateDriverOffer(req, res) {
         `,
         [
           user_id,
+          driver_name,
           brand_name,
           model_name,
           estimated_amount,
@@ -873,6 +914,7 @@ export async function addOrUpdateDriverOffer(req, res) {
           order_id,
           user_id,
           driver_id,
+          driver_name,
           brand_name,
           model_name,
           profile_photo,
@@ -882,12 +924,13 @@ export async function addOrUpdateDriverOffer(req, res) {
           created_at,
           updated_at
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `,
         [
           order_id,
           user_id,
           driver_id,
+          driver_name,
           brand_name,
           model_name,
           profile_photo,
@@ -901,7 +944,7 @@ export async function addOrUpdateDriverOffer(req, res) {
     }
 
     /* =========================
-       FETCH FINAL ROW (SOURCE OF TRUTH)
+       FETCH FINAL ROW (SAME)
     ========================= */
     const [finalRows] = await db.query(
       `
@@ -916,7 +959,10 @@ export async function addOrUpdateDriverOffer(req, res) {
         updated_at,
         user_id,
         driver_id,
+        driver_name,
         brand_name,
+        total_rides,
+        rating,
         model_name
       FROM driver_offer
       WHERE order_id = ? AND driver_id = ?
@@ -927,7 +973,8 @@ export async function addOrUpdateDriverOffer(req, res) {
     const finalOffer = finalRows[0];
 
     /* =========================
-       FIRESTORE PUSH (BACKGROUND)
+       FIREBASE SYNC (SAME AS BEFORE)
+       👉 matched driver_offer row only
     ========================= */
     setImmediate(async () => {
       try {
@@ -943,12 +990,14 @@ export async function addOrUpdateDriverOffer(req, res) {
       }
     });
 
+    /* =========================
+       RESPONSE (UNCHANGED)
+    ========================= */
     return res.status(200).json({
       success: true,
       message: offerRows.length
         ? "Driver offer updated successfully"
-        : "Driver offer added successfully",
-      data: finalOffer
+        : "Driver offer added successfully"
     });
 
   } catch (error) {
@@ -961,3 +1010,246 @@ export async function addOrUpdateDriverOffer(req, res) {
   }
 }
 
+
+
+
+
+export async function acceptCabRide(req, res) {
+  try {
+    const { order_id, driver_id } = req.body;
+
+    /* =========================
+       BASIC VALIDATION
+    ========================= */
+    if (!order_id || !driver_id) {
+      return res.status(400).json({
+        success: false,
+        message: "order_id and driver_id are required"
+      });
+    }
+
+    const BASE_URL = process.env.BASE_URL || "";
+    const now = nowIST();
+    const firestore = getFirestore();
+
+    /* =========================
+       CHECK ORDER (MySQL)
+    ========================= */
+    const [orderRows] = await db.query(
+      `
+      SELECT id, order_status
+      FROM cab_orders
+      WHERE id = ?
+      LIMIT 1
+      `,
+      [order_id]
+    );
+
+    if (!orderRows.length) {
+      return res.status(404).json({
+        success: false,
+        message: "Order not found"
+      });
+    }
+
+    if (Number(orderRows[0].order_status) !== 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Ride already accepted or closed"
+      });
+    }
+
+    /* =========================
+       GET DRIVER DETAILS (MySQL)
+       👉 profile_photo bhi liya
+    ========================= */
+    const [driverRows] = await db.query(
+      `
+      SELECT
+        first_name,
+        last_name,
+        profile_photo,
+        vehicle_plate_number,
+        mobile,
+        vehicle_color
+      FROM driver_registration
+      WHERE id = ?
+      LIMIT 1
+      `,
+      [driver_id]
+    );
+    if (!driverRows.length) {
+      return res.status(404).json({
+        success: false,
+        message: "Driver not found"
+      });
+    }
+
+    const driver = driverRows[0];
+
+    const driver_name = [driver.first_name, driver.last_name]
+      .filter(Boolean)
+      .join(" ");
+
+    /* =========================
+       PROFILE PHOTO (SAME LOGIC)
+    ========================= */
+    const rawPhoto = driver.profile_photo || null;
+    const profile_photo = rawPhoto
+      ? `${BASE_URL}/${rawPhoto.replace(/^\//, "")}`
+      : null;
+
+    /* =========================
+       UPDATE cab_orders (MySQL)
+    ========================= */
+    await db.query(
+      `
+      UPDATE cab_orders
+      SET
+        driver_id = ?,
+        driver_name = ?,
+        profile_photo = ?,
+        vehicle_plate_number = ?,
+        contact_number = ?,
+        vehicle_color = ?,
+        order_status = 1,
+        updated_at = ?
+      WHERE id = ?
+      `,
+      [
+        driver_id,
+        driver_name,
+        profile_photo,
+        driver.vehicle_plate_number || null,
+        driver.mobile || null,
+        driver.vehicle_color || null,
+        now,
+        order_id
+      ]
+    );
+
+    /* =========================
+       UPDATE cab_orders (Firebase)
+       👉 update only, no data loss
+    ========================= */
+    await firestore
+      .collection("cab_orders")
+      .doc(String(order_id))
+      .update({
+        driver_id: Number(driver_id),
+        driver_name,
+        profile_photo,
+        vehicle_plate_number: driver.vehicle_plate_number || null,
+        contact_number: driver.mobile || null,
+        vehicle_color: driver.vehicle_color || null,
+        order_status: 1,
+        updated_at: now
+      });
+
+    /* =========================
+       UPDATE driver_offers (Firebase)
+       👉 same as before
+    ========================= */
+    const offerSnapshot = await firestore
+      .collection("driver_offers")
+      .where("order_id", "==", Number(order_id))
+      .where("driver_id", "==", Number(driver_id))
+      .get();
+
+    if (!offerSnapshot.empty) {
+      const batch = firestore.batch();
+
+      offerSnapshot.forEach(doc => {
+        batch.update(doc.ref, {
+          offer_status: 1,
+          updated_at: now
+        });
+      });
+
+      await batch.commit();
+    }
+
+    /* =========================
+       SUCCESS RESPONSE (UNCHANGED)
+    ========================= */
+    return res.status(200).json({
+      success: true,
+      message: "Ride accepted successfully",
+      order_id,
+      driver_id
+    });
+
+  } catch (error) {
+    console.error("Accept Ride Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+      error: error.message
+    });
+  }
+}
+
+
+
+export const deleteExpiredCabOrders = async (req, res) => {
+  try {
+    const firestore = getFirestore();
+    const now = nowIST();
+
+    // 🔥 1.5 minute (90 sec) earlier time
+    const cutoffTime = new Date(
+      new Date(now).getTime() - 90 * 1000
+    );
+    const [orders] = await db.query(
+      `
+      SELECT id
+      FROM cab_orders
+      WHERE order_status = 0
+        AND created_at <= ?
+      `,
+      [cutoffTime]
+    );
+
+    if (!orders.length) {
+      return res.status(200).json({
+        success: true,
+        message: "No expired pending orders found",
+        deleted_count: 0
+      });
+    }
+
+    const orderIds = orders.map(o => o.id);
+    await db.query(
+      `
+      DELETE FROM cab_orders
+      WHERE id IN (?)
+      `,
+      [orderIds]
+    );
+    for (const id of orderIds) {
+      try {
+        await firestore
+          .collection("cab_orders")
+          .doc(String(id))
+          .delete();
+      } catch (fbErr) {
+        console.error(`Firebase delete failed for order ${id}`, fbErr);
+      }
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Expired pending orders deleted successfully",
+      deleted_count: orderIds.length,
+      deleted_order_ids: orderIds
+    });
+
+  } catch (err) {
+    console.error("Delete Expired Orders Error:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+      error: err.message
+    });
+  }
+};

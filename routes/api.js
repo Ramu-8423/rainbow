@@ -83,7 +83,9 @@ getVehicleAmountList,
 getDriverCanDiscount,
 cabOrder,
 getDriverProfilePhotos,
-addOrUpdateDriverOffer
+addOrUpdateDriverOffer,
+acceptCabRide,
+deleteExpiredCabOrders
 } from "../controllers/api/CaborderController.js";
 
 
@@ -258,6 +260,8 @@ router.post("/driver-profile-photos", getDriverProfilePhotos);
 router.post("/driver-offer", addOrUpdateDriverOffer);
 
 router.get("/count_otp", getOTPCount);
+router.post("/accept-cab-ride", acceptCabRide);
+router.get("/delete-expired-orders", deleteExpiredCabOrders);
 
 
 

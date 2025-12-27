@@ -79,7 +79,7 @@ router.get(
 );
 
 
-router.get("/servises/:id", allServisesa);
+router.get("/services/:id", allServisesa);
 
 
 router.get("/ajax/subcategories/:category_id", getSubcategoriesByCategory);
@@ -99,5 +99,7 @@ router.get(
   "/service-delete/:id",
   deleteService
 );
+
+
 
 export default router;
