@@ -14,12 +14,26 @@ import {
     addSubcategory
 } from "../controllers/PublicController.js";
 
+import { 
+driver_controller,
+driverView,
+updateDriverStatus,
+approveAllDocuments,
+driverLoginStatus
+} from "../controllers/driverController.js";
 
 import { 
 getBankDetails,
 getBankUpdateRequests,
 updateRequestStatus
 } from "../controllers/BankController.js";
+
+
+import { 
+vehicleList,
+addVehicle,
+updateVehicleStatus
+} from "../controllers/vehicleController.js";
 
 
 import { 
@@ -101,5 +115,22 @@ router.get(
 );
 
 
+router.get("/all-drivers", driver_controller);
+router.get("/driver-view/:id", driverView);
+router.get("/driver-status-update/:id", updateDriverStatus);
+router.post("/driver-approve-all", approveAllDocuments);
+router.get("/driver-login-status-update/:id", driverLoginStatus);
 
+
+router.get("/vehicle-list", vehicleList);
+router.post(
+  "/vehicle-add",
+  uploadImageDynamic("cabbooking/vehicle_image").single("image"),
+  addVehicle
+);
+
+router.get(
+  "/vehicle-status-update/:id",
+  updateVehicleStatus
+);
 export default router;

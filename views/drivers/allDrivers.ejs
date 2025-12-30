@@ -1,0 +1,469 @@
+<style>
+ /* ================= VERIFY GRID ================= */
+  .verify-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+
+  .verify-item {
+    font-size: 12px;
+  }
+
+  .verify-title {
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  /* ================= ACTION EYE ================= */
+  .action-eye {
+    width: 42px;
+    height: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #000;
+    border-radius: 4px;
+    color: #000;
+    font-size: 18px;
+    text-decoration: none;
+  }
+
+  .action-eye:hover {
+    background: #000;
+    color: #fff;
+  }
+
+  .file-box {
+    width: 50px;
+    height: 50px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    overflow: hidden;
+    background: #f1f1f1;
+    margin-right: 6px;
+    cursor: pointer;
+    vertical-align: middle;
+  }
+
+  .file-box img {
+    display: block;
+  }
+
+  .file-thumb {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .pagination-container {
+    margin-top: 25px;
+    padding: 12px 10px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid #ddd;
+    gap: 12px;
+  }
+
+  .pagination-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .pagination-left select {
+    padding: 5px 8px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+  }
+
+  .pagination-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .pg-btn {
+    padding: 6px 12px;
+    border: 1px solid #007bff;
+    color: #007bff;
+    border-radius: 4px;
+    text-decoration: none;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .pg-btn:hover {
+    background: #007bff;
+    color: #fff;
+  }
+
+  .pg-input {
+    width: 45px;
+    text-align: center;
+    padding: 5px;
+    border: 1px solid #aaa;
+    border-radius: 4px;
+  }
+
+  .card-header {
+    gap: 10px;
+  }
+
+  .filter-form {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .card-header .form-control {
+    border-radius: 0 !important;
+  }
+</style>
+
+
+<div class="main-content">
+<section class="section">
+<div class="card">
+
+<!-- ================= HEADER ================= -->
+<div class="card-header d-flex justify-content-between align-items-center flex-wrap">
+
+  <h4 class="mb-0">Drivers List</h4>
+
+  <input
+    type="text"
+    id="tableSearch"
+    placeholder="Search..."
+    class="form-control mx-3"
+    style="width:220px;"
+  />
+
+  <form class="filter-form" method="GET">
+    <input type="date" name="from" value="<%= from || '' %>" class="form-control" style="width:150px;">
+    <input type="date" name="to" value="<%= to || '' %>" class="form-control" style="width:150px;">
+
+    <button class="btn btn-primary btn-sm">Filter</button>
+
+    <% if (isFiltered) { %>
+      <a href="/all-drivers" class="btn btn-secondary btn-sm">Reset</a>
+    <% } %>
+  </form>
+
+</div>
+
+<!-- ================= TABLE ================= -->
+<div class="card-body">
+<div class="table-responsive">
+
+<table class="table table-bordered table-striped">
+<thead>
+<tr>
+  <th>ID</th>
+  <th>Name</th>
+  <th>Mobile</th>
+  <th>Driver Photo</th>
+  <th>Documents Verification</th>
+  <th>Verification Action</th>
+  <th>Login Status</th>
+  <th>Date</th>
+</tr>
+</thead>
+
+<tbody>
+<% if (drivers.length > 0) { %>
+
+<% drivers.forEach(d => { %>
+<tr>
+  <td><%= d.id %></td>
+  <td><%= d.first_name %> <%= d.last_name %></td>
+  <td><%= d.mobile %></td>
+
+  <!-- ================= VERIFICATION ================= -->
+  <td>
+      <% if (d.profile_photo) { %>
+        <div class="file-box">
+         <img src="/<%= d.profile_photo %>" onclick="openImageModal('/<%= d.profile_photo %>')" class="file-thumb">
+               </div>
+                <% } else { %> — <% } %>
+     </td>
+<td>
+  <div class="verify-grid">
+    <% 
+      const items = [
+        ["Personal Info", "personal_information_status"],
+        ["Vehicle Info", "vehicle_info_status"],
+        ["Driver Licence", "driver_licence_status"],
+        ["Aadhaar / PAN", "aadhaar_pan_status"],
+        ["Certificates", "required_certificates_status"],
+        ["Vehicle Docs", "vehicle_documents_status"]
+      ];
+
+      /*
+        STATUS MAP (FINAL)
+        0 = Is Not Filled  ✖ yellow
+        1 = Submitted      ✔ blue
+        2 = Approved       ✔ green
+        3 = Rejected       ✖ red
+      */
+      function renderStatus(val){
+        if (val === 1) {
+          return `
+            <span style="color:#007bff;font-weight:700;">✔</span>
+            <span style="color:#007bff;font-weight:700;">Submitted</span>
+          `;
+        }
+        if (val === 2) {
+          return `
+            <span style="color:#00ff00;font-weight:700;">✔</span>
+            <span style="color:#00ff00;font-weight:700;">Approved</span>
+          `;
+        }
+        if (val === 3) {
+          return `
+            <span style="color:#dc3545;font-weight:700;">✖</span>
+            <span style="color:#dc3545;font-weight:700;">Rejected</span>
+          `;
+        }
+        return `
+          <span style="color:red;font-weight:700;">✖</span>
+          <span style="color:red;font-weight:700;">Is Not Filled</span>
+        `;
+      }
+    %>
+
+    <% items.forEach(i => { %>
+      <div class="verify-item">
+        <div class="verify-title"><%= i[0] %></div>
+        <div>
+          <%- renderStatus(d[i[1]]) %>
+        </div>
+      </div>
+    <% }) %>
+  </div>
+</td>
+
+
+
+  <!-- ================= ACTION ================= -->
+  <td class="text-center">
+    <a href="/driver-view/<%= d.id %>" class="action-eye" title="View">
+      <i class="fa fa-eye"></i>
+    </a>
+  </td>
+
+
+<td style="white-space:nowrap;">
+
+  <select 
+    class="status-select"
+    data-status="<%= d.login_status %>"
+    onchange="changeStatus('<%= d.id %>', this.value)"
+    style="
+      width:110px;
+      padding:3px 6px;
+      font-size:13px;
+      border-radius:3px;
+      cursor:pointer;
+      border:1px solid <%= d.login_status == 1 ? '#28a745' : '#dc3545' %>;
+      color:<%= d.login_status == 1 ? '#28a745' : '#dc3545' %>;
+      font-weight:600;
+      vertical-align:middle;
+    "
+  >
+    <option value="1" style="color:green; font-weight:600;"
+      <%= d.login_status == 1 ? 'selected' : '' %>>
+      Active
+    </option>
+
+    <option value="0" style="color:red; font-weight:600;"
+      <%= d.login_status == 0 ? 'selected' : '' %>>
+      Inactive
+    </option>
+  </select>
+
+  <% if (d.login_status == 0 && d.login_status_inactive_reasion) { 
+     const words = d.login_status_inactive_reasion.split(" ");
+%>
+  <div style="
+    margin-top:4px;
+    font-size:11px;
+    color:#dc3545;
+    font-weight:500;
+  ">
+    Reason:
+    <span>
+      <% for (let i = 0; i < words.length; i++) { %>
+        <%= words[i] %>
+        <% if ((i + 1) % 10 === 0 && i !== words.length - 1) { %>
+          <br>
+        <% } else { %>
+          &nbsp;
+        <% } %>
+      <% } %>
+    </span>
+  </div>
+<% } %>
+
+
+</td>
+
+
+  <td><%= d.created_at %></td>
+</tr>
+<% }) %>
+
+<% } else { %>
+<tr>
+  <td colspan="6" class="text-center">No drivers found</td>
+</tr>
+<% } %>
+</tbody>
+</table>
+
+</div>
+
+<!-- ================= PAGINATION ================= -->
+<%
+function buildQuery(p){
+  let q = `?page=${p}&perPage=${perPage}`;
+  if(from) q += `&from=${from}`;
+  if(to) q += `&to=${to}`;
+  return q;
+}
+%>
+
+<div class="pagination-container">
+
+<div class="pagination-left">
+  <span>Items per page:</span>
+  <select onchange="changePerPage(this.value)">
+    <option value="8" <%= perPage==8?'selected':'' %>>8</option>
+    <option value="10" <%= perPage==10?'selected':'' %>>10</option>
+    <option value="15" <%= perPage==15?'selected':'' %>>15</option>
+  </select>
+
+  <span>
+    <%= (page-1)*perPage+1 %> –
+    <%= Math.min(page*perPage,total) %>
+    of <%= total %>
+  </span>
+</div>
+
+<div class="pagination-right">
+  <a href="<%= buildQuery(1) %>" class="pg-btn">&laquo;</a>
+  <a href="<%= buildQuery(page>1?page-1:1) %>" class="pg-btn">Previous</a>
+  <input class="pg-input" readonly value="<%= page %>">
+  <span>of <%= totalPages %></span>
+  <a href="<%= buildQuery(page<totalPages?page+1:totalPages) %>" class="pg-btn">Next</a>
+  <a href="<%= buildQuery(totalPages) %>" class="pg-btn">&raquo;</a>
+</div>
+
+</div>
+
+</div>
+</div>
+</section>
+</div>
+
+
+
+<script>
+document.getElementById("tableSearch").addEventListener("keyup", function(){
+  let v = this.value.toLowerCase();
+  document.querySelectorAll("tbody tr").forEach(r=>{
+    r.style.display = r.innerText.toLowerCase().includes(v) ? "" : "none";
+  });
+});
+
+function changePerPage(v){
+  const u = new URL(location.href);
+  u.searchParams.set("perPage",v);
+  u.searchParams.set("page",1);
+  location.href = u.toString();
+}
+</script>
+
+
+
+<script>
+function changeStatus(id, newStatus){
+
+  let text = newStatus == 1 
+      ? "You want to activate this user?"
+      : "You want to deactivate this user?";
+
+  swal({
+    title: "Are you sure?",
+    text: text,
+    icon: "warning",
+    buttons: true,
+    dangerMode: true,
+  }).then((ok) => {
+
+    if (!ok) {
+      // Refresh page to revert dropdown selection
+      location.reload();
+      return;
+    }
+
+    // If deactivating → ask for reason
+    if (newStatus == 0) {
+      swal({
+        title: "Reason Required",
+        text: "Please enter reason:",
+        content: "input",
+        buttons: true
+      }).then((reason) => {
+
+        if (!reason) {
+          swal("Reason is required!", { icon: "error" });
+          location.reload();
+          return;
+        }
+
+        // Send to backend
+        window.location.href = `/driver-login-status-update/${id}?status=0&reason=${encodeURIComponent(reason)}`;
+      });
+    } 
+    else {
+      // Activate directly
+      window.location.href = `/driver-login-status-update/${id}?status=1`;
+    }
+
+  });
+}
+</script>
+
+<div id="imageModal" style="
+  display:none; position:fixed;
+  top:0; left:0; width:100%; height:100%;
+  background:rgba(0,0,0,0.7);
+  justify-content:center; align-items:center;
+  z-index:9999;
+">
+  <span onclick="closeModal()" style="position:absolute; top:20px; right:30px; font-size:35px; color:white; cursor:pointer;">&times;</span>
+  <img id="modalImage" style="max-width:80%; max-height:80%; border-radius:10px;">
+</div>
+
+<script>
+function openImageModal(src){
+  document.getElementById("modalImage").src = src;
+  document.getElementById("imageModal").style.display = "flex";
+}
+function closeModal(){
+  document.getElementById("imageModal").style.display = "none";
+}
+</script>
+
+
+
+<script src="assets/bundles/sweetalert/sweetalert.min.js"></script>
+<script src="assets/js/page/sweetalert.js"></script>

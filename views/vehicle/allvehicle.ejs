@@ -1,0 +1,265 @@
+<style>
+.file-box{
+  width:50px;height:50px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:6px;
+  overflow:hidden;
+  background:#f1f1f1;
+}
+.file-thumb{width:100%;height:100%;object-fit:cover}
+.card-header{gap:10px}
+.card-header .form-control{border-radius:0!important}
+.error-text{
+  display:block;
+  margin-top:4px;
+  color:red;
+  font-size:12px;
+}
+</style>
+
+<div class="main-content">
+<section class="section">
+<div class="card">
+
+<div class="card-header d-flex justify-content-between align-items-center flex-wrap">
+  <h4 class="mb-0">Vehicle List</h4>
+
+  
+
+  <input type="text" id="tableSearch" class="form-control mx-3" placeholder="Search..." style="width:220px;">
+
+  <button class="btn btn-primary btn-sm" style="border-radius:0;margin-left:auto;" onclick="openAddVehicleModal()">
+    + Add Vehicle
+  </button>
+</div>
+
+<div class="card-body">
+<div class="table-responsive">
+<table class="table table-bordered table-striped">
+<thead>
+<tr>
+  <th>ID</th>
+  <th>Name</th>
+  <th>Max Passenger</th>
+  <th>Image</th>
+  <th>User Increase Amount</th>
+  <th>User Decrease Amount</th>
+  <th>Driver Can Register</th>
+  <th>User Booking Staus</th>
+  
+  <th>Date</th>
+</tr>
+</thead>
+
+<tbody>
+<% if(vehicles.length){ vehicles.forEach(v=>{ %>
+<tr>
+  <td><%= v.id %></td>
+  <td><%= v.name %></td>
+  <td><%= v.max_passenger %></td>
+
+  <td>
+    <% if(v.image){ %>
+    <div class="file-box">
+      <img src="/<%= v.image %>" loading="lazy"
+           onclick="openImageModal('/<%= v.image %>')"
+           class="file-thumb">
+    </div>
+    <% } else { %>—<% } %>
+  </td>
+
+ <td>₹ <%= v.discount ?? 0 %></td>
+<td>₹ <%= v.driver_can_discount ?? 0 %></td>
+
+
+ <td>
+  <select onchange="changeVehicleStatus('<%= v.id %>','register',this.value)"
+    style="width:110px;padding:3px 6px;font-size:13px;font-weight:600;
+    border:1px solid <%= v.register_status==1?'#dc3545':'#28a745' %>;
+    color:<%= v.register_status==1?'#dc3545':'#28a745' %>;">
+    
+    <option value="0" <%= v.register_status==0?'selected':'' %>>
+      Can Register
+    </option>
+    <option value="1" <%= v.register_status==1?'selected':'' %>>
+      Cannot Register
+    </option>
+  </select>
+</td>
+
+  
+ <td>
+  <select onchange="changeVehicleStatus('<%= v.id %>','visible',this.value)"
+    style="width:110px;padding:3px 6px;font-size:13px;font-weight:600;
+    border:1px solid <%= v.visible_status==1?'#28a745':'#dc3545' %>;
+    color:<%= v.visible_status==1?'#28a745':'#dc3545' %>;">
+    
+    <option value="1" <%= v.visible_status==1?'selected':'' %>>
+      Visible
+    </option>
+    <option value="0" <%= v.visible_status==0?'selected':'' %>>
+      Hidden
+    </option>
+  </select>
+</td>
+
+  
+  
+
+  <td><%= v.created_at %></td>
+</tr>
+<% }) } else { %>
+<tr><td colspan="7" class="text-center">No Vehicles Found</td></tr>
+<% } %>
+</tbody>
+</table>
+</div>
+</div>
+
+</div>
+</section>
+</div>
+
+<!-- IMAGE MODAL -->
+<div id="imageModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;justify-content:center;align-items:center">
+  <span onclick="closeModal()" style="position:absolute;top:20px;right:30px;font-size:32px;color:#fff;cursor:pointer">×</span>
+  <img id="modalImage" style="max-width:80%;max-height:80%;border-radius:8px">
+</div>
+
+<!-- ADD VEHICLE MODAL -->
+<div id="addVehicleModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:99999;justify-content:center;align-items:center">
+<div style="background:#fff;padding:22px;width:420px;border-radius:4px;position:relative">
+<span onclick="closeAddVehicleModal()" style="position:absolute;right:15px;top:8px;font-size:24px;cursor:pointer">×</span>
+
+<h5>Add New Vehicle</h5>
+
+<form onsubmit="return validateVehicleForm()" method="POST" action="/vehicle-add" enctype="multipart/form-data">
+
+<label>Vehicle Name</label>
+<input id="v_name" name="name" class="form-control">
+<span id="err_name" class="error-text"></span>
+
+<label>Max Passenger</label>
+<input id="v_passenger" name="max_passenger" type="number" class="form-control">
+<span id="err_passenger" class="error-text"></span>
+
+<label>User Discount (%)</label>
+<input
+  id="v_discount"
+  name="discount"
+  type="number"
+  class="form-control"
+  min="0"
+  step="1"
+  oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+<span id="err_discount" class="error-text"></span>
+
+<label>User Increase Amount</label>
+<input
+  id="v_increase"
+  name="user_increase"
+  type="number"
+  class="form-control"
+  min="0"
+  step="1"
+  oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+<span id="err_increase" class="error-text"></span>
+
+
+<label>Vehicle Image</label>
+<input id="v_image" name="image" type="file" accept="image/*" class="form-control" onchange="previewVehicleImage(event)">
+<span id="err_image" class="error-text"></span>
+
+<div id="vehiclePreviewBox" class="file-box" style="display:none;margin-top:8px">
+  <img id="vehiclePreviewImg" class="file-thumb">
+</div>
+
+<button class="btn btn-primary btn-sm w-100 mt-3">Add Vehicle</button>
+</form>
+</div>
+</div>
+
+<script defer src="/assets/bundles/sweetalert/sweetalert.min.js"></script>
+
+<script>
+function openImageModal(src){
+  modalImage.src=src;imageModal.style.display="flex"
+}
+function closeModal(){imageModal.style.display="none"}
+
+document.getElementById("tableSearch").onkeyup=e=>{
+  const v=e.target.value.toLowerCase()
+  document.querySelectorAll("tbody tr").forEach(r=>{
+    r.style.display=r.innerText.toLowerCase().includes(v)?"":"none"
+  })
+}
+
+
+
+function openAddVehicleModal(){addVehicleModal.style.display="flex"}
+function closeAddVehicleModal(){addVehicleModal.style.display="none"}
+
+function previewVehicleImage(e){
+  vehiclePreviewImg.src=URL.createObjectURL(e.target.files[0])
+  vehiclePreviewBox.style.display="inline-flex"
+}
+
+function validateVehicleForm(){
+  let ok=true
+  document.querySelectorAll(".error-text").forEach(e=>e.innerText="")
+  if(!v_name.value.trim()){err_name.innerText="Required";ok=false}
+  if(!v_passenger.value||v_passenger.value<=0){err_passenger.innerText="Invalid";ok=false}
+  if(v_discount.value===""){err_discount.innerText="Required";ok=false}
+  if(v_increase.value===""){err_increase.innerText="Required";ok=false}
+  if(!v_image.files.length){err_image.innerText="Required";ok=false}
+  return ok
+}
+</script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+function changeVehicleStatus(id, type, status) {
+
+  let text = "";
+
+  if (type === "register") {
+    text = status == 1
+      ? "Disable vehicle registration?"
+      : "Enable vehicle registration?";
+  }
+
+  if (type === "visible") {
+    text = status == 1
+      ? "Make vehicle visible in market?"
+      : "Hide vehicle from market?";
+  }
+
+  swal({
+    title: "Are you sure?",
+    text: text,
+    icon: "warning",
+    buttons: true,
+    dangerMode: true,
+  })
+  .then(ok => {
+    if (ok) {
+      window.location.href =
+        `/vehicle-status-update/${id}?type=${type}&status=${status}`;
+    } else {
+      location.reload();
+    }
+  });
+}
+</script>
+

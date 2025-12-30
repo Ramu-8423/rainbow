@@ -1,0 +1,541 @@
+<div class="main-content">  
+<section class="section">
+<div class="card">
+
+ <div class="card-header d-flex justify-content-between align-items-center">
+  <h4 class="mb-0">Driver Document Verification</h4>
+
+  <a href="/all-drivers" class="btn btn-sm btn-dark" style="border-radius:1px;">
+    ← Back
+  </a>
+</div>
+
+
+  <div class="card-body">
+
+  <% if (!driver) { %>
+    <p class="text-danger"><%= error %></p>
+  <% } else { %>
+
+  <% 
+    function renderStatusDropdown(currentStatus, section, driverId) {
+
+      if (currentStatus == 0) {
+        return `
+          <select class="form-select form-select-sm btn-secondary" disabled>
+            <option selected>Is Not Filled</option>
+          </select>
+        `;
+      }
+
+      let cls = "btn-secondary";
+      if (currentStatus == 2) cls = "btn-success";
+      if (currentStatus == 3) cls = "btn-danger";
+
+      return `
+        <select 
+          class="form-select form-select-sm ${cls}"
+          style="color:#fff;font-weight:600;"
+          onchange="changeDriverStatus('${driverId}','${section}',this.value,'${currentStatus}')"
+        >
+          <option value="1" ${currentStatus==1?'selected':''}>Submitted</option>
+          <option value="2" ${currentStatus==2?'selected':''}>Approved</option>
+          <option value="3" ${currentStatus==3?'selected':''}>Rejected</option>
+        </select>
+      `;
+    }
+  %>
+
+  <style>
+    .doc-block{ margin-bottom:32px; }
+    .doc-left{ font-size:14px; line-height:1.9; margin-bottom:10px; }
+    .doc-images-row{ display:flex; gap:14px; margin-bottom:8px; flex-wrap:wrap; }
+    .doc-img-box{ text-align:center; font-size:12px; }
+    .doc-img{
+      width:110px;
+      height:75px;
+      object-fit:cover;
+      border:1px solid #ccc;
+      border-radius:6px;
+      display:block;
+      margin-bottom:4px;
+      cursor:pointer;
+    }
+    .doc-img-placeholder{
+      width:110px;
+      height:75px;
+      border:2px solid #dc3545;
+      border-radius:6px;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      background-color:#f8f9fa;
+      margin-bottom:4px;
+    }
+    .doc-img-placeholder .x-mark{
+      font-size:30px;
+      font-weight:bold;
+      color:#dc3545;
+      line-height:1;
+    }
+    .doc-img-placeholder .img-name{
+      font-size:10px;
+      color:#666;
+      margin-top:5px;
+      text-align:center;
+      padding:0 5px;
+      word-break:break-word;
+    }
+    .doc-actions-row{
+      display:flex;
+      justify-content:flex-end;
+      margin-top:6px;
+      width:200px;
+      margin-left:auto;
+    }
+    select.form-select { background-image:none!important; }
+  </style>
+
+  <!-- ================= 1️⃣ PERSONAL INFORMATION ================= -->
+  <h5 class="text-success">Personal Information</h5>
+  <div class="doc-block">
+
+    <div class="doc-left">
+      <div>Mobile : <%= driver.mobile %></div>
+      <div>First Name : <%= driver.first_name %></div>
+      <div>Last Name : <%= driver.last_name %></div>
+      <div>Date Of Birth : <%= driver.date_of_birth %></div>
+    </div>
+
+    <div class="doc-images-row">
+      <% if (driver.profile_photo) { %>
+        <div class="doc-img-box">
+          <img 
+            src="<%= BASE_URL %>/<%= driver.profile_photo %>" 
+            class="doc-img"
+            onclick="openImageModal(this.src)"
+          >
+          <div>Profile Photo</div>
+        </div>
+      <% } else { %>
+        <div class="doc-img-box">
+          <div class="doc-img-placeholder">
+            <div class="x-mark">X</div>
+            <div class="img-name">Profile Photo</div>
+          </div>
+          <div>Profile Photo</div>
+        </div>
+      <% } %>
+    </div>
+
+    <div class="doc-actions-row">
+      <%- renderStatusDropdown(driver.personal_information_status,'personal_information',driver.id) %>
+    </div>
+  </div>
+
+  <% if (driver.personal_information_status == 3) { %>
+    <p class="text-danger">Reject Reason: <%= driver.personal_information_reject_reason %></p>
+  <% } %>
+
+  <hr>
+
+  <!-- ================= 2️⃣ DRIVER LICENCE ================= -->
+  <h5 class="text-success">Driver Licence</h5>
+  <div class="doc-block">
+
+    <div class="doc-left">
+      <div>Licence Number : <%= driver.driver_licence_number %></div>
+      <div>Validity Date : <%= driver.licence_validity_date %></div>
+    </div>
+
+    <div class="doc-images-row">
+      <% if (driver.driver_licence_front) { %>
+        <div class="doc-img-box">
+          <img src="<%= BASE_URL %>/<%= driver.driver_licence_front %>" class="doc-img" onclick="openImageModal(this.src)">
+          <div>Licence Front</div>
+        </div>
+      <% } else { %>
+        <div class="doc-img-box">
+          <div class="doc-img-placeholder">
+            <div class="x-mark">X</div>
+            <div class="img-name">Licence Front</div>
+          </div>
+          <div>Licence Front</div>
+        </div>
+      <% } %>
+      <% if (driver.driver_licence_back) { %>
+        <div class="doc-img-box">
+          <img src="<%= BASE_URL %>/<%= driver.driver_licence_back %>" class="doc-img" onclick="openImageModal(this.src)">
+          <div>Licence Back</div>
+        </div>
+      <% } else { %>
+        <div class="doc-img-box">
+          <div class="doc-img-placeholder">
+            <div class="x-mark">X</div>
+            <div class="img-name">Licence Back</div>
+          </div>
+          <div>Licence Back</div>
+        </div>
+      <% } %>
+    </div>
+
+    <div class="doc-actions-row">
+      <%- renderStatusDropdown(driver.driver_licence_status,'driver_licence',driver.id) %>
+    </div>
+  </div>
+
+  <% if (driver.driver_licence_status == 3) { %>
+    <p class="text-danger">Reject Reason: <%= driver.driver_licence_reject_reason %></p>
+  <% } %>
+
+  <hr>
+
+  <!-- ================= 3️⃣ AADHAAR & PAN ================= -->
+  <h5 class="text-success">Aadhaar & PAN</h5>
+  <div class="doc-block">
+
+    <div class="doc-left">
+      <div>Aadhaar Number : <%= driver.aadhaar_number %></div>
+      <div>PAN Number : <%= driver.pan_card_number %></div>
+    </div>
+
+    <div class="doc-images-row">
+      <% if (driver.aadhaar_front) { %>
+        <div class="doc-img-box">
+          <img src="<%= BASE_URL %>/<%= driver.aadhaar_front %>" class="doc-img" onclick="openImageModal(this.src)">
+          <div>Aadhaar Front</div>
+        </div>
+      <% } else { %>
+        <div class="doc-img-box">
+          <div class="doc-img-placeholder">
+            <div class="x-mark">X</div>
+            <div class="img-name">Aadhaar Front</div>
+          </div>
+          <div>Aadhaar Front</div>
+        </div>
+      <% } %>
+      
+      <% if (driver.aadhaar_back) { %>
+        <div class="doc-img-box">
+          <img src="<%= BASE_URL %>/<%= driver.aadhaar_back %>" class="doc-img" onclick="openImageModal(this.src)">
+          <div>Aadhaar Back</div>
+        </div>
+      <% } else { %>
+        <div class="doc-img-box">
+          <div class="doc-img-placeholder">
+            <div class="x-mark">X</div>
+            <div class="img-name">Aadhaar Back</div>
+          </div>
+          <div>Aadhaar Back</div>
+        </div>
+      <% } %>
+      
+      <% if (driver.pan_card_front) { %>
+        <div class="doc-img-box">
+          <img src="<%= BASE_URL %>/<%= driver.pan_card_front %>" class="doc-img" onclick="openImageModal(this.src)">
+          <div>PAN Front</div>
+        </div>
+      <% } else { %>
+        <div class="doc-img-box">
+          <div class="doc-img-placeholder">
+            <div class="x-mark">X</div>
+            <div class="img-name">PAN Front</div>
+          </div>
+          <div>PAN Front</div>
+        </div>
+      <% } %>
+      
+      <% if (driver.pan_card_back) { %>
+        <div class="doc-img-box">
+          <img src="<%= BASE_URL %>/<%= driver.pan_card_back %>" class="doc-img" onclick="openImageModal(this.src)">
+          <div>PAN Back</div>
+        </div>
+      <% } else { %>
+        <div class="doc-img-box">
+          <div class="doc-img-placeholder">
+            <div class="x-mark">X</div>
+            <div class="img-name">PAN Back</div>
+          </div>
+          <div>PAN Back</div>
+        </div>
+      <% } %>
+    </div>
+
+    <div class="doc-actions-row">
+      <%- renderStatusDropdown(driver.aadhaar_pan_status,'aadhaar_pan',driver.id) %>
+    </div>
+  </div>
+
+  <% if (driver.aadhaar_pan_status == 3) { %>
+    <p class="text-danger">Reject Reason: <%= driver.aadhaar_pan_reject_reason %></p>
+  <% } %>
+
+  <hr>
+
+  <!-- ================= 4️⃣ REQUIRED CERTIFICATES ================= -->
+  <h5 class="text-success">Required Certificates</h5>
+  <div class="doc-block">
+    <div class="doc-images-row">
+      <% if (driver.fitness_certificate) { %>
+        <div class="doc-img-box">
+          <img src="<%= BASE_URL %>/<%= driver.fitness_certificate %>" class="doc-img" onclick="openImageModal(this.src)">
+          <div>Fitness Certificate</div>
+        </div>
+      <% } else { %>
+        <div class="doc-img-box">
+          <div class="doc-img-placeholder">
+            <div class="x-mark">X</div>
+            <div class="img-name">Fitness Certificate</div>
+          </div>
+          <div>Fitness Certificate</div>
+        </div>
+      <% } %>
+      
+      <% if (driver.pollution_certificate) { %>
+        <div class="doc-img-box">
+          <img src="<%= BASE_URL %>/<%= driver.pollution_certificate %>" class="doc-img" onclick="openImageModal(this.src)">
+          <div>Pollution Certificate</div>
+        </div>
+      <% } else { %>
+        <div class="doc-img-box">
+          <div class="doc-img-placeholder">
+            <div class="x-mark">X</div>
+            <div class="img-name">Pollution Certificate</div>
+          </div>
+          <div>Pollution Certificate</div>
+        </div>
+      <% } %>
+      
+      <% if (driver.insurance_certificate) { %>
+        <div class="doc-img-box">
+          <img src="<%= BASE_URL %>/<%= driver.insurance_certificate %>" class="doc-img" onclick="openImageModal(this.src)">
+          <div>Insurance Certificate</div>
+        </div>
+      <% } else { %>
+        <div class="doc-img-box">
+          <div class="doc-img-placeholder">
+            <div class="x-mark">X</div>
+            <div class="img-name">Insurance Certificate</div>
+          </div>
+          <div>Insurance Certificate</div>
+        </div>
+      <% } %>
+      
+      <% if (driver.police_certificate) { %>
+        <div class="doc-img-box">
+          <img src="<%= BASE_URL %>/<%= driver.police_certificate %>" class="doc-img" onclick="openImageModal(this.src)">
+          <div>Police Certificate</div>
+        </div>
+      <% } else { %>
+        <div class="doc-img-box">
+          <div class="doc-img-placeholder">
+            <div class="x-mark">X</div>
+            <div class="img-name">Police Certificate</div>
+          </div>
+          <div>Police Certificate</div>
+        </div>
+      <% } %>
+    </div>
+
+    <div class="doc-actions-row">
+      <%- renderStatusDropdown(driver.required_certificates_status,'required_certificates',driver.id) %>
+    </div>
+  </div>
+
+  <% if (driver.required_certificates_status == 3) { %>
+    <p class="text-danger">Reject Reason: <%= driver.required_certificates_reject_reason %></p>
+  <% } %>
+
+  <hr>
+
+  <!-- ================= 5️⃣ VEHICLE INFORMATION ================= -->
+  <h5 class="text-success">Vehicle Information</h5>
+  <div class="doc-block">
+    <div class="doc-left">
+      <div>Brand : <%= driver.brand_name %></div>
+      <div>Model : <%= driver.model_name %></div>
+      <div>Color : <%= driver.vehicle_color %></div>
+      <div>Plate Number : <%= driver.vehicle_plate_number %></div>
+      <div>Production Year : <%= driver.vehicle_production_year %></div>
+    </div>
+
+    <div class="doc-images-row">
+      <% if (driver.vehicle_photo) { %>
+        <div class="doc-img-box">
+          <img src="<%= BASE_URL %>/<%= driver.vehicle_photo %>" class="doc-img" onclick="openImageModal(this.src)">
+          <div>Vehicle Photo</div>
+        </div>
+      <% } else { %>
+        <div class="doc-img-box">
+          <div class="doc-img-placeholder">
+            <div class="x-mark">X</div>
+            <div class="img-name">Vehicle Photo</div>
+          </div>
+          <div>Vehicle Photo</div>
+        </div>
+      <% } %>
+    </div>
+
+    <div class="doc-actions-row">
+      <%- renderStatusDropdown(driver.vehicle_info_status,'vehicle_info',driver.id) %>
+    </div>
+  </div>
+
+  <% if (driver.vehicle_info_status == 3) { %>
+    <p class="text-danger">Reject Reason: <%= driver.vehicle_info_reject_reason %></p>
+  <% } %>
+
+  <hr>
+
+  <!-- ================= 6️⃣ VEHICLE DOCUMENTS ================= -->
+  <h5 class="text-success">Vehicle Documents</h5>
+  <div class="doc-block">
+    <div class="doc-images-row">
+      <% if (driver.vehicle_permit_part_a) { %>
+        <div class="doc-img-box">
+          <img src="<%= BASE_URL %>/<%= driver.vehicle_permit_part_a %>" class="doc-img" onclick="openImageModal(this.src)">
+          <div>Permit Part A</div>
+        </div>
+      <% } else { %>
+        <div class="doc-img-box">
+          <div class="doc-img-placeholder">
+            <div class="x-mark">X</div>
+            <div class="img-name">Permit Part A</div>
+          </div>
+          <div>Permit Part A</div>
+        </div>
+      <% } %>
+      
+      <% if (driver.vehicle_permit_part_b) { %>
+        <div class="doc-img-box">
+          <img src="<%= BASE_URL %>/<%= driver.vehicle_permit_part_b %>" class="doc-img" onclick="openImageModal(this.src)">
+          <div>Permit Part B</div>
+        </div>
+      <% } else { %>
+        <div class="doc-img-box">
+          <div class="doc-img-placeholder">
+            <div class="x-mark">X</div>
+            <div class="img-name">Permit Part B</div>
+          </div>
+          <div>Permit Part B</div>
+        </div>
+      <% } %>
+      
+      <% if (driver.vehicle_registration_front) { %>
+        <div class="doc-img-box">
+          <img src="<%= BASE_URL %>/<%= driver.vehicle_registration_front %>" class="doc-img" onclick="openImageModal(this.src)">
+          <div>RC Front</div>
+        </div>
+      <% } else { %>
+        <div class="doc-img-box">
+          <div class="doc-img-placeholder">
+            <div class="x-mark">X</div>
+            <div class="img-name">RC Front</div>
+          </div>
+          <div>RC Front</div>
+        </div>
+      <% } %>
+      
+      <% if (driver.vehicle_registration_back) { %>
+        <div class="doc-img-box">
+          <img src="<%= BASE_URL %>/<%= driver.vehicle_registration_back %>" class="doc-img" onclick="openImageModal(this.src)">
+          <div>RC Back</div>
+        </div>
+      <% } else { %>
+        <div class="doc-img-box">
+          <div class="doc-img-placeholder">
+            <div class="x-mark">X</div>
+            <div class="img-name">RC Back</div>
+          </div>
+          <div>RC Back</div>
+        </div>
+      <% } %>
+    </div>
+
+    <div class="doc-actions-row">
+      <%- renderStatusDropdown(driver.vehicle_documents_status,'vehicle_documents',driver.id) %>
+    </div>
+  </div>
+
+  <% if (driver.vehicle_documents_status == 3) { %>
+    <p class="text-danger">Reject Reason: <%= driver.vehicle_documents_reject_reason %></p>
+  <% } %>
+
+  <hr>
+
+  <div style="margin-top:15px; display:flex; justify-content:flex-end; align-items:center; gap:10px;">
+    <a href="/all-drivers" class="btn btn-dark">Back</a>
+
+    <%
+      const allSubmitted =
+        driver.personal_information_status == 1 &&
+        driver.vehicle_info_status == 1 &&
+        driver.driver_licence_status == 1 &&
+        driver.aadhaar_pan_status == 1 &&
+        driver.required_certificates_status == 1 &&
+        driver.vehicle_documents_status == 1;
+    %>
+
+    <% if (allSubmitted) { %>
+      <form method="POST" action="/driver-approve-all" style="margin:0;">
+        <input type="hidden" name="driver_id" value="<%= driver.id %>">
+        <button type="submit" class="btn btn-success">
+          Approve All Documents
+        </button>
+      </form>
+    <% } %>
+  </div>
+
+  <% } %>
+
+  </div>
+</div>
+</section>
+</div>
+
+<script src="/assets/bundles/sweetalert/sweetalert.min.js"></script>
+
+<script>
+function changeDriverStatus(driverId, section, newStatus, oldStatus){
+  if(newStatus == oldStatus) return;
+
+  let text = newStatus == 2 ? "Approve this section?" : "Reject this section?";
+
+  swal({ title:"Are you sure?", text, icon:"warning", buttons:true, dangerMode:true })
+  .then(ok=>{
+    if(!ok){ location.reload(); return; }
+
+    if(newStatus == 3){
+      swal({ title:"Reject Reason Required", content:"input", buttons:true })
+      .then(reason=>{
+        if(!reason){ swal("Reason required"); location.reload(); return; }
+        location.href=`/driver-status-update/${driverId}?section=${section}&status=3&reason=${encodeURIComponent(reason)}`;
+      });
+    } else {
+      location.href=`/driver-status-update/${driverId}?section=${section}&status=2`;
+    }
+  });
+}
+</script>
+
+<div id="imageModal" style="
+  display:none; position:fixed;
+  top:0; left:0; width:100%; height:100%;
+  background:rgba(0,0,0,0.7);
+  justify-content:center; align-items:center;
+  z-index:9999;
+">
+  <span onclick="closeModal()" style="position:absolute; top:20px; right:30px; font-size:35px; color:white; cursor:pointer;">&times;</span>
+  <img id="modalImage" style="max-width:80%; max-height:80%; border-radius:10px;">
+</div>
+
+<script>
+function openImageModal(src){
+  document.getElementById("modalImage").src = src;
+  document.getElementById("imageModal").style.display = "flex";
+}
+function closeModal(){
+  document.getElementById("imageModal").style.display = "none";
+}
+</script>

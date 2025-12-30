@@ -4,6 +4,9 @@ import { uploadImageDynamic } from "../middleware/upload.js";
 /* =======================
    USER PUBLIC CONTROLLERS
 ======================= */
+
+
+
 import {
   loginPolicy,
   loginAdds,
@@ -85,7 +88,9 @@ cabOrder,
 getDriverProfilePhotos,
 addOrUpdateDriverOffer,
 acceptCabRide,
-deleteExpiredCabOrders
+deleteExpiredCabOrders,
+changeCabOrderStatus,
+activeRide
 } from "../controllers/api/CaborderController.js";
 
 
@@ -212,8 +217,6 @@ router.post("/serviceman-rating", addServicemanRating);
 router.post("/serviceman-ratings", getServicemanRatings);
 router.post("/serviceman-ratings", getServicemanRatings);
 
-
-
 /* =======================
    Vehicle 
 ======================= */
@@ -259,11 +262,15 @@ router.post("/cab_order", cabOrder);
 router.post("/driver-profile-photos", getDriverProfilePhotos);
 router.post("/driver-offer", addOrUpdateDriverOffer);
 
+
 router.get("/count_otp", getOTPCount);
 router.post("/accept-cab-ride", acceptCabRide);
 router.get("/delete-expired-orders", deleteExpiredCabOrders);
 
 
+router.post("/change-cab-order-status", changeCabOrderStatus);
+
+router.post("/active-ride", activeRide);
 
 
 export default router;

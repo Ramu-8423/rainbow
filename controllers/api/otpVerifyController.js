@@ -9,10 +9,10 @@ import { nowIST } from "../../utils/dateParser.js";
 const DIGIDONAR_CONFIG = {
   URL: "https://sms.digidonar.com/app/smsapi/index.php",
   API_KEY: "4694B639226E59",      
-  SENDER: "DGDONR",              
+  SENDER: "",              
   TEMPLATE_ID: "YOUR_TEMPLATE_ID",
   PE_ID: "YOUR_PE_ID",            
-  ROUTE: "101494"                 
+  ROUTE: ""                 
 };
 
 /* ==============================

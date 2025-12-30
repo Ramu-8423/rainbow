@@ -39,6 +39,8 @@ export async function generateUniqueOTP(db) {
 ========================================================= */
 function validateCabOrder(body) {
   if (!body.user_id) return "user_id is required";
+  if (!body.user_name) return "user_name is required";
+  if (!body.user_mobile) return "user_mobile is required";
 
   if (!body.vehicle_id) return "vehicle_id is required";
   if (!body.vehicle_name) return "vehicle_name is required";
@@ -87,6 +89,8 @@ export const cabOrder = async (req, res) => {
   try {
     const {
       user_id,
+      user_name,
+      user_mobile,
       vehicle_id, vehicle_name,
       brand_id, brand_name,
       model_id, model_name,
@@ -118,6 +122,8 @@ export const cabOrder = async (req, res) => {
     const [orderResult] = await db.query(
       `INSERT INTO cab_orders (
         user_id,
+        user_name,
+        user_mobile,
         vehicle_id, vehicle_name,
         brand_id, brand_name,
         model_id, model_name,
@@ -131,12 +137,14 @@ export const cabOrder = async (req, res) => {
         payment_status,
         over_limit_passenger,
         user_comment,
-        orderOtp,                 -- 🔥 ADDED
+        orderOtp,               
         created_at,
         updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         user_id,
+        user_name,
+        user_mobile,
         vehicle_id, vehicle_name,
         brand_id, brand_name,
         model_id, model_name,
@@ -195,14 +203,16 @@ export const cabOrder = async (req, res) => {
     if (matched_driver_ids.length > 0) {
       try {
         const firestoreData = {
-          order_id: String(order_id),
-          orderOtp: orderOtp, // 🔥 ADDED
-          user_id: String(user_id),
-          vehicle_id: String(vehicle_id),
+          order_id: Number(order_id),
+          user_name: String(user_name),
+          user_mobile: Number(user_mobile),
+          orderOtp: orderOtp, 
+          user_id: Number(user_id),
+          vehicle_id: Number(vehicle_id),
           vehicle_name,
-          brand_id: String(brand_id),
+          brand_id: Number(brand_id),
           brand_name,
-          model_id: String(model_id),
+          model_id: Number(model_id),
           model_name,
           pickup_location,
           pickup_latitude: Number(pickup_latitude),
@@ -1012,8 +1022,6 @@ export async function addOrUpdateDriverOffer(req, res) {
 
 
 
-
-
 export async function acceptCabRide(req, res) {
   try {
     const { order_id, driver_id } = req.body;
@@ -1060,8 +1068,31 @@ export async function acceptCabRide(req, res) {
     }
 
     /* =========================
+       GET OFFER (MySQL)
+    ========================= */
+    const [offerRows] = await db.query(
+      `
+      SELECT id, offer_amount
+      FROM driver_offer
+      WHERE order_id = ?
+        AND driver_id = ?
+      LIMIT 1
+      `,
+      [order_id, driver_id]
+    );
+
+    if (!offerRows.length) {
+      return res.status(404).json({
+        success: false,
+        message: "Driver offer not found for this order"
+      });
+    }
+
+    const accepted_offer_id = offerRows[0].id;
+    const final_amount = offerRows[0].offer_amount;
+
+    /* =========================
        GET DRIVER DETAILS (MySQL)
-       👉 profile_photo bhi liya
     ========================= */
     const [driverRows] = await db.query(
       `
@@ -1071,6 +1102,7 @@ export async function acceptCabRide(req, res) {
         profile_photo,
         vehicle_plate_number,
         mobile,
+        rating,
         vehicle_color
       FROM driver_registration
       WHERE id = ?
@@ -1078,6 +1110,7 @@ export async function acceptCabRide(req, res) {
       `,
       [driver_id]
     );
+
     if (!driverRows.length) {
       return res.status(404).json({
         success: false,
@@ -1111,7 +1144,10 @@ export async function acceptCabRide(req, res) {
         profile_photo = ?,
         vehicle_plate_number = ?,
         contact_number = ?,
+        rating = ?,
         vehicle_color = ?,
+        accepted_offer_id = ?,
+        final_amount = ?,
         order_status = 1,
         updated_at = ?
       WHERE id = ?
@@ -1122,7 +1158,10 @@ export async function acceptCabRide(req, res) {
         profile_photo,
         driver.vehicle_plate_number || null,
         driver.mobile || null,
+        driver.rating || null,
         driver.vehicle_color || null,
+        accepted_offer_id,
+        final_amount,
         now,
         order_id
       ]
@@ -1130,7 +1169,6 @@ export async function acceptCabRide(req, res) {
 
     /* =========================
        UPDATE cab_orders (Firebase)
-       👉 update only, no data loss
     ========================= */
     await firestore
       .collection("cab_orders")
@@ -1141,37 +1179,32 @@ export async function acceptCabRide(req, res) {
         profile_photo,
         vehicle_plate_number: driver.vehicle_plate_number || null,
         contact_number: driver.mobile || null,
+        rating: driver.rating || null,
         vehicle_color: driver.vehicle_color || null,
+        accepted_offer_id: Number(accepted_offer_id),
+        final_amount: Number(final_amount),
         order_status: 1,
         updated_at: now
       });
 
-    /* =========================
-       UPDATE driver_offers (Firebase)
-       👉 same as before
-    ========================= */
-    const offerSnapshot = await firestore
-      .collection("driver_offers")
-      .where("order_id", "==", Number(order_id))
-      .where("driver_id", "==", Number(driver_id))
-      .get();
+   
+   const offerSnapshot = await firestore
+  .collection("driver_offers")
+  .where("order_id", "==", Number(order_id))
+  .get();
 
     if (!offerSnapshot.empty) {
       const batch = firestore.batch();
-
       offerSnapshot.forEach(doc => {
         batch.update(doc.ref, {
           offer_status: 1,
           updated_at: now
         });
       });
-
+    
       await batch.commit();
     }
 
-    /* =========================
-       SUCCESS RESPONSE (UNCHANGED)
-    ========================= */
     return res.status(200).json({
       success: true,
       message: "Ride accepted successfully",
@@ -1253,3 +1286,280 @@ export const deleteExpiredCabOrders = async (req, res) => {
     });
   }
 };
+
+
+
+
+export async function changeCabOrderStatus(req, res) {
+  try {
+    const {
+      order_id,
+      order_status,
+      type,
+      user_id,
+      driver_id,
+      cancel_reason,
+      orderOtp
+    } = req.body;
+
+    /* =========================
+       BASIC VALIDATION
+    ========================= */
+    if (!order_id || !order_status || !type) {
+      return res.status(400).json({
+        success: false,
+        message: "order_id, order_status and type are required"
+      });
+    }
+
+    if (![1, 2].includes(Number(type))) {
+      return res.status(400).json({
+        success: false,
+        message: "type must be 1 (user) or 2 (driver)"
+      });
+    }
+
+    /* =========================
+       TYPE BASED ID VALIDATION
+    ========================= */
+    if (Number(type) === 1 && !user_id) {
+      return res.status(400).json({
+        success: false,
+        message: "user_id is required when type = 1"
+      });
+    }
+
+    if (Number(type) === 2 && !driver_id) {
+      return res.status(400).json({
+        success: false,
+        message: "driver_id is required when type = 2"
+      });
+    }
+
+    /* =========================
+       OTP REQUIRED FOR STATUS 3
+    ========================= */
+    if (Number(order_status) === 3 && !orderOtp) {
+      return res.status(400).json({
+        success: false,
+        message: "orderOtp is required for ride start"
+      });
+    }
+
+    /* =========================
+       CANCEL STATUS TYPE RULE
+    ========================= */
+    if (Number(order_status) === 6 && Number(type) !== 1) {
+      return res.status(400).json({
+        success: false,
+        message: "order_status 6 (cancelled_by_user) requires type = 1 (user)"
+      });
+    }
+
+    if (Number(order_status) === 7 && Number(type) !== 2) {
+      return res.status(400).json({
+        success: false,
+        message: "order_status 7 (cancelled_by_driver) requires type = 2 (driver)"
+      });
+    }
+
+    /* =========================
+       CANCEL REASON REQUIRED
+    ========================= */
+    if ([6, 7].includes(Number(order_status)) && !cancel_reason) {
+      return res.status(400).json({
+        success: false,
+        message: "cancel_reason is required for cancellation"
+      });
+    }
+
+    const now = nowIST();
+    const firestore = getFirestore();
+
+    /* =========================
+       FETCH ORDER (MySQL)
+       👉 orderOtp bhi nikal rahe hain
+    ========================= */
+    const [orderRows] = await db.query(
+      `SELECT id, orderOtp FROM cab_orders WHERE id = ? LIMIT 1`,
+      [order_id]
+    );
+
+    if (!orderRows.length) {
+      return res.status(404).json({
+        success: false,
+        message: "Order not found"
+      });
+    }
+
+    /* =========================
+       OTP MATCH CHECK
+    ========================= */
+    if (Number(order_status) === 3) {
+      if (String(orderRows[0].orderOtp) !== String(orderOtp)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid order OTP"
+        });
+      }
+    }
+
+    /* =========================
+       UPDATE cab_orders (MySQL)
+    ========================= */
+    await db.query(
+      `
+      UPDATE cab_orders
+      SET
+        order_status = ?,
+        cancel_reason = ?,
+        updated_at = ?
+      WHERE id = ?
+      `,
+      [
+        Number(order_status),
+        [6, 7].includes(Number(order_status)) ? cancel_reason : null,
+        now,
+        order_id
+      ]
+    );
+
+    /* =========================
+       UPDATE cab_orders (Firebase)
+       ✅ SAFE UPSERT
+    ========================= */
+    await firestore
+      .collection("cab_orders")
+      .doc(String(order_id))
+      .set(
+        {
+          order_status: Number(order_status),
+          cancel_reason:
+            [6, 7].includes(Number(order_status)) ? cancel_reason : null,
+          updated_at: now
+        },
+        { merge: true }
+      );
+
+    /* =========================
+       SUCCESS RESPONSE
+    ========================= */
+    return res.status(200).json({
+      success: true,
+      message: "Order status updated successfully",
+      order_id,
+      order_status: Number(order_status)
+    });
+
+  } catch (error) {
+    console.error("Change Order Status Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+      error: error.message
+    });
+  }
+}
+
+
+
+export async function activeRide(req, res) {
+  try {
+    const {
+      type,
+      user_id,
+      driver_id
+    } = req.body;
+
+    /* =========================
+       BASIC VALIDATION
+    ========================= */
+    if (!type) {
+      return res.status(400).json({
+        success: false,
+        message: "type is required"
+      });
+    }
+
+    if (![1, 2].includes(Number(type))) {
+      return res.status(400).json({
+        success: false,
+        message: "type must be 1 (user) or 2 (driver)"
+      });
+    }
+
+    if (Number(type) === 1 && !user_id) {
+      return res.status(400).json({
+        success: false,
+        message: "user_id is required when type = 1"
+      });
+    }
+
+    if (Number(type) === 2 && !driver_id) {
+      return res.status(400).json({
+        success: false,
+        message: "driver_id is required when type = 2"
+      });
+    }
+
+    /* =========================
+       BUILD WHERE CONDITION
+    ========================= */
+    let where = `
+      WHERE order_status BETWEEN 1 AND 4
+    `;
+    let values = [];
+
+    if (Number(type) === 1) {
+      where += " AND user_id = ? ";
+      values.push(user_id);
+    }
+
+    if (Number(type) === 2) {
+      where += " AND driver_id = ? ";
+      values.push(driver_id);
+    }
+
+    /* =========================
+       CHECK ACTIVE RIDE (MySQL)
+    ========================= */
+    const [rows] = await db.query(
+      `
+      SELECT id AS order_id, order_status
+      FROM cab_orders
+      ${where}
+      ORDER BY id DESC
+      LIMIT 1
+      `,
+      values
+    );
+
+    /* =========================
+       ❌ NO ACTIVE RIDE → 400
+    ========================= */
+    if (!rows.length) {
+      return res.status(400).json({
+        success: false,
+        active_ride_count: 0,
+        message: "No active ride found"
+      });
+    }
+
+    /* =========================
+       ✅ ACTIVE RIDE FOUND
+    ========================= */
+    return res.status(200).json({
+      success: true,
+      active_ride_count: 1,
+      data: rows[0]
+    });
+
+  } catch (error) {
+    console.error("Active Ride Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+      error: error.message
+    });
+  }
+}

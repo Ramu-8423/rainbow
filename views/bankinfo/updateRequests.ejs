@@ -201,12 +201,19 @@
           </button>
 
           <% if (isFiltered) { %>
-            <a href="/bank-update-request/<%= type %>" 
-               class="btn btn-secondary btn-sm"
-               style="border-radius:0;">
-              Reset
-            </a>
-          <% } %>
+  <a href="/bank-update-request/<%= type %>" 
+     class="btn btn-warning btn-sm"
+     style="border-radius:0;">
+    Reset
+  </a>
+<% } else { %>
+  <a href="/bank-update-request/<%= type %>" 
+     class="btn btn-primary btn-sm"
+     style="border-radius:0;">
+    Reset
+  </a>
+<% } %>
+
 
         </form>
 

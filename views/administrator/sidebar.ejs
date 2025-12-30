@@ -1,11 +1,16 @@
-<% 
-  // If activeMenu not sent, set default empty
-  var activeMenu = typeof activeMenu !== "undefined" ? activeMenu : ""; 
+<%
+  // app.js se aane wala global path
+  var path = typeof activePath !== "undefined" ? activePath : "";
+
+  // 🔥 BANK PARAMETER ke liye yahin define (PEHLE)
+  var parts = path.split("/");
+  var routeName = parts[1] || "";
+  var routeParam = parts[2] || "";
 %>
 
 <div class="main-sidebar sidebar-style-2">
   <aside id="sidebar-wrapper">
-    
+
     <div class="sidebar-brand">
       <a href="#">
         <img alt="image" src="/assets/img/user.png" class="header-logo" />
@@ -14,10 +19,10 @@
     </div>
 
     <ul class="sidebar-menu">
-      <li class="menu-header">Main</li>
+      <li class="menu-header">Handyman Section</li>
 
       <!-- Dashboard -->
-      <li class="<%= activeMenu === 'dashboard' ? 'active' : '' %>">
+      <li class="<%= path === '/dashboard' ? 'active' : '' %>">
         <a href="/dashboard" class="nav-link">
           <i data-feather="monitor" style="color:#4e73df;"></i>
           <span>Dashboard</span>
@@ -25,7 +30,7 @@
       </li>
 
       <!-- Job Applications -->
-      <li class="<%= activeMenu === 'jobApplications' ? 'active' : '' %>">
+      <li class="<%= path.startsWith('/job-applications') ? 'active' : '' %>">
         <a href="/job-applications" class="nav-link">
           <i data-feather="file-text" style="color:#1cc88a;"></i>
           <span>Applications</span>
@@ -33,7 +38,7 @@
       </li>
 
       <!-- Users -->
-      <li class="<%= activeMenu === 'users' ? 'active' : '' %>">
+      <li class="<%= path.startsWith('/all-users') ? 'active' : '' %>">
         <a href="/all-users" class="nav-link">
           <i data-feather="users" style="color:#36b9cc;"></i>
           <span>Users</span>
@@ -41,7 +46,7 @@
       </li>
 
       <!-- Categories -->
-      <li class="<%= activeMenu === 'categories' ? 'active' : '' %>">
+      <li class="<%= path.startsWith('/categories') ? 'active' : '' %>">
         <a href="/categories" class="nav-link">
           <i data-feather="layers" style="color:#f6c23e;"></i>
           <span>Categories</span>
@@ -49,10 +54,59 @@
       </li>
 
       <!-- Subcategories -->
-      <li class="<%= activeMenu === 'subcategories' ? 'active' : '' %>">
+      <li class="<%= path.startsWith('/subcategories') ? 'active' : '' %>">
         <a href="/subcategories" class="nav-link">
           <i data-feather="grid" style="color:#e74a3b;"></i>
           <span>Subcategories</span>
+        </a>
+      </li>
+
+      <!-- Services -->
+      <li class="<%= path.startsWith('/services') ? 'active' : '' %>">
+        <a href="/services/1" class="nav-link">
+          <i data-feather="grid" style="color:#e74a3b;"></i>
+          <span>Services</span>
+        </a>
+      </li>
+
+      <!-- Bank Details (PARAM = 1 only) -->
+      <li class="<%= routeName === 'bank-details' && routeParam === '1' ? 'active' : '' %>">
+        <a href="/bank-details/1" class="nav-link">
+          <i data-feather="credit-card" style="color:#6610f2;"></i>
+          <span>Bank Details</span>
+        </a>
+      </li>
+
+      <!-- Bank Update Request (PARAM = 1 only) -->
+      <li class="<%= routeName === 'bank-update-request' && routeParam === '1' ? 'active' : '' %>">
+        <a href="/bank-update-request/1" class="nav-link">
+          <i data-feather="refresh-cw" style="color:#20c997;"></i>
+          <span>Bank Update Request</span>
+        </a>
+      </li>
+
+      <li class="menu-header">Cab Booking Section</li>
+
+      <li class="<%= path.startsWith('/all-drivers') ? 'active' : '' %>">
+        <a href="/all-drivers" class="nav-link">
+          <i data-feather="refresh-cw" style="color:#20c997;"></i>
+          <span>All Drivers</span>
+        </a>
+      </li>
+
+      <!-- Driver Bank Details (PARAM = 2 only) -->
+      <li class="<%= routeName === 'bank-details' && routeParam === '2' ? 'active' : '' %>">
+        <a href="/bank-details/2" class="nav-link">
+          <i data-feather="credit-card" style="color:#6610f2;"></i>
+          <span>Driver Bank Details</span>
+        </a>
+      </li>
+
+      <!-- Driver Bank Update Request (PARAM = 2 only) -->
+      <li class="<%= routeName === 'bank-update-request' && routeParam === '2' ? 'active' : '' %>">
+        <a href="/bank-update-request/2" class="nav-link">
+          <i data-feather="refresh-cw" style="color:#20c997;"></i>
+          <span>Bank Update Request</span>
         </a>
       </li>
 

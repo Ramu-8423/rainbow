@@ -136,7 +136,8 @@ export const updateUserStatus = async (req, res) => {
     const reason = req.query.reason || null;
 
     if (!id || isNaN(status)) {
-      return res.status(400).send("Invalid request");
+      req.session.error = "Invalid request.";
+      return res.redirect("/all-users");
     }
 
     let sql = "";
@@ -146,12 +147,16 @@ export const updateUserStatus = async (req, res) => {
     if (status === 1) {
       sql = "UPDATE users SET status = ?, reason = NULL WHERE id = ?";
       params = [1, id];
+
+      req.session.success = "User activated successfully.";
     }
 
     // Changing to Inactive
     else if (status === 0) {
       sql = "UPDATE users SET status = ?, reason = ? WHERE id = ?";
       params = [0, reason, id];
+
+      req.session.success = "User deactivated successfully.";
     }
 
     await db.query(sql, params);
@@ -160,10 +165,10 @@ export const updateUserStatus = async (req, res) => {
 
   } catch (err) {
     console.log("Status Update Error:", err);
-    return res.status(500).send("Server Error");
+    req.session.error = "Something went wrong while updating status.";
+    return res.redirect("/all-users");
   }
 };
-
 
 
 
