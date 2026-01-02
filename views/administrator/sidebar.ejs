@@ -1,8 +1,5 @@
 <%
-  // app.js se aane wala global path
   var path = typeof activePath !== "undefined" ? activePath : "";
-
-  // 🔥 BANK PARAMETER ke liye yahin define (PEHLE)
   var parts = path.split("/");
   var routeName = parts[1] || "";
   var routeParam = parts[2] || "";
@@ -109,6 +106,39 @@
           <span>Bank Update Request</span>
         </a>
       </li>
+
+
+<li class="menu-header">Vehicle Management</li>
+
+<li class="<%= path === '/vehicle-list' ? 'active' : '' %>">
+  <a href="/vehicle-list" class="nav-link text-dark">
+    <i data-feather="truck" style="color:#4e73df;"></i>
+    <span>Vehicle List</span>
+  </a>
+</li>
+
+<!-- Brand List -->
+<li class="<%= path === '/brand-list' ? 'active' : '' %>">
+  <a href="/brand-list" class="nav-link text-dark">
+    <i data-feather="tag" style="color:#1cc88a;"></i>
+    <span>Brand List</span>
+  </a>
+</li>
+
+<!-- Model List -->
+<li class="<%= path === '/model-list' ? 'active' : '' %>">
+  <a href="/model-list" class="nav-link text-dark">
+    <i data-feather="layers" style="color:#f6c23e;"></i>
+    <span>Model List</span>
+  </a>
+</li>
+
+<li class="<%= path === '/vehicle-amount-list' ? 'active' : '' %>">
+  <a href="/vehicle-amount-list" class="nav-link text-dark">
+    <i data-feather="dollar-sign" style="color:#36b9cc;"></i>
+    <span>Vehicle Amount List</span>
+  </a>
+</li>
 
       <!-- Logout -->
       <li>

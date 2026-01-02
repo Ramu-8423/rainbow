@@ -1,0 +1,345 @@
+<style>
+.file-box{
+  width:50px;height:50px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:6px;
+  overflow:hidden;
+  background:#f1f1f1;
+}
+.file-thumb{width:100%;height:100%;object-fit:cover}
+.card-header{gap:10px}
+.card-header .form-control{border-radius:0!important}
+.error-text{font-size:12px;color:red}
+.display-block{
+  display:block;
+}
+
+</style>
+
+<div class="main-content">
+<section class="section">
+<div class="card">
+
+<!-- ================= HEADER ================= -->
+<div class="card-header d-flex align-items-center flex-wrap">
+  <h4 class="mb-0">Model List</h4>
+
+  <select id="vehicleFilter" class="form-control mx-2" style="width:200px">
+    <option value="">All Vehicles</option>
+    <% vehicles.forEach(v=>{ %>
+      <option value="<%= v.id %>"><%= v.name %></option>
+    <% }) %>
+  </select>
+
+  <select id="brandFilter" class="form-control mx-2" style="width:200px">
+    <option value="">All Brands</option>
+  </select>
+
+  <input id="tableSearch" class="form-control mx-2 "
+         placeholder="Search..." style="width:220px">
+
+  <button class="btn btn-primary btn-sm"
+          style="border-radius:0"
+          onclick="openAddModelModal()">
+    + Add Model
+  </button>
+  
+  <a href="/brand-list" 
+     class="btn btn-primary btn-sm"
+     style="border-radius:0;">
+    Reset
+  </a>
+  
+  
+</div>
+
+<!-- ================= TABLE ================= -->
+<div class="card-body">
+<div class="table-responsive">
+<table class="table table-bordered table-striped">
+<thead>
+<tr>
+  <th>ID</th>
+  <th>Vehicle</th>
+  <th>Brand</th>
+  <th>Model</th>
+  <th>Image</th>
+  <th>Status</th>
+  <th>Action</th>
+  <th>Date</th>
+</tr>
+</thead>
+
+<tbody id="modelTableBody">
+<% if(rows.length){ rows.forEach(r=>{ %>
+<tr>
+  <td><%= r.model_id %></td>
+  <td><%= r.vehicle_name %></td>
+  <td><%= r.brand_name %></td>
+  <td><%= r.model_name %></td>
+
+  <td>
+    <% if(r.vehicle_image){ %>
+      <div class="file-box">
+        <img src="/<%= r.vehicle_image %>" class="file-thumb">
+      </div>
+    <% } else { %>—<% } %>
+  </td>
+
+<td>
+  <select
+    onchange="changeModelStatus('<%= r.model_id %>', this.value)"
+    style="width:110px;padding:3px 6px;font-size:13px;font-weight:600;
+    border:1px solid <%= r.model_status==1?'#28a745':'#dc3545' %>;
+    color:<%= r.model_status==1?'#28a745':'#dc3545' %>;">
+    
+    <option value="1" <%= r.model_status==1?'selected':'' %>>
+      Active
+    </option>
+    <option value="0" <%= r.model_status==0?'selected':'' %>>
+      Inactive
+    </option>
+  </select>
+</td>
+
+
+
+  <td>
+    <button class="btn btn-sm btn-primary"
+      style="border-radius:0;padding:3px 10px"
+      onclick="openEditModelModal(
+        '<%= r.model_id %>',
+        '<%= r.brand_id %>',
+        '<%= r.model_name %>'
+      )">
+      Edit
+    </button>
+  </td>
+
+  <td><%= r.model_created_at %></td>
+</tr>
+<% }) } else { %>
+<tr>
+  <td colspan="8" class="text-center">No Data Found</td>
+</tr>
+<% } %>
+</tbody>
+</table>
+</div>
+</div>
+
+</div>
+</section>
+</div>
+
+<!-- ================= ADD MODAL ================= -->
+<div id="addModelModal"
+style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);
+z-index:99999;justify-content:center;align-items:center">
+
+<div style="background:#fff;padding:22px;width:420px;border-radius:4px;position:relative">
+<span onclick="closeAddModelModal()"
+style="position:absolute;right:15px;top:8px;font-size:24px;cursor:pointer">×</span>
+
+<h5>Add New Model</h5>
+
+<form method="POST" action="/model-add" onsubmit="return validateAddModel()">
+
+<label>Select Brand</label>
+<select id="m_brand_id" name="brand_id" class="form-control">
+<option value="">-- Select Brand --</option>
+<% brands.forEach(b=>{ %>
+<option value="<%= b.id %>"><%= b.name %></option>
+<% }) %>
+</select>
+<span id="err_m_brand" class="error-text"></span>
+
+<label class="mt-2 display-block">Model Name</label>
+
+<input id="m_name" name="name" class="form-control">
+<span id="err_m_name" class="error-text"></span>
+
+<button class="btn btn-primary btn-sm w-100 mt-4">Add Model</button>
+</form>
+</div>
+</div>
+
+<!-- ================= EDIT MODAL ================= -->
+<div id="editModelModal"
+style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);
+z-index:99999;justify-content:center;align-items:center">
+
+<div style="background:#fff;padding:22px;width:420px;border-radius:4px;position:relative">
+<span onclick="closeEditModelModal()"
+style="position:absolute;right:15px;top:8px;font-size:24px;cursor:pointer">×</span>
+
+<h5>Edit Model</h5>
+
+<form method="POST" action="/model-update" onsubmit="return validateEditModel()">
+
+<input type="hidden" id="edit_model_id" name="model_id">
+
+<label>Select Brand</label>
+<select id="edit_brand_id" name="brand_id" class="form-control">
+<option value="">-- Select Brand --</option>
+<% brands.forEach(b=>{ %>
+<option value="<%= b.id %>"><%= b.name %></option>
+<% }) %>
+</select>
+<span id="err_edit_brand" class="error-text"></span>
+
+<label class="mt-2">Model Name</label>
+<input id="edit_model_name" name="name" class="form-control">
+<span id="err_edit_name" class="error-text"></span>
+
+<button class="btn btn-primary btn-sm w-100 mt-4">Update Model</button>
+</form>
+</div>
+</div>
+
+<!-- ================= JS ================= -->
+<script>
+const vehicleFilter = document.getElementById("vehicleFilter");
+const brandFilter   = document.getElementById("brandFilter");
+const tableBody     = document.getElementById("modelTableBody");
+const searchInput   = document.getElementById("tableSearch");
+
+/* SEARCH */
+searchInput.onkeyup = ()=>{
+  const v = searchInput.value.toLowerCase();
+  document.querySelectorAll("#modelTableBody tr").forEach(r=>{
+    r.style.display = r.innerText.toLowerCase().includes(v) ? "" : "none";
+  });
+};
+
+/* VEHICLE FILTER */
+vehicleFilter.onchange = async ()=>{
+  brandFilter.innerHTML = `<option value="">All Brands</option>`;
+  if(vehicleFilter.value){
+    const res = await fetch(`/ajax/brands-by-vehicle/${vehicleFilter.value}`);
+    const brands = await res.json();
+    brands.forEach(b=>{
+      brandFilter.innerHTML += `<option value="${b.id}">${b.name}</option>`;
+    });
+  }
+  loadModels();
+};
+
+/* BRAND FILTER */
+brandFilter.onchange = loadModels;
+
+/* LOAD MODELS */
+async function loadModels(){
+  const res = await fetch(
+    `/ajax/models-filter?vehicle_id=${vehicleFilter.value}&brand_id=${brandFilter.value}`
+  );
+  const rows = await res.json();
+  tableBody.innerHTML = "";
+  if(!rows.length){
+    tableBody.innerHTML = `<tr><td colspan="8" class="text-center">No Data Found</td></tr>`;
+    return;
+  }
+  rows.forEach(r=>{
+    tableBody.innerHTML += `
+    <tr>
+      <td>${r.model_id}</td>
+      <td>${r.vehicle_name}</td>
+      <td>${r.brand_name}</td>
+      <td>${r.model_name}</td>
+      <td>${r.vehicle_image ? `<div class="file-box"><img src="/${r.vehicle_image}" class="file-thumb"></div>` : '—'}</td>
+    <td>
+  <select
+    onchange="changeModelStatus(${r.model_id}, this.value)"
+    style="width:110px;padding:3px 6px;font-size:13px;font-weight:600;
+    border:1px solid ${r.model_status==1 ? '#28a745' : '#dc3545'};
+    color:${r.model_status==1 ? '#28a745' : '#dc3545'};">
+
+    <option value="1" ${r.model_status==1 ? 'selected' : ''}>
+      Active
+    </option>
+    <option value="0" ${r.model_status==0 ? 'selected' : ''}>
+      Inactive
+    </option>
+  </select>
+</td>
+
+      <td>
+        <button class="btn btn-sm btn-primary"
+        onclick="openEditModelModal('${r.model_id}','${r.brand_id}','${r.model_name}')">
+        Edit</button>
+      </td>
+      <td>${r.model_created_at}</td>
+    </tr>`;
+  });
+}
+
+/* MODALS */
+function openAddModelModal(){addModelModal.style.display="flex";}
+function closeAddModelModal(){addModelModal.style.display="none";}
+function openEditModelModal(id,brand,name){
+  edit_model_id.value=id;
+  edit_brand_id.value=brand;
+  edit_model_name.value=name;
+  editModelModal.style.display="flex";
+}
+function closeEditModelModal(){editModelModal.style.display="none";}
+
+/* VALIDATION */
+function validateAddModel(){
+  let ok=true;
+  err_m_brand.innerText="";
+  err_m_name.innerText="";
+  if(!m_brand_id.value){err_m_brand.innerText="Select brand";ok=false;}
+  if(!m_name.value.trim()){err_m_name.innerText="Model name required";ok=false;}
+  return ok;
+}
+function validateEditModel(){
+  let ok=true;
+  err_edit_brand.innerText="";
+  err_edit_name.innerText="";
+  if(!edit_brand_id.value){err_edit_brand.innerText="Select brand";ok=false;}
+  if(!edit_model_name.value.trim()){err_edit_name.innerText="Model name required";ok=false;}
+  return ok;
+}
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script>
+function changeModelStatus(modelId, status) {
+  let text = status == 1
+    ? "Activate this model?"
+    : "Deactivate this model?";
+
+  swal({
+    title: "Are you sure?",
+    text: text,
+    icon: "warning",
+    buttons: true,
+    dangerMode: true,
+  })
+  .then(ok => {
+    if (ok) {
+      window.location.href =
+        `/model-status-update/${modelId}?status=${status}`;
+    } else {
+      location.reload();
+    }
+  });
+}
+</script>
+
+
+<script defer src="/assets/bundles/sweetalert/sweetalert.min.js"></script>

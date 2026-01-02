@@ -91,17 +91,37 @@ export const cabOrder = async (req, res) => {
       user_id,
       user_name,
       user_mobile,
-      vehicle_id, vehicle_name,
-      brand_id, brand_name,
-      model_id, model_name,
-      pickup_location, pickup_latitude, pickup_longitude,
-      drop_location, drop_latitude, drop_longitude,
-      order_type, schedule_time, pay_mode,
+
+      vehicle_id,
+      vehicle_name,
+
+      brand_id,
+      brand_name,
+
+      model_id,
+      model_name,
+
+      pickup_location,
+      pickup_latitude,
+      pickup_longitude,
+
+      drop_location,
+      drop_latitude,
+      drop_longitude,
+
+      order_type,
+      schedule_time,
+      pay_mode,
+
       over_limit_passenger,
       user_comment,
+
       estimated_amount
     } = req.body;
 
+    /* =========================
+       DISTANCE
+    ========================= */
     const distance_km =
       Math.round(
         getDistanceInKm(
@@ -113,52 +133,90 @@ export const cabOrder = async (req, res) => {
       ) / 100;
 
     const createdAt = nowIST();
-    console.log("abhi ka time hai:-", createdAt);
 
-    /* 🔥 ADDED: SERVER SIDE OTP */
+    /* =========================
+       ORDER OTP
+    ========================= */
     const orderOtp = await generateUniqueOTP(db);
 
-    // MySQL INSERT (hamesha hoga)
+    /* =========================
+       MYSQL : INSERT ORDER
+    ========================= */
     const [orderResult] = await db.query(
-      `INSERT INTO cab_orders (
+      `
+      INSERT INTO cab_orders (
         user_id,
         user_name,
         user_mobile,
-        vehicle_id, vehicle_name,
-        brand_id, brand_name,
-        model_id, model_name,
-        pickup_location, pickup_latitude, pickup_longitude,
-        drop_location, drop_latitude, drop_longitude,
+
+        vehicle_id,
+        vehicle_name,
+
+        brand_id,
+        brand_name,
+
+        model_id,
+        model_name,
+
+        pickup_location,
+        pickup_latitude,
+        pickup_longitude,
+
+        drop_location,
+        drop_latitude,
+        drop_longitude,
+
         distance_km,
         estimated_amount,
+
         order_type,
         schedule_time,
         pay_mode,
         payment_status,
+
         over_limit_passenger,
         user_comment,
-        orderOtp,               
+
+        orderOtp,
         created_at,
         updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `,
       [
         user_id,
         user_name,
         user_mobile,
-        vehicle_id, vehicle_name,
-        brand_id, brand_name,
-        model_id, model_name,
-        pickup_location, pickup_latitude, pickup_longitude,
-        drop_location, drop_latitude, drop_longitude,
+
+        vehicle_id,
+        vehicle_name,
+
+        brand_id,
+        brand_name,
+
+        model_id,
+        model_name,
+
+        pickup_location,
+        pickup_latitude,
+        pickup_longitude,
+
+        drop_location,
+        drop_latitude,
+        drop_longitude,
+
         distance_km,
         estimated_amount,
+
         order_type,
         Number(order_type) === 2 ? schedule_time : null,
         pay_mode,
         0,
+
         over_limit_passenger,
         user_comment,
-        orderOtp,                // 🔥 ADDED
+
+        orderOtp,
         createdAt,
         createdAt
       ]
@@ -166,21 +224,23 @@ export const cabOrder = async (req, res) => {
 
     const order_id = orderResult.insertId;
 
+    /* =========================
+       FIREBASE : DRIVER MATCH
+       (ONLY VEHICLE_ID)
+    ========================= */
     const firestore = getFirestore();
 
-    // Driver match karna
     const snapshot = await firestore
       .collection("driver")
       .where("online_status", "==", 1)
       .where("vehicle_type", "==", Number(vehicle_id))
-      .where("brand_id", "==", Number(brand_id))
-      .where("model_id", "==", Number(model_id))
       .get();
 
     const matched_driver_ids = [];
 
     snapshot.forEach(doc => {
       const d = doc.data();
+
       if (!d.current_latitude || !d.current_longitude) return;
 
       const dist = getDistanceInKm(
@@ -190,67 +250,85 @@ export const cabOrder = async (req, res) => {
         pickup_longitude
       );
 
-      if (dist <= 5000) matched_driver_ids.push(Number(doc.id));
+      if (dist <= 5000) {
+        matched_driver_ids.push(Number(doc.id));
+      }
     });
 
-    // MySQL me matched_driver_id update karna
+    /* =========================
+       MYSQL : UPDATE MATCHED DRIVERS
+    ========================= */
     await db.query(
       `UPDATE cab_orders SET matched_driver_id = ? WHERE id = ?`,
       [JSON.stringify(matched_driver_ids), order_id]
     );
 
-    // 🔥 FIREBASE INSERT
+    /* =========================
+       FIREBASE : STORE ORDER
+    ========================= */
     if (matched_driver_ids.length > 0) {
       try {
-        const firestoreData = {
-          order_id: Number(order_id),
-          user_name: String(user_name),
-          user_mobile: Number(user_mobile),
-          orderOtp: orderOtp, 
-          user_id: Number(user_id),
-          vehicle_id: Number(vehicle_id),
-          vehicle_name,
-          brand_id: Number(brand_id),
-          brand_name,
-          model_id: Number(model_id),
-          model_name,
-          pickup_location,
-          pickup_latitude: Number(pickup_latitude),
-          pickup_longitude: Number(pickup_longitude),
-          drop_location,
-          drop_latitude: Number(drop_latitude),
-          drop_longitude: Number(drop_longitude),
-          distance_km: Number(distance_km),
-          estimated_amount: Number(estimated_amount),
-          order_type: Number(order_type),
-          schedule_time: Number(order_type) === 2 ? schedule_time : null,
-          pay_mode,
-          payment_status: 0,
-          over_limit_passenger: over_limit_passenger || null,
-          user_comment: user_comment || null,
-          matched_driver_ids,
-          created_at: createdAt,
-          updated_at: createdAt,
-          order_status: 0
-        };
-
         await firestore
           .collection("cab_orders")
           .doc(String(order_id))
-          .set(firestoreData);
+          .set({
+            order_id: Number(order_id),
+
+            user_id: Number(user_id),
+            user_name,
+            user_mobile: Number(user_mobile),
+
+            vehicle_id: Number(vehicle_id),
+            vehicle_name,
+
+            brand_id: Number(brand_id),
+            brand_name,
+
+            model_id: Number(model_id),
+            model_name,
+
+            pickup_location,
+            pickup_latitude: Number(pickup_latitude),
+            pickup_longitude: Number(pickup_longitude),
+
+            drop_location,
+            drop_latitude: Number(drop_latitude),
+            drop_longitude: Number(drop_longitude),
+
+            distance_km: Number(distance_km),
+            estimated_amount: Number(estimated_amount),
+
+            order_type: Number(order_type),
+            schedule_time: Number(order_type) === 2 ? schedule_time : null,
+
+            pay_mode,
+            payment_status: 0,
+
+            over_limit_passenger: over_limit_passenger || null,
+            user_comment: user_comment || null,
+
+            orderOtp,
+            matched_driver_ids,
+
+            order_status: 0,
+            created_at: createdAt,
+            updated_at: createdAt
+          });
 
       } catch (firebaseErr) {
         console.error("Firebase store error:", firebaseErr);
       }
     }
 
-    // FCM notifications background me bhejna
+    /* =========================
+       FCM : BACKGROUND NOTIFICATION
+    ========================= */
     setImmediate(async () => {
       try {
         if (!matched_driver_ids.length) return;
 
         const [drivers] = await db.query(
-          "SELECT fcm_token FROM driver_registration WHERE id IN (?)",
+          `SELECT fcm_token FROM driver_registration WHERE id IN (?)`,
           [matched_driver_ids]
         );
 
@@ -273,6 +351,9 @@ export const cabOrder = async (req, res) => {
       }
     });
 
+    /* =========================
+       FINAL RESPONSE
+    ========================= */
     return res.status(201).json({
       success: true,
       message: "Cab order created successfully",
@@ -290,6 +371,8 @@ export const cabOrder = async (req, res) => {
     });
   }
 };
+
+
 
 
 export async function driverOnlineStatus(req, res) {
@@ -451,6 +534,8 @@ export async function driverOnlineStatus(req, res) {
   }
 }
 
+
+
 function calculateDistanceInKm(lat1, lon1, lat2, lon2) {
   const toRad = (v) => (v * Math.PI) / 180;
 
@@ -566,6 +651,9 @@ export async function getVehicleAmountList(req, res) {
       });
     }
 
+    /* =========================
+       DISTANCE
+    ========================= */
     const distanceKm = calculateDistanceInKm(
       Number(pickup_latitude),
       Number(pickup_longitude),
@@ -576,10 +664,14 @@ export async function getVehicleAmountList(req, res) {
     const distance = Number(distanceKm.toFixed(2));
     const BASE_URL = process.env.BASE_URL || "";
 
+    /* =========================
+       FETCH VEHICLE + SLABS
+       (brand/model sirf response ke liye)
+    ========================= */
     const [rows] = await db.query(
       `
       SELECT
-        vc.vehicle_id,
+        v.id AS vehicle_id,
         v.name AS vehicle_name,
         v.image AS vehicle_image,
         v.max_passenger,
@@ -588,24 +680,27 @@ export async function getVehicleAmountList(req, res) {
 
         b.id AS brand_id,
         b.name AS brand_name,
-
         m.id AS model_id,
         m.name AS model_name,
 
         vc.from_km,
         vc.to_km,
         vc.rate_per_km
-      FROM vehicle_charges vc
-      INNER JOIN vehicle v 
-        ON v.id = vc.vehicle_id
-        AND v.visible_status = 1
-      INNER JOIN brand b
+
+      FROM vehicle v
+      INNER JOIN vehicle_charges vc
+        ON vc.vehicle_id = v.id
+
+      LEFT JOIN brand b
         ON b.vehicle_id = v.id
         AND b.status = 1
-      INNER JOIN model m
+
+      LEFT JOIN model m
         ON m.brand_id = b.id
         AND m.status = 1
-      ORDER BY vc.vehicle_id ASC, vc.from_km ASC
+
+      WHERE v.visible_status = 1
+      ORDER BY v.id ASC, vc.from_km ASC
       `
     );
 
@@ -620,42 +715,66 @@ export async function getVehicleAmountList(req, res) {
     const vehicleMap = {};
 
     for (const row of rows) {
+      const discountPercent = Number(row.discount) || 0;
+      const increasePercent = Number(row.user_increase) || 0;
+
+      /* =========================
+         INIT VEHICLE ONCE
+      ========================= */
       if (!vehicleMap[row.vehicle_id]) {
 
         const nearestDriver = await getNearbyOnlineDrivers({
           pickup_latitude,
           pickup_longitude,
           vehicle_type: row.vehicle_id,
-          brand_id: row.brand_id,
+          brand_id: row.brand_id,   // sirf response/driver filter
           model_id: row.model_id
         });
 
         vehicleMap[row.vehicle_id] = {
           vehicle_id: row.vehicle_id,
           vehicle_name: row.vehicle_name,
+
           brand_id: row.brand_id,
           brand_name: row.brand_name,
+
           model_id: row.model_id,
           model_name: row.model_name,
-          image: BASE_URL + row.vehicle_image,
 
+          image: BASE_URL + row.vehicle_image,
           max_passenger: row.max_passenger,
-          discount: row.discount,
-          user_increase: row.user_increase,
 
           selected_status:
             Number(row.vehicle_id) === Number(vehicle_id) ? 1 : 0,
 
-          rate_per_km: 10,
-          amount: Number((distance * 10).toFixed(2)),
+          rate_per_km: 0,
+          amount: 0,
+          discount: 0,
+          user_increase: 0,
+
           arrive_time: nearestDriver ? nearestDriver.arrive_time : null
         };
       }
 
+      /* =========================
+         MATCH SLAB (MAIN LOGIC)
+      ========================= */
       if (distance >= row.from_km && distance < row.to_km) {
-        vehicleMap[row.vehicle_id].rate_per_km = Number(row.rate_per_km);
-        vehicleMap[row.vehicle_id].amount = Number(
+        const amount = Number(
           (distance * row.rate_per_km).toFixed(2)
+        );
+
+        vehicleMap[row.vehicle_id].rate_per_km =
+          Number(row.rate_per_km);
+
+        vehicleMap[row.vehicle_id].amount = amount;
+
+        vehicleMap[row.vehicle_id].discount = Math.floor(
+          (amount * discountPercent) / 100
+        );
+
+        vehicleMap[row.vehicle_id].user_increase = Math.floor(
+          (amount * increasePercent) / 100
         );
       }
     }
@@ -674,7 +793,6 @@ export async function getVehicleAmountList(req, res) {
     });
   }
 }
-
 
 
 export async function getDriverCanDiscount(req, res) {

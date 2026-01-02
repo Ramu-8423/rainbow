@@ -1,0 +1,289 @@
+<style>
+.file-box{
+  width:50px;height:50px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:6px;
+  overflow:hidden;
+  background:#f1f1f1;
+}
+.file-thumb{width:100%;height:100%;object-fit:cover}
+.card-header{gap:10px}
+.card-header .form-control{border-radius:0!important}
+.error-text{
+  display:block;
+  margin-top:4px;
+  color:red;
+  font-size:12px;
+}
+.not-set{
+  color:red;
+  font-weight:600;
+}
+.table tbody tr.group-bg-a > td { background:#e4ecff !important; }
+.table tbody tr.group-bg-b > td { background:#fff; }
+</style>
+
+<%
+let lastVehicle = "";
+let toggle = 0;
+
+function getGroupClass(vehicle_id){
+  if(vehicle_id !== lastVehicle){
+    toggle = toggle === 0 ? 1 : 0;
+    lastVehicle = vehicle_id;
+  }
+  return toggle === 0 ? "group-bg-a" : "group-bg-b";
+}
+
+function getMaxRateIndex(rows, vehicle_id){
+  let max=-1, idx=-1;
+  rows.forEach((r,i)=>{
+    if(r.vehicle_id==vehicle_id && r.rate_per_km!=='NOT SET'){
+      if(Number(r.rate_per_km)>max){
+        max=Number(r.rate_per_km); idx=i;
+      }
+    }
+  });
+  return idx;
+}
+%>
+
+<div class="main-content">
+<section class="section">
+<div class="card">
+
+<!-- HEADER -->
+<div class="card-header d-flex justify-content-between align-items-center flex-wrap">
+  <h4 class="mb-0">Vehicle Amount List</h4>
+  <input id="tableSearch" class="form-control" placeholder="Search..." style="width:220px">
+</div>
+
+<!-- BODY -->
+<div class="card-body">
+<div class="table-responsive">
+
+<table class="table table-bordered table-striped">
+<thead>
+<tr>
+  <th>Vehicle</th>
+  <th>From KM</th>
+  <th>To KM</th>
+  <th>Rate / KM</th>
+  <th>Action</th>
+</tr>
+</thead>
+
+<tbody>
+<% if(rows.length){ rows.forEach((r,i)=>{ %>
+<tr class="<%= getGroupClass(r.vehicle_id) %>">
+
+<td><%= r.vehicle_name %></td>
+
+<td>
+  <% if(r.from_km==='NOT SET'){ %>
+    <span class="not-set">NOT SET</span>
+  <% } else { %>
+    <%= r.from_km %>
+  <% } %>
+</td>
+
+<td>
+  <% if(r.to_km==='NOT SET'){ %>
+    <span class="not-set">NOT SET</span>
+  <% } else { %>
+    <%= r.to_km %>
+  <% } %>
+</td>
+
+<td>
+  <% if(r.rate_per_km==='NOT SET'){ %>
+    <span class="not-set">NOT SET</span>
+  <% } else { %>
+    ₹ <%= r.rate_per_km %>
+  <% } %>
+</td>
+
+<td>
+<%
+const maxIndex = getMaxRateIndex(rows, r.vehicle_id);
+%>
+
+<% if(r.rate_per_km==='NOT SET'){ %>
+<button class="btn btn-sm btn-primary"
+ onclick="openAmountModal('<%= r.vehicle_id %>','<%= r.vehicle_name %>')">
+ Edit
+</button>
+
+<% } else { %>
+<button class="btn btn-sm btn-warning"
+ onclick="openEditAmountModal(
+  '<%= r.charge_id %>',
+  '<%= r.from_km %>',
+  '<%= r.to_km %>',
+  '<%= r.rate_per_km %>',
+  '<%= r.vehicle_name %>'
+ )">
+ Edit
+</button>
+
+<button class="btn btn-sm btn-danger ms-1"
+ onclick="deleteAmount('<%= r.charge_id %>')">
+ Delete
+</button>
+
+<% if(i===maxIndex){ %>
+<button class="btn btn-sm btn-success ms-1"
+ onclick="openAmountModal('<%= r.vehicle_id %>','<%= r.vehicle_name %>')">
+ Add More
+</button>
+<% } %>
+
+<% } %>
+</td>
+
+</tr>
+<% }) } else { %>
+<tr>
+  <td colspan="5" class="text-center">No Data Found</td>
+</tr>
+<% } %>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+</section>
+</div>
+
+<!-- ============ ADD MODAL ============ -->
+<div id="amountModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);
+z-index:99999;justify-content:center;align-items:center">
+<div style="background:#fff;padding:22px;width:420px;position:relative">
+
+<span onclick="closeAmountModal()" style="position:absolute;right:15px;top:8px;font-size:24px;cursor:pointer">×</span>
+
+<h5>Set Vehicle Amount</h5>
+
+<form method="POST" action="/vehicle-amount-add" onsubmit="return validateAmountForm()">
+
+<input type="hidden" name="vehicle_id" id="m_vehicle_id">
+
+<label>Vehicle</label>
+<input id="m_vehicle_name" class="form-control" readonly>
+
+<label>From KM</label>
+<input id="m_from_km" name="from_km" type="number" class="form-control">
+<span id="err_from_km" class="error-text"></span>
+
+<label>To KM</label>
+<input id="m_to_km" name="to_km" type="number" class="form-control">
+<span id="err_to_km" class="error-text"></span>
+
+<label>Rate Per KM</label>
+<input id="m_rate" name="rate_per_km" type="number" class="form-control">
+<span id="err_rate" class="error-text"></span>
+
+<button class="btn btn-primary btn-sm w-100 mt-3">Save</button>
+</form>
+</div>
+</div>
+
+<!-- ============ EDIT MODAL ============ -->
+<div id="editAmountModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);
+z-index:99999;justify-content:center;align-items:center">
+<div style="background:#fff;padding:22px;width:420px;position:relative">
+
+<span onclick="closeEditAmountModal()" style="position:absolute;right:15px;top:8px;font-size:24px;cursor:pointer">×</span>
+
+<h5>Edit Vehicle Amount</h5>
+
+<form method="POST" action="/vehicle-amount-update" onsubmit="return validateEditAmountForm()">
+
+<input type="hidden" name="id" id="e_id">
+
+<label>Vehicle</label>
+<input id="e_vehicle_name" class="form-control" readonly>
+
+<label>From KM</label>
+<input id="e_from_km" name="from_km" type="number" class="form-control">
+<span id="err_e_from_km" class="error-text"></span>
+
+<label>To KM</label>
+<input id="e_to_km" name="to_km" type="number" class="form-control">
+<span id="err_e_to_km" class="error-text"></span>
+
+<label>Rate Per KM</label>
+<input id="e_rate" name="rate_per_km" type="number" class="form-control">
+<span id="err_e_rate" class="error-text"></span>
+
+<button class="btn btn-primary btn-sm w-100 mt-3">Update</button>
+</form>
+</div>
+</div>
+
+<script>
+function openAmountModal(id,name){
+  m_vehicle_id.value=id;
+  m_vehicle_name.value=name;
+  amountModal.style.display="flex";
+}
+function closeAmountModal(){ amountModal.style.display="none"; }
+
+function openEditAmountModal(id,f,t,r,name){
+  e_id.value=id;
+  e_from_km.value=f;
+  e_to_km.value=t;
+  e_rate.value=r;
+  e_vehicle_name.value=name;
+  editAmountModal.style.display="flex";
+}
+function closeEditAmountModal(){ editAmountModal.style.display="none"; }
+
+function validateAmountForm(){
+  let ok=true;
+  document.querySelectorAll(".error-text").forEach(e=>e.innerText="");
+  if(!m_from_km.value){err_from_km.innerText="Required";ok=false;}
+  if(!m_to_km.value){err_to_km.innerText="Required";ok=false;}
+  if(!m_rate.value){err_rate.innerText="Required";ok=false;}
+  if(Number(m_from_km.value)>=Number(m_to_km.value)){
+    err_to_km.innerText="To KM must be greater"; ok=false;
+  }
+  return ok;
+}
+
+function validateEditAmountForm(){
+  let ok=true;
+  document.querySelectorAll(".error-text").forEach(e=>e.innerText="");
+  if(!e_from_km.value){err_e_from_km.innerText="Required";ok=false;}
+  if(!e_to_km.value){err_e_to_km.innerText="Required";ok=false;}
+  if(!e_rate.value){err_e_rate.innerText="Required";ok=false;}
+  if(Number(e_from_km.value)>=Number(e_to_km.value)){
+    err_e_to_km.innerText="To KM must be greater"; ok=false;
+  }
+  return ok;
+}
+
+function deleteAmount(id){
+  swal({
+    title:"Are you sure?",
+    text:"This slab will be deleted",
+    icon:"warning",
+    buttons:true,
+    dangerMode:true
+  }).then(ok=>{
+    if(ok) location.href=`/vehicle-amount-delete/${id}`;
+  });
+}
+
+tableSearch.onkeyup=function(){
+  const v=this.value.toLowerCase();
+  document.querySelectorAll("tbody tr").forEach(r=>{
+    r.style.display=r.innerText.toLowerCase().includes(v)?"":"none";
+  });
+};
+</script>
+
+<script defer src="/assets/bundles/sweetalert/sweetalert.min.js"></script>

@@ -1,0 +1,337 @@
+<style>
+.file-box{
+  width:50px;height:50px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:6px;
+  overflow:hidden;
+  background:#f1f1f1;
+}
+.file-thumb{width:100%;height:100%;object-fit:cover}
+.card-header{gap:10px}
+.card-header .form-control{border-radius:0!important}
+.error-text{
+  display:block;
+  margin-top:4px;
+  color:red;
+  font-size:12px;
+}
+</style>
+
+<div class="main-content">
+<section class="section">
+<div class="card">
+
+<div class="card-header d-flex justify-content-between align-items-center flex-wrap">
+  <h4 class="mb-0">Vehicle List</h4>
+
+  <input type="text" id="tableSearch" class="form-control mx-3"
+         placeholder="Search..." style="width:220px;">
+
+ <button class="btn btn-primary btn-sm"
+        style="border-radius:0;margin-left:auto;"
+        onclick="openAddBrandModal()">
+  + Add Brand
+</button>
+
+
+
+  
+</div>
+
+<div class="card-body">
+<div class="table-responsive">
+<table class="table table-bordered table-striped">
+<thead>
+<tr>
+  <th>ID</th>
+  <th>Vehicle Name</th>
+  <th>Brand Name</th>
+  <th>Image</th>
+  <th>User Booking Staus</th>
+ <th>Action</th>
+
+  <th>Date</th>
+</tr>
+</thead>
+
+<tbody>
+<% if (vehicles.length) { vehicles.forEach(v => { %>
+<tr>
+  <td><%= v.id %></td>
+
+  <!-- VEHICLE NAME -->
+  <td><%= v.name %></td>
+
+  <!-- BRAND NAME -->
+  <td><%= v.brand_name ?? '—' %></td>
+
+
+  <!-- IMAGE -->
+  <td>
+    <% if (v.image) { %>
+      <div class="file-box">
+        <img src="/<%= v.image %>"
+             class="file-thumb"
+             loading="lazy"
+             onclick="openImageModal('/<%= v.image %>')">
+      </div>
+    <% } else { %>—<% } %>
+  </td>
+
+  <!-- BRAND STATUS -->
+  <td>
+    <% if (v.brand_id) { %>
+    <select
+      onchange="changeBrandStatus('<%= v.brand_id %>', this.value)"
+      style="width:110px;padding:3px 6px;font-size:13px;font-weight:600;
+      border:1px solid <%= v.brand_status==1?'#28a745':'#dc3545' %>;
+      color:<%= v.brand_status==1?'#28a745':'#dc3545' %>;">
+      
+      <option value="1" <%= v.brand_status==1?'selected':'' %>>
+        Active
+      </option>
+      <option value="0" <%= v.brand_status==0?'selected':'' %>>
+        Inactive
+      </option>
+    </select>
+    <% } else { %>
+      —
+    <% } %>
+  </td>
+
+
+
+<td>
+  <% if (v.brand_id) { %>
+    <button
+      class="btn btn-sm btn-primary"
+      style="border-radius:0;padding:3px 10px"
+      onclick="openEditBrandModal(
+        '<%= v.brand_id %>',
+        '<%= v.brand_name %>',
+        '<%= v.id %>'
+      )">
+      Edit
+    </button>
+  <% } else { %>
+    —
+  <% } %>
+</td>
+
+
+
+
+
+  <!-- DATE -->
+  <td><%= v.created_at %></td>
+</tr>
+<% }) } else { %>
+<tr>
+  <td colspan="7" class="text-center">No Vehicles Found</td>
+</tr>
+<% } %>
+</tbody>
+</table>
+</div>
+</div>
+
+</div>
+</section>
+</div>
+
+
+
+<!-- EDIT BRAND MODAL -->
+<div id="editBrandModal"
+     style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);
+     z-index:99999;justify-content:center;align-items:center">
+
+<div style="background:#fff;padding:22px;width:420px;border-radius:4px;position:relative">
+
+<span onclick="closeEditBrandModal()"
+      style="position:absolute;right:15px;top:8px;font-size:24px;cursor:pointer">×</span>
+
+<h5>Edit Brand</h5>
+
+<form onsubmit="return validateEditBrandForm()"
+      method="POST"
+      action="/brand-update">
+
+<input type="hidden" id="edit_brand_id" name="brand_id">
+
+<label>Select Vehicle</label>
+<select id="edit_vehicle_id" name="vehicle_id" class="form-control">
+  <option value="">-- Select Vehicle --</option>
+  <% if (vehicleList && vehicleList.length) { vehicleList.forEach(v => { %>
+    <option value="<%= v.id %>"><%= v.name %></option>
+  <% }) } %>
+</select>
+<span id="err_edit_vehicle" class="error-text"></span>
+
+<label class="mt-2">Brand Name</label>
+<input id="edit_brand_name" name="name" class="form-control">
+<span id="err_edit_brand" class="error-text"></span>
+
+<button class="btn btn-primary btn-sm w-100 mt-4">
+  Update Brand
+</button>
+
+</form>
+</div>
+</div>
+
+
+<script>
+function openEditBrandModal(brandId, brandName, vehicleId){
+  edit_brand_id.value = brandId
+  edit_brand_name.value = brandName
+  edit_vehicle_id.value = vehicleId
+  editBrandModal.style.display = "flex"
+}
+
+function closeEditBrandModal(){
+  editBrandModal.style.display = "none"
+}
+
+function validateEditBrandForm(){
+  let ok = true
+  document.querySelectorAll(".error-text").forEach(e=>e.innerText="")
+
+  if(!edit_vehicle_id.value){
+    err_edit_vehicle.innerText = "Select vehicle"
+    ok = false
+  }
+
+  if(!edit_brand_name.value.trim()){
+    err_edit_brand.innerText = "Brand name required"
+    ok = false
+  }
+
+  return ok
+}
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script>
+function changeBrandStatus(brandId, status) {
+  let text = status == 1
+    ? "Activate this brand?"
+    : "Deactivate this brand?";
+
+  swal({
+    title: "Are you sure?",
+    text: text,
+    icon: "warning",
+    buttons: true,
+    dangerMode: true,
+  })
+  .then(ok => {
+    if (ok) {
+      window.location.href =
+        `/brand-status-update/${brandId}?status=${status}`;
+    } else {
+      location.reload();
+    }
+  });
+}
+</script>
+<script defer src="/assets/bundles/sweetalert/sweetalert.min.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- ADD BRAND MODAL -->
+<div id="addBrandModal"
+     style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);
+     z-index:99999;justify-content:center;align-items:center">
+
+<div style="background:#fff;padding:22px;width:420px;border-radius:4px;position:relative">
+
+<span onclick="closeAddBrandModal()"
+      style="position:absolute;right:15px;top:8px;font-size:24px;cursor:pointer">×</span>
+
+<h5>Add New Brand</h5>
+
+<form onsubmit="return validateBrandForm()"
+      method="POST"
+      action="/brand-add">
+
+<!-- VEHICLE DROPDOWN -->
+<label>Select Vehicle</label>
+
+<select id="b_vehicle_id" name="vehicle_id" class="form-control">
+  <option value="">-- Select Vehicle --</option>
+  <% if (vehicleList && vehicleList.length) { vehicleList.forEach(v => { %>
+    <option value="<%= v.id %>"><%= v.name %></option>
+  <% }) } %>
+</select>
+
+<span id="err_vehicle" class="error-text"></span>
+
+<!-- BRAND NAME -->
+<label class="mt-2">Brand Name</label>
+<input id="b_name" name="name" class="form-control">
+<span id="err_brand" class="error-text"></span>
+
+<button class="btn btn-primary btn-sm w-100 mt-4">
+  Add Brand
+</button>
+
+</form>
+</div>
+</div>
+
+
+
+<script>
+function openAddBrandModal(){
+  addBrandModal.style.display="flex"
+}
+
+function closeAddBrandModal(){
+  addBrandModal.style.display="none"
+}
+
+function validateBrandForm(){
+  let ok = true
+  document.querySelectorAll(".error-text").forEach(e=>e.innerText="")
+
+  if(!b_vehicle_id.value){
+    err_vehicle.innerText="Select vehicle"
+    ok = false
+  }
+
+  if(!b_name.value.trim()){
+    err_brand.innerText="Brand name required"
+    ok = false
+  }
+
+  return ok
+}
+</script>
+

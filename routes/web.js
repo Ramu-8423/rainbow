@@ -32,7 +32,22 @@ updateRequestStatus
 import { 
 vehicleList,
 addVehicle,
-updateVehicleStatus
+updateVehicleStatus,
+brandList,
+updateBrandStatus,
+addBrand,
+updateBrand,
+updateVehicle,
+modelList,
+getBrandsByVehicle,
+getModelsByFilter,
+addModel,
+updateModel,
+updateModelStatus,
+vehicleAmountList,
+vehicleAmountAdd,
+vehicleAmountUpdate,
+vehicleAmountDelete
 } from "../controllers/vehicleController.js";
 
 
@@ -123,14 +138,31 @@ router.get("/driver-login-status-update/:id", driverLoginStatus);
 
 
 router.get("/vehicle-list", vehicleList);
-router.post(
-  "/vehicle-add",
-  uploadImageDynamic("cabbooking/vehicle_image").single("image"),
-  addVehicle
-);
+router.get("/vehicle-status-update/:id",updateVehicleStatus);
+router.post("/vehicle-add",uploadImageDynamic("cabbooking/vehicle_image").single("image"),addVehicle);
+router.post("/vehicle-update",uploadImageDynamic("cabbooking/vehicle_image").single("image"),updateVehicle);
 
-router.get(
-  "/vehicle-status-update/:id",
-  updateVehicleStatus
-);
+
+router.get("/brand-list", brandList);
+router.get("/brand-status-update/:id", updateBrandStatus);
+router.post("/brand-add", addBrand);
+router.post("/brand-update", updateBrand);
+
+
+
+router.get("/model-list", modelList);
+router.get("/ajax/brands-by-vehicle/:vehicle_id", getBrandsByVehicle);
+router.get("/ajax/models-filter", getModelsByFilter);
+router.post("/model-add", addModel);
+router.post("/model-update", updateModel);
+router.get("/model-status-update/:id",updateModelStatus);
+
+
+router.get("/vehicle-amount-list", vehicleAmountList);
+router.post("/vehicle-amount-add", vehicleAmountAdd);
+router.post("/vehicle-amount-update", vehicleAmountUpdate);
+router.get("/vehicle-amount-delete/:id", vehicleAmountDelete);
+
+
+
 export default router;

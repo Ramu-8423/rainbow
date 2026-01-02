@@ -48,7 +48,8 @@
   <th>User Decrease Amount</th>
   <th>Driver Can Register</th>
   <th>User Booking Staus</th>
-  
+  <th>Action</th>
+
   <th>Date</th>
 </tr>
 </thead>
@@ -70,20 +71,24 @@
     <% } else { %>—<% } %>
   </td>
 
- <td>₹ <%= v.discount ?? 0 %></td>
-<td>₹ <%= v.driver_can_discount ?? 0 %></td>
+ <td><%= v.user_increase ?? 0 %>%</td>  
+<td><%= v.discount ?? 0 %>%</td>        
 
 
- <td>
+
+<td>
   <select onchange="changeVehicleStatus('<%= v.id %>','register',this.value)"
     style="width:110px;padding:3px 6px;font-size:13px;font-weight:600;
-    border:1px solid <%= v.register_status==1?'#dc3545':'#28a745' %>;
-    color:<%= v.register_status==1?'#dc3545':'#28a745' %>;">
+    border:1px solid <%= v.register_status==1?'#28a745':'#dc3545' %>;
+    color:<%= v.register_status==1?'#28a745':'#dc3545' %>;">
     
-    <option value="0" <%= v.register_status==0?'selected':'' %>>
+    <!-- 1 = CAN REGISTER -->
+    <option value="1" <%= v.register_status==1?'selected':'' %>>
       Can Register
     </option>
-    <option value="1" <%= v.register_status==1?'selected':'' %>>
+
+    <!-- 0 = CANNOT REGISTER -->
+    <option value="0" <%= v.register_status==0?'selected':'' %>>
       Cannot Register
     </option>
   </select>
@@ -108,7 +113,25 @@
   
   
 
-  <td><%= v.created_at %></td>
+ 
+  
+  <td>
+  <button class="btn btn-sm btn-primary"
+  style="border-radius:0;padding:3px 10px"
+ onclick="openEditVehicleModal(
+  '<%= v.id %>',
+  '<%= v.name %>',
+  '<%= v.max_passenger %>',
+  '<%= v.discount %>',
+  '<%= v.user_increase %>', 
+  '<%= v.image %>'
+)">
+  Edit
+</button>
+</td>
+
+   <td><%= v.created_at %></td>
+  
 </tr>
 <% }) } else { %>
 <tr><td colspan="7" class="text-center">No Vehicles Found</td></tr>
@@ -121,6 +144,136 @@
 </div>
 </section>
 </div>
+
+
+
+
+
+<div id="editVehicleModal"
+     style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);
+     z-index:99999;justify-content:center;align-items:center">
+
+<div style="background:#fff;padding:22px;width:420px;border-radius:4px;position:relative">
+<span onclick="closeEditVehicleModal()"
+      style="position:absolute;right:15px;top:8px;font-size:24px;cursor:pointer">×</span>
+
+<h5>Edit Vehicle</h5>
+
+<form onsubmit="return validateEditVehicleForm()"
+      method="POST"
+      action="/vehicle-update"
+      enctype="multipart/form-data">
+
+<input type="hidden" id="edit_id" name="id">
+<input type="hidden" id="old_image" name="old_image">
+
+<label>Vehicle Name</label>
+<input id="edit_name" name="name" class="form-control">
+<span id="err_edit_name" class="error-text"></span>
+
+<label>Max Passenger</label>
+<input id="edit_passenger" name="max_passenger" type="number" class="form-control">
+<span id="err_edit_passenger" class="error-text"></span>
+
+<label>User Discount (%)</label>
+<input id="edit_discount" name="discount" type="number"
+       class="form-control"
+       oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+<span id="err_edit_discount" class="error-text"></span>
+
+<label>User Increase Amount</label>
+<input id="edit_increase" name="user_increase" type="number"
+       class="form-control"
+       oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+<span id="err_edit_increase" class="error-text"></span>
+
+<label>Vehicle Image</label>
+<input name="image" type="file" class="form-control"
+       onchange="previewEditVehicleImage(event)">
+<span class="error-text"></span>
+
+<div id="editPreviewBox" class="file-box" style="margin-top:8px">
+  <img id="editPreviewImg" class="file-thumb">
+</div>
+
+<button class="btn btn-primary btn-sm w-100 mt-3">
+  Update Vehicle
+</button>
+
+</form>
+</div>
+</div>
+
+
+
+
+
+
+<script>
+function openEditVehicleModal(id, name, passenger, discount, user_increase, image){
+  edit_id.value = id
+  edit_name.value = name
+  edit_passenger.value = passenger
+  edit_discount.value = discount ?? 0
+  edit_increase.value = user_increase ?? 0
+  old_image.value = image ?? ""
+
+  if(image){
+    editPreviewImg.src = "/" + image
+  }
+
+  editVehicleModal.style.display = "flex"
+}
+
+function closeEditVehicleModal(){
+  editVehicleModal.style.display = "none"
+}
+
+function previewEditVehicleImage(e){
+  editPreviewImg.src = URL.createObjectURL(e.target.files[0])
+}
+
+function validateEditVehicleForm(){
+  let ok=true
+  document.querySelectorAll(".error-text").forEach(e=>e.innerText="")
+
+  if(!edit_name.value.trim()){err_edit_name.innerText="Required";ok=false}
+  if(!edit_passenger.value||edit_passenger.value<=0){err_edit_passenger.innerText="Invalid";ok=false}
+  if(edit_discount.value===""){err_edit_discount.innerText="Required";ok=false}
+  if(edit_increase.value===""){err_edit_increase.innerText="Required";ok=false}
+
+  return ok
+}
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 <!-- IMAGE MODAL -->
 <div id="imageModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;justify-content:center;align-items:center">
@@ -181,7 +334,7 @@
 </div>
 </div>
 
-<script defer src="/assets/bundles/sweetalert/sweetalert.min.js"></script>
+
 
 <script>
 function openImageModal(src){
@@ -220,14 +373,6 @@ function validateVehicleForm(){
 
 
 
-
-
-
-
-
-
-
-
 <script>
 function changeVehicleStatus(id, type, status) {
 
@@ -263,3 +408,5 @@ function changeVehicleStatus(id, type, status) {
 }
 </script>
 
+
+<script defer src="/assets/bundles/sweetalert/sweetalert.min.js"></script>
