@@ -58,15 +58,26 @@ function validateCabOrder(body) {
   if (!body.drop_location) return "drop_location is required";
   if (!body.drop_latitude) return "drop_latitude is required";
   if (!body.drop_longitude) return "drop_longitude is required";
+  
 
   if (!body.estimated_amount) return "estimated_amount is required";
 
   if (!body.order_type) return "order_type is required";
   if (![1, 2].includes(Number(body.order_type)))
     return "order_type must be 1 or 2";
+  
+ 
 
   if (!body.pay_mode) return "pay_mode is required";
+ 
+ if (![1, 2].includes(Number(body.pay_mode)))
+  return "payment mode must be online or offline";
 
+    
+    
+ if (![0, 1].includes(Number(body.wallet_apply)))
+  return "wallet_apply must be 0 or 1";
+    
   if (Number(body.order_type) === 2 && !body.schedule_time)
     return "schedule_time is required for later order";
 
@@ -112,7 +123,7 @@ export const cabOrder = async (req, res) => {
       order_type,
       schedule_time,
       pay_mode,
-
+      wallet_apply,
       over_limit_passenger,
       user_comment,
 
@@ -172,6 +183,7 @@ export const cabOrder = async (req, res) => {
         order_type,
         schedule_time,
         pay_mode,
+        wallet_apply,
         payment_status,
 
         over_limit_passenger,
@@ -181,7 +193,7 @@ export const cabOrder = async (req, res) => {
         created_at,
         updated_at
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `,
       [
         user_id,
@@ -211,6 +223,7 @@ export const cabOrder = async (req, res) => {
         order_type,
         Number(order_type) === 2 ? schedule_time : null,
         pay_mode,
+        wallet_apply,
         0,
 
         over_limit_passenger,
@@ -222,8 +235,48 @@ export const cabOrder = async (req, res) => {
       ]
     );
 
-    const order_id = orderResult.insertId;
 
+ 
+const [[user]] = await db.query(
+  `SELECT status, wallet FROM users WHERE id = ? LIMIT 1`,
+  [user_id]
+);
+
+if (!user) {
+  return res.status(404).json({
+    success: false,
+    message: "User not found"
+  });
+}
+
+
+if (Number(wallet_apply) === 1 && Number(user.wallet) <= 0) {
+  return res.status(400).json({
+    success: false,
+    message: "Can't use wallet, first recharge"
+  });
+}
+
+
+if (Number(pay_mode) === 2 && Number(wallet_apply) === 1) {
+  return res.status(400).json({
+    success: false,
+    message: "Wallet cannot be applied for offline payment"
+  });
+}
+
+
+let finalPayMode = Number(pay_mode);
+
+if (Number(wallet_apply) === 1) {
+  if (finalPayMode === 1 && Number(user.wallet) >= Number(estimated_amount)) {
+    finalPayMode = 3; 
+  }
+}
+
+
+
+    const order_id = orderResult.insertId;
     /* =========================
        FIREBASE : DRIVER MATCH
        (ONLY VEHICLE_ID)
@@ -731,7 +784,7 @@ export async function getVehicleAmountList(req, res) {
           model_id: row.model_id
         });
 
-        vehicleMap[row.vehicle_id] = {
+          vehicleMap[row.vehicle_id] = {
           vehicle_id: row.vehicle_id,
           vehicle_name: row.vehicle_name,
 
@@ -741,7 +794,7 @@ export async function getVehicleAmountList(req, res) {
           model_id: row.model_id,
           model_name: row.model_name,
 
-          image: BASE_URL + row.vehicle_image,
+          image: `${BASE_URL.replace(/\/$/, "")}/${row.vehicle_image.replace(/^\//, "")}`,
           max_passenger: row.max_passenger,
 
           selected_status:
@@ -855,10 +908,6 @@ export async function getDriverCanDiscount(req, res) {
     });
   }
 }
-
-
-
-
 
 
 
@@ -1140,6 +1189,8 @@ export async function addOrUpdateDriverOffer(req, res) {
 
 
 
+
+
 export async function acceptCabRide(req, res) {
   try {
     const { order_id, driver_id } = req.body;
@@ -1163,7 +1214,7 @@ export async function acceptCabRide(req, res) {
     ========================= */
     const [orderRows] = await db.query(
       `
-      SELECT id, order_status
+      SELECT id, order_status,user_name,user_id,wallet_apply ,pay_mode,final_amount
       FROM cab_orders
       WHERE id = ?
       LIMIT 1
@@ -1178,13 +1229,27 @@ export async function acceptCabRide(req, res) {
       });
     }
 
-    if (Number(orderRows[0].order_status) !== 0) {
-      return res.status(400).json({
-        success: false,
-        message: "Ride already accepted or closed"
-      });
-    }
 
+   
+    
+    // if (Number(orderRows[0].order_status) !== 0) {
+    //   return res.status(400).json({
+    //     success: false,
+    //     message: "Ride already accepted or closed"
+    //   });
+    // }
+
+    const user_name = orderRows[0].user_name;
+ /* =========================
+       wallet concept start
+       
+       
+       
+       
+       
+       wallet concept end
+    ========================= */
+    
     /* =========================
        GET OFFER (MySQL)
     ========================= */
@@ -1209,6 +1274,29 @@ export async function acceptCabRide(req, res) {
     const accepted_offer_id = offerRows[0].id;
     const final_amount = offerRows[0].offer_amount;
 
+
+     
+// wallet condition
+    const user_id = orderRows[0].user_id;
+    const wallet_apply = orderRows[0].wallet_apply;
+    let pay_mode = orderRows[0].pay_mode;
+    let amount_after_wallet = 0;
+    const [userRows] = await db.query(`SELECT wallet from users where id =? limit 1`, [user_id]);
+    const wallet_amount = Number(userRows[0].wallet) || 0;
+  
+  
+  
+   if(pay_mode == 3 && wallet_apply == 1 && wallet_amount < final_amount){
+       amount_after_wallet = final_amount - wallet_amount;
+       pay_mode = 1;
+       console.log("amount kam hai iske wallet ka", amount_after_wallet);
+   }
+   if(pay_mode == 1 && wallet_apply == 1){
+       amount_after_wallet = final_amount - wallet_amount;
+   }
+   console.log("amount_after_walletXXXXXXX", amount_after_wallet);
+// wallet condition end
+
     /* =========================
        GET DRIVER DETAILS (MySQL)
     ========================= */
@@ -1221,7 +1309,8 @@ export async function acceptCabRide(req, res) {
         vehicle_plate_number,
         mobile,
         rating,
-        vehicle_color
+        vehicle_color,
+        fcm_token
       FROM driver_registration
       WHERE id = ?
       LIMIT 1
@@ -1267,6 +1356,8 @@ export async function acceptCabRide(req, res) {
         accepted_offer_id = ?,
         final_amount = ?,
         order_status = 1,
+        amount_after_wallet = ?,
+        pay_mode = ?,
         updated_at = ?
       WHERE id = ?
       `,
@@ -1280,6 +1371,8 @@ export async function acceptCabRide(req, res) {
         driver.vehicle_color || null,
         accepted_offer_id,
         final_amount,
+        amount_after_wallet,
+        pay_mode,
         now,
         order_id
       ]
@@ -1302,14 +1395,16 @@ export async function acceptCabRide(req, res) {
         accepted_offer_id: Number(accepted_offer_id),
         final_amount: Number(final_amount),
         order_status: 1,
+        amount_after_wallet,
+        pay_mode,
+        order_status: 1,
         updated_at: now
       });
 
-   
-   const offerSnapshot = await firestore
-  .collection("driver_offers")
-  .where("order_id", "==", Number(order_id))
-  .get();
+    const offerSnapshot = await firestore
+      .collection("driver_offers")
+      .where("order_id", "==", Number(order_id))
+      .get();
 
     if (!offerSnapshot.empty) {
       const batch = firestore.batch();
@@ -1319,8 +1414,27 @@ export async function acceptCabRide(req, res) {
           updated_at: now
         });
       });
-    
+
       await batch.commit();
+    }
+
+    /* =========================
+       FCM NOTIFICATION (NEW)
+    ========================= */
+    if (driver.fcm_token) {
+      try {
+        await FCMHelper.sendNotification(
+          driver.fcm_token,
+          "Ride Accepted",
+          `${user_name} accepted your ride offer. Proceed to pickup.`,
+          {
+            order_id: String(order_id),
+            driver_id: String(driver_id)
+          }
+        );
+      } catch (fcmErr) {
+        console.error("FCM Error:", fcmErr);
+      }
     }
 
     return res.status(200).json({
@@ -1339,6 +1453,7 @@ export async function acceptCabRide(req, res) {
     });
   }
 }
+
 
 
 
@@ -1578,6 +1693,7 @@ export async function changeCabOrderStatus(req, res) {
     });
   }
 }
+
 
 
 

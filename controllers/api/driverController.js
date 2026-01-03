@@ -325,6 +325,7 @@ export const getDriverProfile = async (req, res) => {
         profile_photo,
         device_id,
         fcm_token,
+        online_status,
 
         personal_information_status,
         personal_information_reject_reason,

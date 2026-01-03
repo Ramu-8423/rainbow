@@ -75,6 +75,9 @@ import {
 vehicles
 } from "../controllers/api/cabBookingController.js";
 
+import {
+driver_transactions
+} from "../controllers/api/driverTransaction.js";
 
 
 
@@ -270,7 +273,9 @@ router.get("/delete-expired-orders", deleteExpiredCabOrders);
 
 router.post("/change-cab-order-status", changeCabOrderStatus);
 
+
 router.post("/active-ride", activeRide);
+router.post("/driver_transactions", driver_transactions);
 
 
 

@@ -1,64 +1,5 @@
 import db from "../config/database.js";
 
-export const jobApplication = async (req, res) => {
-  try {
-    const perPage = 8;
-    const page = parseInt(req.query.page) || 1;
-    const offset = (page - 1) * perPage;
-
-    const { from, to } = req.query;
-
-    let where = "";
-    let values = [];
-
-    // If date filter applied
-    if (from && to) {
-      where = "WHERE DATE(created_at) BETWEEN ? AND ?";
-      values.push(from, to);
-    }
-
-    // Total count
-    const [[{ total }]] = await db.query(
-      `SELECT COUNT(*) AS total FROM job_request ${where}`,
-      values
-    );
-
-    // Pagination data fetch
-    const [rows] = await db.query(
-      `SELECT * FROM job_request 
-       ${where}
-       ORDER BY id DESC 
-       LIMIT ? OFFSET ?`,
-      [...values, perPage, offset]
-    );
-
-    return res.render("users/jobApplications", {
-      title: "Job Applications",
-      jobs: rows,
-      total,
-      perPage,
-      page,
-      totalPages: Math.ceil(total / perPage),
-      from,
-      to,
-      isFiltered: Boolean(from && to)  // UI logic
-    });
-
-  } catch (err) {
-    console.log("Job Application Fetch Error:", err);
-
-    return res.render("users/jobApplications", {
-      title: "Job Applications",
-      jobs: [],
-      total: 0,
-      perPage: 8,
-      page: 1,
-      totalPages: 1,
-      error: "Something went wrong!"
-    });
-  }
-};
-
 
 
 
@@ -170,6 +111,68 @@ export const updateUserStatus = async (req, res) => {
   }
 };
 
+
+
+
+
+export const jobApplication = async (req, res) => {
+  try {
+    const perPage = 8;
+    const page = parseInt(req.query.page) || 1;
+    const offset = (page - 1) * perPage;
+
+    const { from, to } = req.query;
+
+    let where = "";
+    let values = [];
+
+    // If date filter applied
+    if (from && to) {
+      where = "WHERE DATE(created_at) BETWEEN ? AND ?";
+      values.push(from, to);
+    }
+
+    // Total count
+    const [[{ total }]] = await db.query(
+      `SELECT COUNT(*) AS total FROM job_request ${where}`,
+      values
+    );
+
+    // Pagination data fetch
+    const [rows] = await db.query(
+      `SELECT * FROM job_request 
+       ${where}
+       ORDER BY id DESC 
+       LIMIT ? OFFSET ?`,
+      [...values, perPage, offset]
+    );
+
+    return res.render("users/jobApplications", {
+      title: "Job Applications",
+      jobs: rows,
+      total,
+      perPage,
+      page,
+      totalPages: Math.ceil(total / perPage),
+      from,
+      to,
+      isFiltered: Boolean(from && to)  // UI logic
+    });
+
+  } catch (err) {
+    console.log("Job Application Fetch Error:", err);
+
+    return res.render("users/jobApplications", {
+      title: "Job Applications",
+      jobs: [],
+      total: 0,
+      perPage: 8,
+      page: 1,
+      totalPages: 1,
+      error: "Something went wrong!"
+    });
+  }
+};
 
 
 

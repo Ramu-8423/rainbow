@@ -5,6 +5,445 @@ import axios from "axios";
 
 
 
+export const payment = async (req, res) => { 
+  try {
+    const { 
+      user_id, 
+      amount, 
+      payment_type,
+      service_order_id,
+      gateway_type,
+      module_type   // nullable
+    } = req.body;
+
+    const currentDate = nowIST();
+
+    if (!user_id)
+      return res.status(400).json({ status: false, message: "User ID is required" });
+
+    if (!amount)
+      return res.status(400).json({ status: false, message: "Amount is required" });
+
+    if (!payment_type)
+      return res.status(400).json({ status: false, message: "payment_type is required" });
+
+    if (Number(payment_type) === 1 && !service_order_id) {
+      return res.status(400).json({
+        status: false,
+        message: "service_order_id is required for payment_type 1"
+      });
+    }
+
+    let payer = null;
+
+    /* =====================================================
+       DRIVER DUE WALLET (payment_type = 5, module_type = 2)
+    ===================================================== */
+    if (Number(payment_type) === 5 && Number(module_type) === 2) {
+
+      const [rows] = await db.query(
+        `
+        SELECT id, CONCAT(first_name,' ',last_name) AS name, email, mobile
+        FROM driver_registration
+        WHERE id = ?
+        LIMIT 1
+        `,
+        [user_id]
+      );
+
+      if (!rows.length)
+        return res.status(404).json({ status: false, message: "Driver not found" });
+
+      payer = rows[0];
+    }
+
+    /* =====================================================
+       SERVICEMAN DUE WALLET (OLD LOGIC)
+    ===================================================== */
+    else if (Number(payment_type) === 5) {
+
+      const [rows] = await db.query(
+        `
+        SELECT id, CONCAT(first_name,' ',last_name) AS name, email, mobile
+        FROM serviceman
+        WHERE id = ?
+        LIMIT 1
+        `,
+        [user_id]
+      );
+
+      if (!rows.length)
+        return res.status(404).json({ status: false, message: "Serviceman not found" });
+
+      payer = rows[0];
+    }
+
+    /* =====================================================
+       USER PAYMENT (SERVICE / CAB)
+    ===================================================== */
+    else {
+
+      const [rows] = await db.query(
+        `
+        SELECT id, name, email, phone AS mobile
+        FROM users
+        WHERE id = ?
+        LIMIT 1
+        `,
+        [user_id]
+      );
+
+      if (!rows.length)
+        return res.status(404).json({ status: false, message: "User not found" });
+
+      payer = rows[0];
+    }
+
+    // service_order_id logic
+    const finalServiceOrderId =
+      Number(payment_type) === 1 ? service_order_id : null;
+
+    let platformFeeFormatted = "0% - ₹0.00";
+    let finalAmount = Number(amount);
+
+    /* =====================================================
+       PLATFORM FEE (SERVICE vs CAB)
+    ===================================================== */
+    if (Number(payment_type) === 1) {
+
+      let feeSettingName = "platform_fee";
+      if (Number(module_type) === 2) feeSettingName = "cab_platform_fee";
+
+      const [setting] = await db.query(
+        "SELECT value FROM settings WHERE name = ? LIMIT 1",
+        [feeSettingName]
+      );
+
+      const percent = setting.length ? Number(setting[0].value) : 0;
+      const fee = (Number(amount) * percent) / 100;
+
+      finalAmount = Number(amount) - fee;
+      platformFeeFormatted = `${percent}% - ₹${fee.toFixed(2)}`;
+    }
+
+    const orderId = "ORD" + Date.now();
+
+    const response = await axios.post(
+      "https://sandbox.cashfree.com/pg/orders",
+      {
+        order_id: orderId,
+        order_amount: parseFloat(amount),
+        order_currency: "INR",
+        customer_details: {
+          customer_id: `USER${user_id}`,
+          customer_email: payer.email || "test@example.com",
+          customer_phone: String(payer.mobile || "9999999999"),
+          customer_name: payer.name || "User"
+        },
+        order_meta: {
+          notify_url: "https://yoyomiles.codescarts.com/api/callback_service"
+        },
+        payment_methods: "upi,card,netbanking"
+      },
+      {
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+          "x-api-version": "2023-08-01",
+          "x-client-id": "TEST10256948ec57a943389eb31e588f84965201",
+          "x-client-secret": "cfsk_ma_test_4bf75f253a8b0b51dd9252a617bec825_4076da95"
+        }
+      }
+    );
+
+    /* =====================================================
+       🔥 FIX IS HERE (module_type INSERTED)
+    ===================================================== */
+    await db.query(
+      `
+      INSERT INTO paying 
+      (service_order_id, user_id, amount, platform_fee, final_amount,
+       payment_type, gateway_type, transaction_id, status, module_type,
+       created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `,
+      [
+        finalServiceOrderId,
+        user_id,
+        amount,
+        platformFeeFormatted,
+        finalAmount,
+        payment_type,
+        gateway_type || 1,
+        orderId,
+        0,
+        Number(module_type) === 2 ? 2 : 1,
+        currentDate,
+        currentDate
+      ]
+    );
+
+    return res.status(200).json({
+      status: true,
+      message: "Payment session created successfully",
+      order_id: orderId,
+      platform_fee: platformFeeFormatted,
+      final_amount: finalAmount,
+      data: response.data
+    });
+
+  } catch (error) {
+    console.error("Payment Error:", error);
+    return res.status(500).json({
+      status: false,
+      message: "Internal server error",
+      error: error.message
+    });
+  }
+};
+
+
+
+
+
+
+
+
+
+
+
+
+export const callbackService = async (req, res) => {
+  try {
+    const { order_id, status } = req.body;
+
+    if (!order_id || status === undefined) {
+      return res.status(400).json({
+        success: false,
+        message: "order_id and status are required"
+      });
+    }
+
+    /* =========================
+       NORMALIZE STATUS
+    ========================= */
+    const paymentStatus =
+      String(status).toLowerCase() === "success" || Number(status) === 1
+        ? 1
+        : 2;
+
+    /* =========================
+       FETCH PAYING ROW
+    ========================= */
+    const [payingRows] = await db.query(
+      `SELECT * FROM paying WHERE transaction_id = ? LIMIT 1`,
+      [order_id]
+    );
+
+    if (!payingRows.length) {
+      return res.status(404).json({
+        success: false,
+        message: "Payment record not found"
+      });
+    }
+
+    const {
+      id,
+      payment_type,
+      service_order_id,
+      user_id,
+      final_amount,
+      module_type
+    } = payingRows[0];
+
+    /* =========================
+       UPDATE PAYING STATUS
+    ========================= */
+    await db.query(
+      `UPDATE paying SET status = ?, updated_at = NOW() WHERE id = ?`,
+      [paymentStatus, id]
+    );
+
+    // ❌ STOP IF FAILED
+    if (paymentStatus !== 1) {
+      return res.status(200).json({
+        success: true,
+        message: "Payment failed",
+        order_id
+      });
+    }
+
+    /* =====================================================
+       CASE 1: SERVICE → SERVICEMAN WALLET
+    ===================================================== */
+    if (Number(payment_type) === 1 && Number(module_type) !== 2) {
+      const [orderRows] = await db.query(
+        `SELECT serviceman_id FROM service_order WHERE id = ? LIMIT 1`,
+        [service_order_id]
+      );
+
+      if (orderRows.length) {
+        await db.query(
+          `UPDATE serviceman SET wallet = wallet + ? WHERE id = ?`,
+          [Number(final_amount), orderRows[0].serviceman_id]
+        );
+      }
+    }
+
+    /* =====================================================
+       CASE 2: CAB → DRIVER WALLET (WITH / WITHOUT WALLET)
+    ===================================================== */
+   /* =====================================================
+   CASE 2: CAB → DRIVER WALLET (WITH / WITHOUT WALLET)
+===================================================== */
+/* =====================================================
+   CASE: CAB → DRIVER WALLET (CORRECT & FINAL)
+===================================================== */
+if (Number(payment_type) === 1 && Number(module_type) === 2) {
+
+  // 🔥 ALWAYS USE service_order_id (cab_orders)
+  const [orderRows] = await db.query(
+    `
+    SELECT 
+      driver_id,
+      user_id,
+      wallet_apply,
+      pay_mode,
+      final_amount AS ride_total_amount,
+      amount_after_wallet
+    FROM cab_orders
+    WHERE id = ?
+    LIMIT 1
+    `,
+    [service_order_id]
+  );
+
+  if (!orderRows.length) return;
+
+  const {
+    driver_id,
+    user_id,
+    wallet_apply,
+    pay_mode,
+    ride_total_amount,
+    amount_after_wallet
+  } = orderRows[0];
+
+  // ✅ Wallet calculation ONLY from cab_orders
+  const walletUsed =
+    Number(ride_total_amount) - Number(amount_after_wallet); // 500 - 400 = 100
+
+  let creditAmount = Number(ride_total_amount);
+
+  if (Number(wallet_apply) === 1 && Number(pay_mode) === 1) {
+
+    // Platform fee on FULL ride amount
+    const [setting] = await db.query(
+      `SELECT value FROM settings WHERE name = 'cab_platform_fee' LIMIT 1`
+    );
+
+    const percent = setting.length ? Number(setting[0].value) : 0;
+    const fee = (Number(ride_total_amount) * percent) / 100;
+
+    creditAmount = Number(ride_total_amount) - fee; // 470
+
+    const platformFeeFormatted =
+      `${percent}% - ₹${fee.toFixed(2)}`;
+
+    // ✅ Final paying settlement (auditable)
+    await db.query(
+      `
+      UPDATE paying
+      SET 
+        amount = ?,
+        final_amount = ?,
+        platform_fee = ?
+      WHERE transaction_id = ?
+      `,
+      [ride_total_amount, creditAmount, platformFeeFormatted, order_id]
+    );
+
+    // ✅ Correct wallet deduction (100)
+    await db.query(
+      `
+      UPDATE users
+      SET wallet = wallet - ?
+      WHERE id = ?
+      `,
+      [walletUsed, user_id]
+    );
+  }
+
+  // ✅ Correct driver credit (470)
+  await db.query(
+    `
+    UPDATE driver_registration
+    SET wallet = wallet + ?
+    WHERE id = ?
+    `,
+    [creditAmount, driver_id]
+  );
+}
+
+
+    /* =====================================================
+       CASE 3: USER WALLET ADD
+    ===================================================== */
+    if (Number(payment_type) === 4) {
+      await db.query(
+        `UPDATE users SET wallet = wallet + ? WHERE id = ?`,
+        [Number(final_amount), Number(user_id)]
+      );
+    }
+
+    /* =====================================================
+       CASE 4: SERVICEMAN DUE WALLET CLEAR
+    ===================================================== */
+    if (Number(payment_type) === 5 && Number(module_type) !== 2) {
+      await db.query(
+        `UPDATE serviceman SET due_wallet = due_wallet - ? WHERE id = ?`,
+        [Number(final_amount), Number(user_id)]
+      );
+    }
+
+    /* =====================================================
+       CASE 5: DRIVER DUE WALLET CLEAR
+    ===================================================== */
+    if (Number(payment_type) === 5 && Number(module_type) === 2) {
+      await db.query(
+        `UPDATE driver_registration SET due_wallet = due_wallet - ? WHERE id = ?`,
+        [Number(final_amount), Number(user_id)]
+      );
+    }
+
+    /* =========================
+       FINAL RESPONSE
+    ========================= */
+    return res.status(200).json({
+      success: true,
+      message: "Callback processed successfully",
+      service_order_id,
+      module_type: module_type,
+      order_id
+    });
+
+  } catch (error) {
+    console.error("Callback Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Callback failed",
+      error: error.message
+    });
+  }
+};
+
+
+
+
+
+
+
+
 export const bankDetails = async (req, res) => {
   try {
     const {
@@ -158,7 +597,6 @@ export const getBankDetails = async (req, res) => {
 };
 
 
-
 export const bankDetailsUpdateRequest = async (req, res) => {
   try {
     const {
@@ -307,285 +745,6 @@ export const getBankUpdateRequest = async (req, res) => {
 };
 
 
-export const payment = async (req, res) => {
-  try {
-    const { 
-      user_id, 
-      amount, 
-      payment_type,
-      service_order_id,
-      gateway_type
-    } = req.body;
-    const currentDate = nowIST();
-    console.log("fghjkhgcfdxgchj", currentDate);
-    // 🔹 Basic validations
-    if (!user_id)
-      return res.status(400).json({ status: false, message: "User ID is required" });
-
-    if (!amount)
-      return res.status(400).json({ status: false, message: "Amount is required" });
-
-    if (!payment_type)
-      return res.status(400).json({ status: false, message: "payment_type is required" });
-
-    // 🔒 payment_type = 1 → service_order_id required
-    if (Number(payment_type) === 1 && !service_order_id) {
-      return res.status(400).json({
-        status: false,
-        message: "service_order_id is required for payment_type 1"
-      });
-    }
-
-    let payer = null;
-
-    // 🔹 payment_type = 5 → SERVICEMAN
-    if (Number(payment_type) === 5) {
-      const [rows] = await db.query(
-        `
-        SELECT 
-          id,
-          CONCAT(first_name, ' ', last_name) AS name,
-          email,
-          mobile
-        FROM serviceman
-        WHERE id = ?
-        LIMIT 1
-        `,
-        [user_id]
-      );
-
-      if (!rows.length) {
-        return res.status(404).json({
-          status: false,
-          message: "Serviceman not found"
-        });
-      }
-
-      payer = rows[0];
-    } 
-    // 🔹 payment_type = 1,4 → USERS
-    else {
-      const [rows] = await db.query(
-        `
-        SELECT id, name, email, phone
-        FROM users
-        WHERE id = ?
-        LIMIT 1
-        `,
-        [user_id]
-      );
-
-      if (!rows.length) {
-        return res.status(404).json({
-          status: false,
-          message: "User not found"
-        });
-      }
-
-      payer = rows[0];
-    }
-
-    // 🔹 service_order_id handling
-    const finalServiceOrderId =
-      Number(payment_type) === 1 ? service_order_id : null;
-
-    let platformFeeFormatted = "0% - ₹0.00";
-    let finalAmount = Number(amount);
-
-    if (Number(payment_type) === 1) {
-      const [setting] = await db.query(
-        "SELECT value FROM settings WHERE name = 'platform_fee' LIMIT 1"
-      );
-
-      const percent = setting.length ? Number(setting[0].value) : 0;
-      const fee = (Number(amount) * percent) / 100;
-
-      finalAmount = Number(amount) - fee;
-      platformFeeFormatted = `${percent}% - ₹${fee.toFixed(2)}`;
-    }
-
-    // 🔹 Cashfree order id
-    const orderId = "ORD" + Date.now();
-
-    const paymentData = {
-      order_id: orderId,
-      order_amount: parseFloat(amount),
-      order_currency: "INR",
-      customer_details: {
-        customer_id: `USER${user_id}`,
-        customer_email: payer.email || "test@example.com",
-        customer_phone: String(payer.mobile || "9999999999"),
-        customer_name: payer.name || "User"
-      },
-      order_meta: {
-        notify_url: "https://yoyomiles.codescarts.com/api/callback_service"
-      },
-      payment_methods: "upi,card,netbanking"
-    };
-
-    const headers = {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-      "x-api-version": "2023-08-01",
-      "x-client-id": "TEST10256948ec57a943389eb31e588f84965201",
-      "x-client-secret": "cfsk_ma_test_4bf75f253a8b0b51dd9252a617bec825_4076da95"
-    };
-
-    // 🔹 CREATE CASHFREE ORDER
-    const response = await axios.post(
-      "https://sandbox.cashfree.com/pg/orders",
-      paymentData,
-      { headers }
-    );
-
-    // 🔹 Insert into paying table
-    await db.query(
-  `
-  INSERT INTO paying 
-  (service_order_id, user_id, amount, platform_fee, final_amount,
-   payment_type, gateway_type, transaction_id, status, created_at, updated_at)
-  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `,
-  [
-    finalServiceOrderId,
-    user_id,
-    amount,
-    platformFeeFormatted,
-    finalAmount,
-    payment_type,
-    gateway_type || 1,
-    orderId,
-    0,
-    currentDate,
-    currentDate
-  ]
-);
-
-
-    return res.status(200).json({
-      status: true,
-      message: "Payment session created successfully",
-      order_id: orderId,
-      platform_fee: platformFeeFormatted,
-      final_amount: finalAmount,
-      data: response.data
-    });
-
-  } catch (error) {
-    console.error("Payment Error:", error.response?.data || error.message);
-    return res.status(500).json({
-      status: false,
-      message: "Internal server error",
-      error: error.response?.data || error.message
-    });
-  }
-};
-
-
-export const callbackService = async (req, res) => {
-  try {
-    const { order_id, status } = req.body;
-    if (!order_id || status === undefined) {
-      return res.status(400).json({
-        success: false,
-        message: "order_id and status are required"
-      });
-    }
-
-    // 🔹 Normalize status
-    const paymentStatus =
-      String(status).toLowerCase() === "success" || Number(status) === 1
-        ? 1
-        : 2;
-
-    // 🔹 Fetch paying row
-    const [payingRows] = await db.query(
-      `SELECT * FROM paying WHERE transaction_id = ? LIMIT 1`,
-      [order_id]
-    );
-
-    if (!payingRows.length) {
-      return res.status(404).json({
-        success: false,
-        message: "Payment record not found"
-      });
-    }
-
-    const {
-      id,
-      payment_type,
-      service_order_id,
-      user_id,
-      final_amount
-    } = payingRows[0];
-
-    // 🔹 Update paying status
-    await db.query(
-      `UPDATE paying SET status = ?, updated_at = NOW() WHERE id = ?`,
-      [paymentStatus, id]
-    );
-
-    // ❌ If failed, stop here (response same)
-    if (paymentStatus !== 1) {
-      return res.status(200).json({
-        success: true,
-        message: "Payment failed",
-        order_id
-      });
-    }
-
-    // ✅ payment_type = 1 → serviceman.wallet +
-    if (Number(payment_type) === 1) {
-      const [orderRows] = await db.query(
-        `SELECT serviceman_id FROM service_order WHERE id = ? LIMIT 1`,
-        [service_order_id]
-      );
-
-      if (orderRows.length) {
-        await db.query(
-          `UPDATE serviceman SET wallet = wallet + ? WHERE id = ?`,
-          [Number(final_amount), orderRows[0].serviceman_id]
-        );
-      }
-    }
-
-    // ✅ payment_type = 4 → user.wallet +
-    if (Number(payment_type) === 4) {
-      await db.query(
-        `UPDATE users SET wallet = wallet + ? WHERE id = ?`,
-        [Number(final_amount), Number(user_id)]
-      );
-    }
-
-    // ✅ payment_type = 5 → serviceman.due_wallet -
-    if (Number(payment_type) === 5) {
-      await db.query(
-        `UPDATE serviceman SET due_wallet = due_wallet - ? WHERE id = ?`,
-        [Number(final_amount), Number(user_id)]
-      );
-    }
-
-    // ✅ FINAL RESPONSE (SAME AS BEFORE)
-    return res.status(200).json({
-      success: true,
-      message: "Callback processed successfully",
-      service_order_id: service_order_id,
-      order_id
-    });
-
-  } catch (error) {
-    console.error("Callback Error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Callback failed",
-      error: error.message
-    });
-  }
-};
-
-
-
-
 export async function serviceman_transaction(req, res) {
   try {
     const serviceman_id = req.body.serviceman_id || req.query.serviceman_id;
@@ -711,12 +870,6 @@ export async function serviceman_transaction(req, res) {
 }
 
 
-
-
-
-
-
-
 export async function user_transaction(req, res) {
   try {
     const user_id = req.body.user_id || req.query.user_id;
@@ -778,11 +931,6 @@ export async function user_transaction(req, res) {
 }
 
 
-
-
-
-
-
 async function transactions_generate() {
   const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   let transaction_id = "";
@@ -812,8 +960,6 @@ async function transactions_generate() {
 
   return transaction_id;
 }
-
-
 
 
 export async function servicemanwithdrawServiceRequest(req, res) {

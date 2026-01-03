@@ -198,7 +198,6 @@ export const updateDriverStatus = async (req, res) => {
 };
 
 
-
 export const approveAllDocuments = async (req, res) => {
   try {
     const { driver_id } = req.body;
