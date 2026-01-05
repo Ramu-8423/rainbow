@@ -206,13 +206,6 @@ export const payment = async (req, res) => {
 
 
 
-
-
-
-
-
-
-
 export const callbackService = async (req, res) => {
   try {
     const { order_id, status } = req.body;
@@ -290,18 +283,9 @@ export const callbackService = async (req, res) => {
       }
     }
 
-    /* =====================================================
-       CASE 2: CAB → DRIVER WALLET (WITH / WITHOUT WALLET)
-    ===================================================== */
-   /* =====================================================
-   CASE 2: CAB → DRIVER WALLET (WITH / WITHOUT WALLET)
-===================================================== */
-/* =====================================================
-   CASE: CAB → DRIVER WALLET (CORRECT & FINAL)
-===================================================== */
-if (Number(payment_type) === 1 && Number(module_type) === 2) {
+  
 
-  // 🔥 ALWAYS USE service_order_id (cab_orders)
+if (Number(payment_type) === 1 && Number(module_type) === 2) {
   const [orderRows] = await db.query(
     `
     SELECT 
@@ -345,12 +329,11 @@ if (Number(payment_type) === 1 && Number(module_type) === 2) {
     const percent = setting.length ? Number(setting[0].value) : 0;
     const fee = (Number(ride_total_amount) * percent) / 100;
 
-    creditAmount = Number(ride_total_amount) - fee; // 470
+    creditAmount = Number(ride_total_amount) - fee; 
 
     const platformFeeFormatted =
       `${percent}% - ₹${fee.toFixed(2)}`;
-
-    // ✅ Final paying settlement (auditable)
+      
     await db.query(
       `
       UPDATE paying
@@ -363,7 +346,6 @@ if (Number(payment_type) === 1 && Number(module_type) === 2) {
       [ride_total_amount, creditAmount, platformFeeFormatted, order_id]
     );
 
-    // ✅ Correct wallet deduction (100)
     await db.query(
       `
       UPDATE users
@@ -373,8 +355,6 @@ if (Number(payment_type) === 1 && Number(module_type) === 2) {
       [walletUsed, user_id]
     );
   }
-
-  // ✅ Correct driver credit (470)
   await db.query(
     `
     UPDATE driver_registration
@@ -436,10 +416,6 @@ if (Number(payment_type) === 1 && Number(module_type) === 2) {
     });
   }
 };
-
-
-
-
 
 
 

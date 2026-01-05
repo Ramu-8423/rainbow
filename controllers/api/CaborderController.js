@@ -511,7 +511,7 @@ export async function driverOnlineStatus(req, res) {
     const statusChanged = Number(driver.online_status) !== newStatus;
 
     /* =========================
-       UPDATE SQL
+       UPDATE SQL (UNCHANGED)
     ========================= */
     await db.query(
       `
@@ -532,10 +532,43 @@ export async function driverOnlineStatus(req, res) {
       ]
     );
 
+    /* ==================================================
+       ✅ ADDED: ONLINE / OFFLINE LOGIC (NO OLD CODE TOUCHED)
+    ================================================== */
+
+    // ✅ When driver goes ONLINE → insert new row
+    if (statusChanged && newStatus === 1) {
+      await db.query(
+        `
+        INSERT INTO driver_online_logs
+        (driver_id, online_time, created_at, updated_at)
+        VALUES (?, ?, ?, ?)
+        `,
+        [driver_id, createdAt, createdAt, createdAt]
+      );
+    }
+
+    // ✅ When driver goes OFFLINE → update last open row
+    if (statusChanged && newStatus === 0) {
+      await db.query(
+        `
+        UPDATE driver_online_logs
+        SET
+          offline_time = ?,
+          updated_at = ?
+        WHERE driver_id = ?
+          AND offline_time IS NULL
+        ORDER BY id DESC
+        LIMIT 1
+        `,
+        [createdAt, createdAt, driver_id]
+      );
+    }
+
     const firestore = getFirestore();
 
     /* =========================
-       FIREBASE PAYLOAD
+       FIREBASE PAYLOAD (UNCHANGED)
     ========================= */
     const firebasePayload = {
       id: Number(driver.id),
@@ -1395,8 +1428,9 @@ export async function acceptCabRide(req, res) {
         accepted_offer_id: Number(accepted_offer_id),
         final_amount: Number(final_amount),
         order_status: 1,
-        amount_after_wallet,
         pay_mode,
+        wallet_apply,
+        amount_after_wallet,
         order_status: 1,
         updated_at: now
       });
@@ -1523,6 +1557,7 @@ export const deleteExpiredCabOrders = async (req, res) => {
 
 
 
+
 export async function changeCabOrderStatus(req, res) {
   try {
     const {
@@ -1552,9 +1587,6 @@ export async function changeCabOrderStatus(req, res) {
       });
     }
 
-    /* =========================
-       TYPE BASED ID VALIDATION
-    ========================= */
     if (Number(type) === 1 && !user_id) {
       return res.status(400).json({
         success: false,
@@ -1569,9 +1601,6 @@ export async function changeCabOrderStatus(req, res) {
       });
     }
 
-    /* =========================
-       OTP REQUIRED FOR STATUS 3
-    ========================= */
     if (Number(order_status) === 3 && !orderOtp) {
       return res.status(400).json({
         success: false,
@@ -1579,30 +1608,24 @@ export async function changeCabOrderStatus(req, res) {
       });
     }
 
-    /* =========================
-       CANCEL STATUS TYPE RULE
-    ========================= */
     if (Number(order_status) === 6 && Number(type) !== 1) {
       return res.status(400).json({
         success: false,
-        message: "order_status 6 (cancelled_by_user) requires type = 1 (user)"
+        message: "order_status 6 requires type = 1"
       });
     }
 
     if (Number(order_status) === 7 && Number(type) !== 2) {
       return res.status(400).json({
         success: false,
-        message: "order_status 7 (cancelled_by_driver) requires type = 2 (driver)"
+        message: "order_status 7 requires type = 2"
       });
     }
 
-    /* =========================
-       CANCEL REASON REQUIRED
-    ========================= */
     if ([6, 7].includes(Number(order_status)) && !cancel_reason) {
       return res.status(400).json({
         success: false,
-        message: "cancel_reason is required for cancellation"
+        message: "cancel_reason is required"
       });
     }
 
@@ -1610,11 +1633,20 @@ export async function changeCabOrderStatus(req, res) {
     const firestore = getFirestore();
 
     /* =========================
-       FETCH ORDER (MySQL)
-       👉 orderOtp bhi nikal rahe hain
+       FETCH ORDER DETAILS
     ========================= */
     const [orderRows] = await db.query(
-      `SELECT id, orderOtp FROM cab_orders WHERE id = ? LIMIT 1`,
+      `
+      SELECT
+        id,
+        orderOtp,
+        pay_mode,
+        wallet_apply,
+        final_amount
+      FROM cab_orders
+      WHERE id = ?
+      LIMIT 1
+      `,
       [order_id]
     );
 
@@ -1624,6 +1656,12 @@ export async function changeCabOrderStatus(req, res) {
         message: "Order not found"
       });
     }
+
+    const {
+      pay_mode,
+      wallet_apply,
+      final_amount
+    } = orderRows[0];
 
     /* =========================
        OTP MATCH CHECK
@@ -1637,8 +1675,163 @@ export async function changeCabOrderStatus(req, res) {
       }
     }
 
+    /* =========================================================
+       🔥 SPECIAL PAYMENT LOGIC
+       This block runs ONLY when order_status = 5 (Ride Completed)
+    ========================================================= */
+    if (Number(order_status) === 5) {
+
+      /* =========================
+         CASE 1:
+         Online payment (pay_mode = 1)
+         with wallet partially applied (wallet_apply = 1)
+         → No extra operation required
+      ========================= */
+      if (Number(pay_mode) === 1 && Number(wallet_apply) === 1) {
+        // Directly proceed to order completion
+      }
+
+      /* =========================
+         CASE 2:
+         Wallet payment (pay_mode = 3)
+      ========================= */
+      if (Number(pay_mode) === 3) {
+
+        // Platform fee calculation
+        const [setting] = await db.query(
+          `SELECT value FROM settings WHERE name = 'platform_fee' LIMIT 1`
+        );
+
+        const percent = setting.length ? Number(setting[0].value) : 0;
+        const fee = (Number(final_amount) * percent) / 100;
+
+        const finalAmount_for_driver_wallet =
+          Number(final_amount) - fee;
+
+        const platformFeeFormatted =
+          `${percent}% - ₹${fee.toFixed(2)}`;
+
+        // Insert into paying table
+        await db.query(
+          `
+          INSERT INTO paying
+          (
+            service_order_id,
+            user_id,
+            amount,
+            platform_fee,
+            final_amount,
+            payment_type,
+            gateway_type,
+            transaction_id,
+            status,
+            module_type,
+            created_at,
+            updated_at
+          )
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          `,
+          [
+            order_id,
+            user_id,
+            final_amount,
+            platformFeeFormatted,
+            finalAmount_for_driver_wallet,
+            3,
+            null,
+            null,
+            1,
+            2,
+            now,
+            now
+          ]
+        );
+
+        // Deduct full amount from user wallet
+        await db.query(
+          `UPDATE users SET wallet = wallet - ? WHERE id = ?`,
+          [final_amount, user_id]
+        );
+
+        // Add amount to driver wallet
+        await db.query(
+          `
+          UPDATE driver_registration
+          SET wallet = wallet + ?
+          WHERE id = ?
+          `,
+          [finalAmount_for_driver_wallet, driver_id]
+        );
+      }
+
+      /* =========================
+         CASE 3:
+         Offline payment (pay_mode = 2)
+      ========================= */
+      if (Number(pay_mode) === 2) {
+
+        const [setting] = await db.query(
+          `SELECT value FROM settings WHERE name = 'platform_fee' LIMIT 1`
+        );
+
+        const percent = setting.length ? Number(setting[0].value) : 0;
+        const fee = (Number(final_amount) * percent) / 100;
+
+        const platformFeeFormatted =
+          `${percent}% - ₹${fee.toFixed(2)}`;
+
+        // Insert into paying table
+        await db.query(
+          `
+          INSERT INTO paying
+          (
+            service_order_id,
+            user_id,
+            amount,
+            platform_fee,
+            final_amount,
+            payment_type,
+            gateway_type,
+            transaction_id,
+            status,
+            module_type,
+            created_at,
+            updated_at
+          )
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          `,
+          [
+            order_id,
+            user_id,
+            final_amount,
+            platformFeeFormatted,
+            final_amount,
+            2,
+            null,
+            null,
+            1,
+            2,
+            now,
+            now
+          ]
+        );
+
+        // Add full amount to driver wallet
+        await db.query(
+          `
+          UPDATE driver_registration
+          SET
+            wallet = wallet + ?,
+            due_wallet = due_wallet + ?
+          WHERE id = ?
+          `,
+          [final_amount, fee, driver_id]
+        );
+      }
+    }
+
     /* =========================
-       UPDATE cab_orders (MySQL)
+       UPDATE ORDER STATUS
     ========================= */
     await db.query(
       `
@@ -1657,10 +1850,6 @@ export async function changeCabOrderStatus(req, res) {
       ]
     );
 
-    /* =========================
-       UPDATE cab_orders (Firebase)
-       ✅ SAFE UPSERT
-    ========================= */
     await firestore
       .collection("cab_orders")
       .doc(String(order_id))
@@ -1674,9 +1863,6 @@ export async function changeCabOrderStatus(req, res) {
         { merge: true }
       );
 
-    /* =========================
-       SUCCESS RESPONSE
-    ========================= */
     return res.status(200).json({
       success: true,
       message: "Order status updated successfully",
@@ -1693,7 +1879,6 @@ export async function changeCabOrderStatus(req, res) {
     });
   }
 }
-
 
 
 
@@ -1797,3 +1982,239 @@ export async function activeRide(req, res) {
     });
   }
 }
+
+
+
+
+export async function cabchangePaymentMode(req, res) {
+  try {
+    const { order_id, user_id, pay_mode } = req.body;
+
+    /* =========================
+       BASIC VALIDATION
+    ========================= */
+    if (!order_id || !user_id || !pay_mode) {
+      return res.status(400).json({
+        success: false,
+        message: "order_id, user_id and pay_mode are required"
+      });
+    }
+
+    if (![1, 2, 3].includes(Number(pay_mode))) {
+      return res.status(400).json({
+        success: false,
+        message: "pay_mode must be 1 (online), 2 (offline), or 3 (wallet)"
+      });
+    }
+
+    const now = nowIST();
+    const firestore = getFirestore();
+
+    /* =========================
+       GET USER WALLET AMOUNT
+    ========================= */
+    const [userRows] = await db.query(
+      `SELECT wallet FROM users WHERE id = ? LIMIT 1`,
+      [user_id]
+    );
+
+    if (!userRows.length) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found"
+      });
+    }
+
+    const user_wallet = Number(userRows[0].wallet) || 0;
+
+    /* =========================
+       GET ORDER DETAILS
+    ========================= */
+    const [orderRows] = await db.query(
+      `
+      SELECT pay_mode, wallet_apply, final_amount, order_status
+      FROM cab_orders
+      WHERE id = ? AND user_id = ?
+      LIMIT 1
+      `,
+      [order_id, user_id]
+    );
+
+    if (!orderRows.length) {
+      return res.status(404).json({
+        success: false,
+        message: "Order not found"
+      });
+    }
+
+    /* =========================
+       SECURITY CHECK
+       If ride is already completed (order_status = 5),
+       no payment mode change is allowed
+    ========================= */
+    if (Number(orderRows[0].order_status) === 5) {
+      return res.status(400).json({
+        success: false,
+        message: "Ride already completed. Payment mode cannot be changed."
+      });
+    }
+
+    const current_pay_mode = Number(orderRows[0].pay_mode);
+    const final_amount = Number(orderRows[0].final_amount);
+
+    /* =========================
+       SAME PAYMENT MODE CHECK
+    ========================= */
+    if (current_pay_mode === Number(pay_mode)) {
+      return res.status(200).json({
+        success: true,
+        message: "Payment mode already selected",
+        pay_mode: current_pay_mode
+      });
+    }
+
+    /* =========================
+       ONLINE / OFFLINE PAYMENT
+       pay_mode = 1 (online)
+       pay_mode = 2 (offline)
+    ========================= */
+    if ([1, 2].includes(Number(pay_mode))) {
+
+      await db.query(
+        `
+        UPDATE cab_orders
+        SET
+          pay_mode = ?,
+          wallet_apply = 0,
+          amount_after_wallet = 0,
+          updated_at = ?
+        WHERE id = ?
+        `,
+        [Number(pay_mode), now, order_id]
+      );
+
+      await firestore
+        .collection("cab_orders")
+        .doc(String(order_id))
+        .set(
+          {
+            pay_mode: Number(pay_mode),
+            wallet_apply: 0,
+            amount_after_wallet: 0,
+            updated_at: now
+          },
+          { merge: true }
+        );
+
+      return res.status(200).json({
+        success: true,
+        message: "Payment mode updated successfully",
+        pay_mode: Number(pay_mode)
+      });
+    }
+
+    /* =========================
+       WALLET PAYMENT MODE (3)
+    ========================= */
+    if (Number(pay_mode) === 3) {
+
+      /* ❌ Case 1: Wallet balance is zero */
+      if (user_wallet <= 0) {
+        return res.status(400).json({
+          success: false,
+          message: "Insufficient wallet balance"
+        });
+      }
+
+      /* ✅ Case 2: Wallet balance is enough to pay full amount */
+      if (user_wallet >= final_amount) {
+
+        await db.query(
+          `
+          UPDATE cab_orders
+          SET
+            pay_mode = 3,
+            wallet_apply = 1,
+            amount_after_wallet = 0,
+            updated_at = ?
+          WHERE id = ?
+          `,
+          [now, order_id]
+        );
+
+        await firestore
+          .collection("cab_orders")
+          .doc(String(order_id))
+          .set(
+            {
+              pay_mode: 3,
+              wallet_apply: 1,
+              amount_after_wallet: 0,
+              updated_at: now
+            },
+            { merge: true }
+          );
+
+        return res.status(200).json({
+          success: true,
+          message: "Full payment will be done using wallet",
+          pay_mode: 3
+        });
+      }
+
+      /* =========================
+         Case 3:
+         Wallet balance is greater than zero
+         but less than final_amount
+         Partial wallet payment + online payment
+      ========================= */
+
+      const amount_after_wallet = final_amount - user_wallet;
+
+      await db.query(
+        `
+        UPDATE cab_orders
+        SET
+          pay_mode = 1,
+          wallet_apply = 1,
+          amount_after_wallet = ?,
+          updated_at = ?
+        WHERE id = ?
+        `,
+        [amount_after_wallet, now, order_id]
+      );
+
+      await firestore
+        .collection("cab_orders")
+        .doc(String(order_id))
+        .set(
+          {
+            pay_mode: 1,
+            wallet_apply: 1,
+            amount_after_wallet,
+            updated_at: now
+          },
+          { merge: true }
+        );
+
+      return res.status(200).json({
+        success: true,
+        message: "Wallet partially used, remaining amount to be paid online",
+        pay_mode: 1,
+        amount_after_wallet
+      });
+    }
+
+  } catch (error) {
+    console.error("Change Payment Mode Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+      error: error.message
+    });
+  }
+}
+
+
+
+

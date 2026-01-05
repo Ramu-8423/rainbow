@@ -22,6 +22,13 @@ approveAllDocuments,
 driverLoginStatus
 } from "../controllers/driverController.js";
 
+
+import { 
+allServiceman,
+updateServicemanStatus
+} from "../controllers/serviceManController.js";
+
+
 import { 
 getBankDetails,
 getBankUpdateRequests,
@@ -164,5 +171,7 @@ router.post("/vehicle-amount-update", vehicleAmountUpdate);
 router.get("/vehicle-amount-delete/:id", vehicleAmountDelete);
 
 
+router.get("/serviceman", allServiceman);
+router.get("/serviceman-status-update/:id", updateServicemanStatus);
 
 export default router;

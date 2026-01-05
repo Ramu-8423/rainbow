@@ -72,7 +72,10 @@ import {
 
 
 import {
-vehicles
+vehicles,
+getCabCancelReasons,
+cabHistory,
+cabEarning
 } from "../controllers/api/cabBookingController.js";
 
 import {
@@ -93,7 +96,8 @@ addOrUpdateDriverOffer,
 acceptCabRide,
 deleteExpiredCabOrders,
 changeCabOrderStatus,
-activeRide
+activeRide,
+cabchangePaymentMode
 } from "../controllers/api/CaborderController.js";
 
 
@@ -224,6 +228,9 @@ router.post("/serviceman-ratings", getServicemanRatings);
    Vehicle 
 ======================= */
 router.get("/vehicles", vehicles);
+router.get("/cab-cancel-reasons", getCabCancelReasons);
+router.post("/cab-history", cabHistory);
+router.post("/cab-earning", cabEarning);
 
 
 router.post(
@@ -276,6 +283,9 @@ router.post("/change-cab-order-status", changeCabOrderStatus);
 
 router.post("/active-ride", activeRide);
 router.post("/driver_transactions", driver_transactions);
+
+router.post("/cab-change-payment-mode", cabchangePaymentMode);
+
 
 
 
