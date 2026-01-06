@@ -97,7 +97,8 @@ acceptCabRide,
 deleteExpiredCabOrders,
 changeCabOrderStatus,
 activeRide,
-cabchangePaymentMode
+cabchangePaymentMode,
+testNotification
 } from "../controllers/api/CaborderController.js";
 
 
@@ -287,6 +288,7 @@ router.post("/driver_transactions", driver_transactions);
 router.post("/cab-change-payment-mode", cabchangePaymentMode);
 
 
+router.get("/test-notification", testNotification);
 
 
 

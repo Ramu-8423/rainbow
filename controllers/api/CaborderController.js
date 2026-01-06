@@ -427,7 +427,6 @@ if (Number(wallet_apply) === 1) {
 
 
 
-
 export async function driverOnlineStatus(req, res) {
   if (!req.body || Object.keys(req.body).length === 0) {
     return res.status(400).json({
@@ -881,6 +880,7 @@ export async function getVehicleAmountList(req, res) {
 }
 
 
+
 export async function getDriverCanDiscount(req, res) {
   try {
     const { vehicle_id, amount } = req.body;
@@ -944,7 +944,6 @@ export async function getDriverCanDiscount(req, res) {
 
 
 
-
 export async function getDriverProfilePhotos(req, res) {
   try {
     const { driver_ids } = req.body;
@@ -999,7 +998,6 @@ export async function getDriverProfilePhotos(req, res) {
     });
   }
 }
-
 
 
 
@@ -1219,8 +1217,6 @@ export async function addOrUpdateDriverOffer(req, res) {
     });
   }
 }
-
-
 
 
 
@@ -1490,7 +1486,6 @@ export async function acceptCabRide(req, res) {
 
 
 
-
 export const deleteExpiredCabOrders = async (req, res) => {
   try {
     const firestore = getFirestore();
@@ -1553,8 +1548,6 @@ export const deleteExpiredCabOrders = async (req, res) => {
     });
   }
 };
-
-
 
 
 
@@ -2217,4 +2210,61 @@ export async function cabchangePaymentMode(req, res) {
 
 
 
+
+
+
+
+
+export const testNotification = async (req, res) => {
+  try {
+
+    /* =========================
+       FETCH USER FCM TOKEN
+    ========================= */
+    const [rows] = await db.query(
+      `
+      SELECT fcm_token
+      FROM users
+      WHERE id = 1
+      LIMIT 1
+      `
+    );
+
+    if (!rows.length || !rows[0].fcm_token) {
+      return res.status(404).json({
+        success: false,
+        message: "FCM token not found for user_id 1"
+      });
+    }
+
+    const fcmToken = rows[0].fcm_token;
+
+    /* =========================
+       SEND TEST NOTIFICATION
+    ========================= */
+    await FCMHelper.sendNotification(
+      fcmToken,
+      "Test Notification 🚀",
+      "This is a test notification sent from API",
+      {
+        type: "test",
+        user_id: "1"
+      }
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Test notification sent successfully"
+    });
+
+  } catch (error) {
+    console.error("Test Notification Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to send test notification",
+      error: error.message
+    });
+  }
+};
 

@@ -7,11 +7,13 @@ import expressLayouts from "express-ejs-layouts";
 import { autoAuth } from "./middleware/auth.js";
 import { requestTime } from "./middleware/requestTime.js";
 
-// ⭐ Socket Dependencies
+import "./scheduleHit.js";
+
+
 import http from "http";
 import { initSocket } from "./socket.js";
 
-// Load ENV
+
 dotenv.config();
 
 console.log("Loaded PORT:", process.env.PORT);
@@ -21,10 +23,10 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
-// ✅ IMPORTANT: create HTTP server
+
 const server = http.createServer(app);
 
-// ✅ IMPORTANT: init socket ONLY ONCE
+
 initSocket(server);
 
 // ---------------- EXPRESS MIDDLEWARES ----------------
@@ -53,21 +55,28 @@ app.use((req, res, next) => {
 });
 
 app.use((req, res, next) => {
+  // expose messages to views
   res.locals.success = req.session.success || null;
   res.locals.error = req.session.error || null;
 
-  delete req.session.success;
-  delete req.session.error;
+  // 🔥 IMPORTANT:
+  // message ko response complete hone ke baad hi delete karo
+  res.on("finish", () => {
+    delete req.session.success;
+    delete req.session.error;
+  });
+
   next();
 });
 
-// time middleware
+
+
 app.use(requestTime);
 
-// base url
+
 app.locals.BASE_URL = process.env.BASE_URL;
 
-// ---------------- EJS ----------------
+
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 app.use(expressLayouts);

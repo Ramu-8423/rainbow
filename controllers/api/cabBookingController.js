@@ -116,50 +116,59 @@ export const cabHistory = async (req, res) => {
         success: false,
         message: "Request body is required",
         required_fields: {
-          type: "1 (user) or 2 (driver)",
+          user_type: "1 (user) or 2 (driver)",
+          order_type: "1",
           order_status: "[6,7,8]",
-          user_id: "required when type = 1",
-          driver_id: "required when type = 2"
+          user_id: "required when user_type = 1",
+          driver_id: "required when user_type = 2"
         }
       });
     }
 
     const {
-      type,
+      user_type,
       user_id,
       driver_id,
-      order_status
+      order_status,
+      order_type
     } = req.body;
 
     /* =========================
        BASIC VALIDATION
     ========================= */
 
-    if (type === undefined || type === null) {
+    if (user_type === undefined || user_type === null) {
       return res.status(400).json({
         success: false,
-        message: "type is required (1=user, 2=driver)"
+        message: "user_type is required (1=user, 2=driver)"
       });
     }
 
-    if (![1, 2].includes(Number(type))) {
+    if (![1, 2].includes(Number(user_type))) {
       return res.status(400).json({
         success: false,
-        message: "type must be 1 (user) or 2 (driver)"
+        message: "user_type must be 1 (user) or 2 (driver)"
       });
     }
 
-    if (Number(type) === 1 && !user_id) {
+    if (Number(user_type) === 1 && !user_id) {
       return res.status(400).json({
         success: false,
-        message: "user_id is required when type = 1"
+        message: "user_id is required when user_type = 1"
       });
     }
 
-    if (Number(type) === 2 && !driver_id) {
+    if (Number(user_type) === 2 && !driver_id) {
       return res.status(400).json({
         success: false,
-        message: "driver_id is required when type = 2"
+        message: "driver_id is required when user_type = 2"
+      });
+    }
+
+    if (order_type === undefined || order_type === null) {
+      return res.status(400).json({
+        success: false,
+        message: "order_type is required"
       });
     }
 
@@ -171,7 +180,7 @@ export const cabHistory = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: "order_status must be a non-empty array",
-        allowed: [6, 7, 8]
+        allowed: [0 ,6 , 7, 8]
       });
     }
 
@@ -194,15 +203,15 @@ export const cabHistory = async (req, res) => {
        BUILD WHERE CONDITION
     ========================= */
 
-    let where = "WHERE order_status IN (?) ";
-    let values = [order_status];
+    let where = "WHERE order_status IN (?) AND order_type = ? ";
+    let values = [order_status, order_type];
 
-    if (Number(type) === 1) {
+    if (Number(user_type) === 1) {
       where += "AND user_id = ? ";
       values.push(user_id);
     }
 
-    if (Number(type) === 2) {
+    if (Number(user_type) === 2) {
       where += "AND driver_id = ? ";
       values.push(driver_id);
     }

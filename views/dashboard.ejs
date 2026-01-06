@@ -1,99 +1,278 @@
 <div class="main-content">
-   <h3>Dashboard</h3>
- 
 
-    <div class="row ">
-            <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 col-xs-12">
-              <div class="card">
-                <div class="card-statistic-4">
-                  <div class="align-items-center justify-content-between">
-                    <div class="row ">
-                      <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6 pr-0 pt-3">
-                        <div class="card-content">
-                          <h5 class="font-15">New Booking</h5>
-                          <h2 class="mb-3 font-18">258</h2>
-                          <p class="mb-0"><span class="col-green">10%</span> Increase</p>
-                        </div>
-                      </div>
-                      <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6 pl-0">
-                        <div class="banner-img">
-                          <img src="assets/img/banner/1.png" alt="">
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 col-xs-12">
-              <div class="card">
-                <div class="card-statistic-4">
-                  <div class="align-items-center justify-content-between">
-                    <div class="row ">
-                      <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6 pr-0 pt-3">
-                        <div class="card-content">
-                          <h5 class="font-15"> Customers</h5>
-                          <h2 class="mb-3 font-18">1,287</h2>
-                          <p class="mb-0"><span class="col-orange">09%</span> Decrease</p>
-                        </div>
-                      </div>
-                      <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6 pl-0">
-                        <div class="banner-img">
-                          <img src="assets/img/banner/2.png" alt="">
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 col-xs-12">
-              <div class="card">
-                <div class="card-statistic-4">
-                  <div class="align-items-center justify-content-between">
-                    <div class="row ">
-                      <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6 pr-0 pt-3">
-                        <div class="card-content">
-                          <h5 class="font-15">New Project</h5>
-                          <h2 class="mb-3 font-18">128</h2>
-                          <p class="mb-0"><span class="col-green">18%</span>
-                            Increase</p>
-                        </div>
-                      </div>
-                      <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6 pl-0">
-                        <div class="banner-img">
-                          <img src="assets/img/banner/3.png" alt="">
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 col-xs-12">
-              <div class="card">
-                <div class="card-statistic-4">
-                  <div class="align-items-center justify-content-between">
-                    <div class="row ">
-                      <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6 pr-0 pt-3">
-                        <div class="card-content">
-                          <h5 class="font-15">Revenue</h5>
-                          <h2 class="mb-3 font-18">$48,697</h2>
-                          <p class="mb-0"><span class="col-green">42%</span> Increase</p>
-                        </div>
-                      </div>
-                      <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6 pl-0">
-                        <div class="banner-img">
-                          <img src="assets/img/banner/4.png" alt="">
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-        
-          
-  </div>        
-          
+<style>
+  .mini-card {
+    background: #fff;
+    border-radius: 5px;
+    padding: 12px 14px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+    height: 90px;
+  }
+
+  .mini-card-title {
+    font-size: 14px;
+    color: black;
+    margin-bottom: 6px;
+    font-weight: 600;
+  }
+
+  .mini-card-body {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .mini-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+  }
+
+  .icon-green { background:#dcfce7; color:#16a34a; }
+  .icon-purple { background:#ede9fe; color:#7c3aed; }
+  .icon-blue { background:#e0f2fe; color:#0284c7; }
+  .icon-red { background:#fee2e2; color:#dc2626; }
+
+  .mini-badge {
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 20px;
+    font-weight: 600;
+  }
+
+  .badge-green { background:#dcfce7; color:#16a34a; }
+  .badge-red { background:#fee2e2; color:#dc2626; }
+  .badge-purple { background:#ede9fe; color:#7c3aed; }
+  .badge-blue { background:#e0f2fe; color:#0284c7; }
+  
+  
+  /* ===============================
+   DASHBOARD MINI CARD - DARK MODE
+================================ */
+body.dark .mini-card,
+body[data-layout="dark"] .mini-card {
+  background: #1f2937;
+  box-shadow: none;
+}
+
+body.dark .mini-card-title,
+body[data-layout="dark"] .mini-card-title {
+  color: #f9fafb;
+}
+
+body.dark .mini-icon,
+body[data-layout="dark"] .mini-icon {
+  background: rgba(255,255,255,0.08);
+}
+
+body.dark .mini-badge,
+body[data-layout="dark"] .mini-badge {
+  background: rgba(255,255,255,0.15) !important;
+  color: #fff !important;
+}
+
+</style>
+
+
+
+<div class="row">
+
+  <!-- Total Serviceman -->
+  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
+    <div class="mini-card">
+      <div class="mini-card-title">Total Serviceman</div>
+      <div class="mini-card-body">
+        <div class="mini-icon icon-green">
+          <i class="bi bi-people-fill"></i>
+        </div>
+        <span class="mini-badge badge-green"><%= total_serviceman %></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Active Serviceman -->
+  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
+    <div class="mini-card">
+      <div class="mini-card-title">Active Serviceman</div>
+      <div class="mini-card-body">
+        <div class="mini-icon icon-purple">
+          <i class="bi bi-person-check-fill"></i>
+        </div>
+        <span class="mini-badge badge-green"><%= active_serviceman %></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Online -->
+  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
+    <div class="mini-card">
+      <div class="mini-card-title">Online</div>
+      <div class="mini-card-body">
+        <div class="mini-icon icon-blue">
+          <i class="bi bi-wifi"></i>
+        </div>
+        <span class="mini-badge badge-purple"><%= online_serviceman %></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Offline -->
+  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
+    <div class="mini-card">
+      <div class="mini-card-title">Offline</div>
+      <div class="mini-card-body">
+        <div class="mini-icon icon-red">
+          <i class="bi bi-wifi-off"></i>
+        </div>
+        <span class="mini-badge badge-blue"><%= offline_serviceman %></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Total Category -->
+  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
+    <div class="mini-card">
+      <div class="mini-card-title">Total Category</div>
+      <div class="mini-card-body">
+        <div class="mini-icon icon-green">
+          <i class="bi bi-grid-fill"></i>
+        </div>
+        <span class="mini-badge badge-green"><%= total_category %></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Inactive Category -->
+  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
+    <div class="mini-card">
+      <div class="mini-card-title">Inactive Category</div>
+      <div class="mini-card-body">
+        <div class="mini-icon icon-red">
+          <i class="bi bi-grid-3x3-gap-fill"></i>
+        </div>
+        <span class="mini-badge badge-red"><%= inactive_category %></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Total Subcategory -->
+  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
+    <div class="mini-card">
+      <div class="mini-card-title">Total Subcategory</div>
+      <div class="mini-card-body">
+        <div class="mini-icon icon-purple">
+          <i class="bi bi-diagram-3-fill"></i>
+        </div>
+        <span class="mini-badge badge-purple"><%= total_subcategory %></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Inactive Subcategory -->
+  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
+    <div class="mini-card">
+      <div class="mini-card-title">Inactive Subcategory</div>
+      <div class="mini-card-body">
+        <div class="mini-icon icon-red">
+          <i class="bi bi-diagram-3"></i>
+        </div>
+        <span class="mini-badge badge-red"><%= inactive_subcategory %></span>
+      </div>
+    </div>
+  </div>
+
+
+
+ <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
+    <div class="mini-card">
+      <div class="mini-card-title">Total Services list</div>
+      <div class="mini-card-body">
+        <div class="mini-icon icon-purple">
+          <i class="bi bi-diagram-3-fill"></i>
+        </div>
+        <span class="mini-badge badge-purple"><%= total_services %></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Inactive Subcategory -->
+  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
+    <div class="mini-card">
+      <div class="mini-card-title">Inactive Services list</div>
+      <div class="mini-card-body">
+        <div class="mini-icon icon-red">
+          <i class="bi bi-diagram-3"></i>
+        </div>
+        <span class="mini-badge badge-red"><%= inactive_services %></span>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
+  <div class="mini-card">
+    <div class="mini-card-title">Completed Services Order</div>
+    <div class="mini-card-body">
+      <div class="mini-icon icon-green">
+        <i class="bi bi-check-circle-fill"></i>
+      </div>
+      <span class="mini-badge badge-green"><%= completed_services %></span>
+    </div>
+  </div>
+</div>
+
+
+<div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
+  <div class="mini-card">
+    <div class="mini-card-title">Ongoing Services Order</div>
+    <div class="mini-card-body">
+      <div class="mini-icon icon-blue">
+        <i class="bi bi-arrow-repeat"></i>
+      </div>
+      <span class="mini-badge badge-blue"><%= ongoing_services %></span>
+    </div>
+  </div>
+</div>
+
+ <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
+    <div class="mini-card">
+      <div class="mini-card-title">Total  Users</div>
+      <div class="mini-card-body">
+        <div class="mini-icon icon-purple">
+          <i class="bi bi-diagram-3-fill"></i>
+        </div>
+        <span class="mini-badge badge-purple"><%= total_users %></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Inactive inactive_users -->
+  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
+    <div class="mini-card">
+      <div class="mini-card-title">Users Services</div>
+      <div class="mini-card-body">
+        <div class="mini-icon icon-red">
+          <i class="bi bi-diagram-3"></i>
+        </div>
+        <span class="mini-badge badge-red"><%= inactive_users %></span>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
+    <div class="mini-card">
+      <div class="mini-card-title">Total Job Request</div>
+      <div class="mini-card-body">
+        <div class="mini-icon icon-red">
+          <i class="bi bi-diagram-3"></i>
+        </div>
+        <span class="mini-badge badge-red"><%= total_job_request %></span>
+      </div>
+    </div>
+  </div>
+  
+</div>
 </div>
