@@ -6,7 +6,6 @@ import { uploadImageDynamic } from "../middleware/upload.js";
 ======================= */
 
 
-
 import {
   loginPolicy,
   loginAdds,
@@ -75,7 +74,8 @@ import {
 vehicles,
 getCabCancelReasons,
 cabHistory,
-cabEarning
+cabEarning,
+submitDriverRating
 } from "../controllers/api/cabBookingController.js";
 
 import {
@@ -98,7 +98,9 @@ deleteExpiredCabOrders,
 changeCabOrderStatus,
 activeRide,
 cabchangePaymentMode,
-testNotification
+letterOrderNotification,
+laterAssignOrder,
+acceptLaterRide
 } from "../controllers/api/CaborderController.js";
 
 
@@ -288,7 +290,11 @@ router.post("/driver_transactions", driver_transactions);
 router.post("/cab-change-payment-mode", cabchangePaymentMode);
 
 
-router.get("/test-notification", testNotification);
+router.get("/letterOrderNotification", letterOrderNotification);
+router.get("/laterAssignOrder", laterAssignOrder);
+router.post("/submit-driver-rating", submitDriverRating);
+
+router.post("/accept-later-ride", acceptLaterRide);
 
 
 

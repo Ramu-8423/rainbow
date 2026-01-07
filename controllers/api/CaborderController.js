@@ -153,6 +153,7 @@ export const cabOrder = async (req, res) => {
 
     /* =========================
        MYSQL : INSERT ORDER
+       (AS-IT-IS)
     ========================= */
     const [orderResult] = await db.query(
       `
@@ -160,36 +161,27 @@ export const cabOrder = async (req, res) => {
         user_id,
         user_name,
         user_mobile,
-
         vehicle_id,
         vehicle_name,
-
         brand_id,
         brand_name,
-
         model_id,
         model_name,
-
         pickup_location,
         pickup_latitude,
         pickup_longitude,
-
         drop_location,
         drop_latitude,
         drop_longitude,
-
         distance_km,
         estimated_amount,
-
         order_type,
         schedule_time,
         pay_mode,
         wallet_apply,
         payment_status,
-
         over_limit_passenger,
         user_comment,
-
         orderOtp,
         created_at,
         updated_at
@@ -200,87 +192,87 @@ export const cabOrder = async (req, res) => {
         user_id,
         user_name,
         user_mobile,
-
         vehicle_id,
         vehicle_name,
-
         brand_id,
         brand_name,
-
         model_id,
         model_name,
-
         pickup_location,
         pickup_latitude,
         pickup_longitude,
-
         drop_location,
         drop_latitude,
         drop_longitude,
-
         distance_km,
         estimated_amount,
-
         order_type,
         Number(order_type) === 2 ? schedule_time : null,
-        pay_mode,
+        pay_mode,   
         wallet_apply,
         0,
-
         over_limit_passenger,
         user_comment,
-
         orderOtp,
         createdAt,
         createdAt
       ]
     );
 
-
- 
-const [[user]] = await db.query(
-  `SELECT status, wallet FROM users WHERE id = ? LIMIT 1`,
-  [user_id]
-);
-
-if (!user) {
-  return res.status(404).json({
-    success: false,
-    message: "User not found"
-  });
-}
-
-
-if (Number(wallet_apply) === 1 && Number(user.wallet) <= 0) {
-  return res.status(400).json({
-    success: false,
-    message: "Can't use wallet, first recharge"
-  });
-}
-
-
-if (Number(pay_mode) === 2 && Number(wallet_apply) === 1) {
-  return res.status(400).json({
-    success: false,
-    message: "Wallet cannot be applied for offline payment"
-  });
-}
-
-
-let finalPayMode = Number(pay_mode);
-
-if (Number(wallet_apply) === 1) {
-  if (finalPayMode === 1 && Number(user.wallet) >= Number(estimated_amount)) {
-    finalPayMode = 3; 
-  }
-}
-
-
-
     const order_id = orderResult.insertId;
+
+    /* =========================
+       USER WALLET FETCH
+    ========================= */
+    const [[user]] = await db.query(
+      `SELECT status, wallet FROM users WHERE id = ? LIMIT 1`,
+      [user_id]
+    );
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found"
+      });
+    }
+
+    if (Number(wallet_apply) === 1 && Number(user.wallet) <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Can't use wallet, first recharge"
+      });
+    }
+
+    if (Number(pay_mode) === 2 && Number(wallet_apply) === 1) {
+      return res.status(400).json({
+        success: false,
+        message: "Wallet cannot be applied for offline payment"
+      });
+    }
+
+    /* =========================
+       FINAL PAY MODE (SAME LOGIC)
+    ========================= */
+    let finalPayMode = Number(pay_mode);
+
+    if (Number(wallet_apply) === 1) {
+      if (finalPayMode === 1 && Number(user.wallet) >= Number(estimated_amount)) {
+        finalPayMode = 3;
+        console.log("XXXXXXXXXXYYYYYYYY", finalPayMode);
+      }
+    }
+
+    /* =========================
+       MYSQL : UPDATE PAY MODE
+       (ONLY THIS UPDATE)
+    ========================= */
+    await db.query(
+      `UPDATE cab_orders SET pay_mode = ? WHERE id = ?`,
+      [finalPayMode, order_id]
+    );
+
     /* =========================
        FIREBASE : DRIVER MATCH
-       (ONLY VEHICLE_ID)
     ========================= */
     const firestore = getFirestore();
 
@@ -294,7 +286,6 @@ if (Number(wallet_apply) === 1) {
 
     snapshot.forEach(doc => {
       const d = doc.data();
-
       if (!d.current_latitude || !d.current_longitude) return;
 
       const dist = getDistanceInKm(
@@ -309,9 +300,6 @@ if (Number(wallet_apply) === 1) {
       }
     });
 
-    /* =========================
-       MYSQL : UPDATE MATCHED DRIVERS
-    ========================= */
     await db.query(
       `UPDATE cab_orders SET matched_driver_id = ? WHERE id = ?`,
       [JSON.stringify(matched_driver_ids), order_id]
@@ -319,62 +307,52 @@ if (Number(wallet_apply) === 1) {
 
     /* =========================
        FIREBASE : STORE ORDER
+       (ONLY pay_mode CHANGED)
     ========================= */
-    if (matched_driver_ids.length > 0) {
-      try {
-        await firestore
-          .collection("cab_orders")
-          .doc(String(order_id))
-          .set({
-            order_id: Number(order_id),
-
-            user_id: Number(user_id),
-            user_name,
-            user_mobile: Number(user_mobile),
-
-            vehicle_id: Number(vehicle_id),
-            vehicle_name,
-
-            brand_id: Number(brand_id),
-            brand_name,
-
-            model_id: Number(model_id),
-            model_name,
-
-            pickup_location,
-            pickup_latitude: Number(pickup_latitude),
-            pickup_longitude: Number(pickup_longitude),
-
-            drop_location,
-            drop_latitude: Number(drop_latitude),
-            drop_longitude: Number(drop_longitude),
-
-            distance_km: Number(distance_km),
-            estimated_amount: Number(estimated_amount),
-
-            order_type: Number(order_type),
-            schedule_time: Number(order_type) === 2 ? schedule_time : null,
-
-            pay_mode,
-            payment_status: 0,
-
-            over_limit_passenger: over_limit_passenger || null,
-            user_comment: user_comment || null,
-
-            orderOtp,
-            matched_driver_ids,
-
-            order_status: 0,
-            created_at: createdAt,
-            updated_at: createdAt
-          });
-
-      } catch (firebaseErr) {
-        console.error("Firebase store error:", firebaseErr);
-      }
+    if (matched_driver_ids.length > 0 && order_type == 1) {
+      await firestore
+        .collection("cab_orders")
+        .doc(String(order_id))
+        .set({
+          order_id: Number(order_id),
+          user_id: Number(user_id),
+          user_name,
+          user_mobile: Number(user_mobile),
+          vehicle_id: Number(vehicle_id),
+          vehicle_name,
+          brand_id: Number(brand_id),
+          brand_name,
+          model_id: Number(model_id),
+          model_name,
+          pickup_location,
+          pickup_latitude: Number(pickup_latitude),
+          pickup_longitude: Number(pickup_longitude),
+          drop_location,
+          drop_latitude: Number(drop_latitude),
+          drop_longitude: Number(drop_longitude),
+          distance_km: Number(distance_km),
+          estimated_amount: Number(estimated_amount),
+          order_type: Number(order_type),
+          schedule_time: Number(order_type) === 2 ? schedule_time : null,
+          pay_mode: finalPayMode, 
+          wallet_apply, 
+          payment_status: 0,
+          over_limit_passenger: over_limit_passenger || null,
+          user_comment: user_comment || null,
+          orderOtp,
+          matched_driver_ids,
+          order_status: 0,
+          created_at: createdAt,
+          updated_at: createdAt
+        });
     }
 
-    /* =========================
+
+console.log("RRRRRRRRRRRRRRR", wallet_apply);
+
+
+
+   /* =========================
        FCM : BACKGROUND NOTIFICATION
     ========================= */
     setImmediate(async () => {
@@ -428,6 +406,7 @@ if (Number(order_type) === 2 && schedule_time) {
   // 🔥 sabse last me scheduler ko bol do
   scheduleApiHits();
 }
+
 
 
     /* =========================
@@ -2239,58 +2218,496 @@ export async function cabchangePaymentMode(req, res) {
 
 
 
-
-
-export const testNotification = async (req, res) => {
+export const letterOrderNotification = async (req, res) => {
   try {
+    const { order_id } = req.query;
+
+    /* =========================
+       FETCH ACTIVE ORDER
+    ========================= */
+    const [[order]] = await db.query(
+      `
+      SELECT user_id, drop_location, schedule_time
+      FROM cab_orders
+      WHERE id = ?
+        AND order_status = 0
+      LIMIT 1
+      `,
+      [order_id]
+    );
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: "Order not found"
+      });
+    }
+
+    /* =========================
+       FORMAT TIME (AM / PM)
+    ========================= */
+    let rideTime = "";
+    if (order.schedule_time) {
+      const dateObj = new Date(order.schedule_time);
+
+      rideTime = dateObj.toLocaleTimeString("en-US", {
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true
+      });
+    }
 
     /* =========================
        FETCH USER FCM TOKEN
     ========================= */
-    const [rows] = await db.query(
+    const [[user]] = await db.query(
       `
       SELECT fcm_token
       FROM users
-      WHERE id = 1
+      WHERE id = ?
       LIMIT 1
-      `
+      `,
+      [order.user_id]
     );
 
-    if (!rows.length || !rows[0].fcm_token) {
+    if (!user || !user.fcm_token) {
       return res.status(404).json({
         success: false,
-        message: "FCM token not found for user_id 1"
+        message: "FCM token not found for the user"
       });
     }
 
-    const fcmToken = rows[0].fcm_token;
-
     /* =========================
-       SEND TEST NOTIFICATION
+       SEND RIDE REMINDER
     ========================= */
     await FCMHelper.sendNotification(
-      fcmToken,
-      "Test Notification 🚀",
-      "This is a test notification sent from API",
+      user.fcm_token,
+      "Ride Reminder 🚕",
+      `Your ride request is in progress for today at ${rideTime}. Destination: ${order.drop_location}`,
       {
-        type: "test",
-        user_id: "1"
+        type: "ride_reminder",
+        order_id: String(order_id),
+        user_id: String(order.user_id)
       }
     );
 
-    return res.status(200).json({
+    return res.json({
       success: true,
-      message: "Test notification sent successfully"
+      message: "Ride reminder notification sent successfully"
     });
 
   } catch (error) {
-    console.error("Test Notification Error:", error);
+    console.error("Letter Order Notification Error:", error);
 
     return res.status(500).json({
       success: false,
-      message: "Failed to send test notification",
+      message: "Failed to send ride reminder notification",
       error: error.message
     });
   }
 };
+
+
+
+
+
+function buildFirebaseOrderPayload(order, matched_driver_ids, createdAt) {
+  return {
+    order_id: Number(order.id),
+
+    user_id: Number(order.user_id),
+    user_name: order.user_name,
+    user_mobile: Number(order.user_mobile),
+
+    vehicle_id: Number(order.vehicle_id),
+    vehicle_name: order.vehicle_name,
+
+    brand_id: Number(order.brand_id),
+    brand_name: order.brand_name,
+
+    model_id: Number(order.model_id),
+    model_name: order.model_name,
+
+    pickup_location: order.pickup_location,
+    pickup_latitude: Number(order.pickup_latitude),
+    pickup_longitude: Number(order.pickup_longitude),
+
+    drop_location: order.drop_location,
+    drop_latitude: Number(order.drop_latitude),
+    drop_longitude: Number(order.drop_longitude),
+
+    distance_km: Number(order.distance_km),
+    estimated_amount: Number(order.estimated_amount),
+
+    order_type: Number(order.order_type),
+    schedule_time: order.schedule_time,
+
+    pay_mode: order.pay_mode,
+    wallet_apply: order.wallet_apply,
+    payment_status: 0,
+
+    over_limit_passenger: order.over_limit_passenger || null,
+    user_comment: order.user_comment || null,
+
+    orderOtp: order.orderOtp,
+    matched_driver_ids,
+
+    order_status: 0,
+    created_at: createdAt,
+    updated_at: createdAt
+  };
+}
+
+
+
+
+export const laterAssignOrder = async (req, res) => {
+  const { order_id } = req.query;
+  try {
+    /* =========================
+       1. FETCH SCHEDULED ORDER
+    ========================= */
+   const [[order]] = await db.query(
+      `
+      SELECT *
+      FROM cab_orders
+      WHERE id = ?
+        AND order_type = 2
+        AND order_status = 0
+      LIMIT 1
+      `,
+      [order_id]
+    );
+
+
+    if (!order) {
+      return res.json({
+        success: false,
+        message: "Scheduled order not found"
+      });
+    }
+
+    /* =========================
+       2. REAL-TIME DRIVER MATCH
+    ========================= */
+    const firestore = getFirestore();
+
+    const snapshot = await firestore
+      .collection("driver")
+      .where("online_status", "==", 1)
+      .where("vehicle_type", "==", Number(order.vehicle_id))
+      .get();
+
+    const matched_driver_ids = [];
+
+    snapshot.forEach(doc => {
+      const d = doc.data();
+
+      if (!d.current_latitude || !d.current_longitude) return;
+
+      const dist = getDistanceInKm(
+        d.current_latitude,
+        d.current_longitude,
+        order.pickup_latitude,
+        order.pickup_longitude
+      );
+
+      if (dist <= 5000) {
+        matched_driver_ids.push(Number(doc.id));
+      }
+    });
+
+    /* =========================
+       3. UPDATE MYSQL
+    ========================= */
+    await db.query(
+      `UPDATE cab_orders SET matched_driver_id = ? WHERE id = ?`,
+      [JSON.stringify(matched_driver_ids), order_id]
+    );
+
+    /* =========================
+       4. FIREBASE INSERT / UPDATE
+       (FORMAT SAME)
+    ========================= */
+    if (matched_driver_ids.length > 0) {
+      const payload = buildFirebaseOrderPayload(
+        order,
+        matched_driver_ids,
+        nowIST()
+      );
+
+      await firestore
+        .collection("cab_orders")
+        .doc(String(order_id))
+        .set(payload);
+    }
+
+    /* =========================
+       5. FCM NOTIFICATION
+    ========================= */
+    if (matched_driver_ids.length > 0) {
+      const [drivers] = await db.query(
+        `SELECT fcm_token FROM driver_registration WHERE id IN (?)`,
+        [matched_driver_ids]
+      );
+
+      for (const drv of drivers) {
+        if (!drv.fcm_token) continue;
+
+        await FCMHelper.sendNotification(
+          drv.fcm_token,
+          "Scheduled Cab Ride",
+          order.pickup_location,
+          {
+            order_id: String(order_id)
+          }
+        );
+      }
+    }
+
+    return res.json({
+      success: true,
+      order_id,
+      matched_driver_count: matched_driver_ids.length
+    });
+
+  } catch (err) {
+    console.error("laterAssignOrder error:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error"
+    });
+  }
+};
+
+
+
+
+export async function acceptLaterRide(req, res) {
+  try {
+    const { order_id, driver_id, user_id } = req.body;
+
+    /* =========================
+       BASIC VALIDATION
+    ========================= */
+    if (!order_id || !driver_id || !user_id) {
+      return res.status(400).json({
+        success: false,
+        message: "order_id, driver_id and user_id are required"
+      });
+    }
+
+    const now = nowIST();
+    const BASE_URL = process.env.BASE_URL || "";
+    const firestore = getFirestore();
+
+    /* =========================
+       CHECK ORDER STATUS
+    ========================= */
+    const [orderRows] = await db.query(
+      `
+      SELECT 
+        id,
+        user_id,
+        wallet_apply,
+        pay_mode,
+        estimated_amount,
+        order_status
+      FROM cab_orders
+      WHERE id = ?
+      LIMIT 1
+      `,
+      [order_id]
+    );
+
+    if (!orderRows.length) {
+      return res.status(404).json({
+        success: false,
+        message: "Order not found"
+      });
+    }
+
+    if (Number(orderRows[0].order_status) !== 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Already accepted by another driver"
+      });
+    }
+
+    /* =========================
+       REQUIRED ORDER DATA
+    ========================= */
+    const wallet_apply = orderRows[0].wallet_apply;
+    let pay_mode = orderRows[0].pay_mode;
+    const final_amount = Number(orderRows[0].estimated_amount);
+    let amount_after_wallet = 0;
+
+    /* =========================
+       WALLET LOGIC
+    ========================= */
+    const [userRows] = await db.query(
+      `SELECT wallet, fcm_token FROM users WHERE id = ? LIMIT 1`,
+      [user_id]
+    );
+
+    const wallet_amount = Number(userRows[0]?.wallet) || 0;
+    const user_fcm_token = userRows[0]?.fcm_token || null;
+
+    if (pay_mode == 3 && wallet_apply == 1 && wallet_amount < final_amount) {
+      amount_after_wallet = final_amount - wallet_amount;
+      pay_mode = 1;
+    }
+
+    if (pay_mode == 1 && wallet_apply == 1) {
+      amount_after_wallet = final_amount - wallet_amount;
+    }
+
+    /* =========================
+       GET DRIVER DETAILS
+    ========================= */
+    const [driverRows] = await db.query(
+      `
+      SELECT
+        first_name,
+        last_name,
+        profile_photo,
+        vehicle_plate_number,
+        mobile,
+        rating,
+        vehicle_color
+      FROM driver_registration
+      WHERE id = ?
+      LIMIT 1
+      `,
+      [driver_id]
+    );
+
+    if (!driverRows.length) {
+      return res.status(404).json({
+        success: false,
+        message: "Driver not found"
+      });
+    }
+
+    const driver = driverRows[0];
+
+    const driver_name = [driver.first_name, driver.last_name]
+      .filter(Boolean)
+      .join(" ");
+
+    const profile_photo = driver.profile_photo
+      ? `${BASE_URL}/${driver.profile_photo.replace(/^\//, "")}`
+      : null;
+
+    /* =========================
+       UPDATE cab_orders (MySQL)
+    ========================= */
+    await db.query(
+      `
+      UPDATE cab_orders
+      SET
+        driver_id = ?,
+        driver_name = ?,
+        profile_photo = ?,
+        vehicle_plate_number = ?,
+        contact_number = ?,
+        rating = ?,
+        vehicle_color = ?,
+        final_amount = ?,
+        amount_after_wallet = ?,
+        wallet_apply = ?,
+        pay_mode = ?,
+        order_status = 1,
+        updated_at = ?
+      WHERE id = ?
+      `,
+      [
+        driver_id,
+        driver_name,
+        profile_photo,
+        driver.vehicle_plate_number || null,
+        driver.mobile || null,
+        driver.rating || null,
+        driver.vehicle_color || null,
+        final_amount,
+        amount_after_wallet,
+        wallet_apply,
+        pay_mode,
+        now,
+        order_id
+      ]
+    );
+
+    /* =========================
+       UPDATE cab_orders (Firebase)
+    ========================= */
+    await firestore
+      .collection("cab_orders")
+      .doc(String(order_id))
+      .update({
+        driver_id: Number(driver_id),
+        driver_name,
+        profile_photo,
+        vehicle_plate_number: driver.vehicle_plate_number || null,
+        contact_number: driver.mobile || null,
+        rating: driver.rating || null,
+        vehicle_color: driver.vehicle_color || null,
+        final_amount,
+        estimated_amount: final_amount,
+        amount_after_wallet,
+        wallet_apply,
+        pay_mode,
+        order_status: 1,
+        updated_at: now
+      });
+
+    /* =========================
+       USER FCM NOTIFICATION
+    ========================= */
+    if (user_fcm_token) {
+      try {
+        await FCMHelper.sendNotification(
+          user_fcm_token,
+          "Ride Accepted",
+          `Your scheduled ride has been accepted by driver ${driver_name}.`,
+          {
+            type: "scheduled_ride_accepted",
+            order_id: String(order_id),
+            user_id: String(user_id),
+            driver_id: String(driver_id)
+          }
+        );
+      } catch (fcmErr) {
+        console.error("User FCM Error:", fcmErr);
+      }
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Ride accepted successfully",
+      order_id,
+      driver_id
+    });
+
+  } catch (error) {
+    console.error("Accept Later Ride Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+      error: error.message
+    });
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
 

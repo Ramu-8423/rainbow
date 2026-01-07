@@ -422,3 +422,155 @@ export async function cabEarning(req, res) {
   }
 }
 
+
+
+
+
+
+
+
+
+export const submitDriverRating = async (req, res) => {
+  try {
+
+    const { user_id, order_id, driver_id, rating } = req.body;
+
+    /* =========================
+       BASIC VALIDATION
+       Validate required fields
+    ========================= */
+    if (!user_id || !order_id || !driver_id || !rating) {
+      return res.status(400).json({
+        success: false,
+        message: "user_id, order_id, driver_id and rating are required"
+      });
+    }
+
+    /* Validate rating range */
+    if (rating < 1 || rating > 5) {
+      return res.status(400).json({
+        success: false,
+        message: "rating must be between 1 to 5"
+      });
+    }
+
+
+     await db.query(
+         `
+         UPDATE cab_orders
+         SET rating = ?
+         WHERE id = ?
+         `,
+         [rating, order_id]
+       );
+
+    /* =========================
+       CHECK IF RATING ALREADY EXISTS
+       One user can rate one order only once
+    ========================= */
+    const [[alreadyRated]] = await db.query(
+      `
+      SELECT id 
+      FROM rating_history 
+      WHERE order_id = ? AND user_id = ?
+      LIMIT 1
+      `,
+      [order_id, user_id]
+    );
+
+    if (alreadyRated) {
+      return res.status(400).json({
+        success: false,
+        message: "Rating already submitted for this order"
+      });
+    }
+
+    /* =========================
+       FETCH DRIVER CURRENT RATING DATA
+    ========================= */
+    const [[driver]] = await db.query(
+      `
+      SELECT 
+        rating,
+        rating_count,
+        rating_sum
+      FROM driver_registration
+      WHERE id = ?
+      LIMIT 1
+      `,
+      [driver_id]
+    );
+
+    if (!driver) {
+      return res.status(404).json({
+        success: false,
+        message: "Driver not found"
+      });
+    }
+
+    const currentRatingCount = driver.rating_count || 0;
+    const currentRatingSum   = driver.rating_sum || 0;
+
+    /* =========================
+       RATING CALCULATION (AS PER GIVEN LOGIC)
+       rating_count = total rating value
+       rating_sum   = total number of users who rated
+    ========================= */
+    const newRatingCount = currentRatingCount + rating; // rating given by current user
+    const newRatingSum   = currentRatingSum + 1;        // total number of users who rated
+
+    const newAverageRating = newRatingCount / newRatingSum;
+
+    /* =========================
+       INSERT RATING INTO HISTORY TABLE
+    ========================= */
+    await db.query(
+      `
+      INSERT INTO rating_history
+      (order_id, user_id, driver_id, rating, created_at)
+      VALUES (?, ?, ?, ?, ?)
+      `,
+      [order_id, user_id, driver_id, rating, nowIST()]
+    );
+
+    /* =========================
+       UPDATE DRIVER RATING SUMMARY
+    ========================= */
+    await db.query(
+      `
+      UPDATE driver_registration
+      SET
+        rating_count = ?,
+        rating_sum   = ?,
+        rating       = ?
+      WHERE id = ?
+      `,
+      [
+        newRatingCount,
+        newRatingSum,
+        Math.round(newAverageRating), // store average as INT
+        driver_id
+      ]
+    );
+
+    /* =========================
+       SUCCESS RESPONSE
+    ========================= */
+    return res.status(200).json({
+      success: true,
+      message: "Rating submitted successfully",
+      data: {
+        rating_count: newRatingCount,
+        rating_sum: newRatingSum,
+        rating: Math.round(newAverageRating)
+      }
+    });
+
+  } catch (error) {
+    console.error("SUBMIT DRIVER RATING ERROR:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error"
+    });
+  }
+};
