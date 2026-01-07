@@ -2,6 +2,7 @@ import db from "../../config/database.js";
 import { FCMHelper } from "../../middleware/fcmHelper.js";
 import { nowIST } from "../../utils/dateParser.js";
 import { getFirestore } from "../../utils/firebaseInit.js";
+import { scheduleApiHits } from "../../scheduleHit.js";
 
 /* =========================================================
    DISTANCE FUNCTION (SAME)
@@ -403,6 +404,31 @@ if (Number(wallet_apply) === 1) {
         console.error("FCM Background Error:", err);
       }
     });
+
+/* =========================
+       FCM : BACKGROUND NOTIFICATION END
+    ========================= */
+
+
+
+/* =========================
+   SCHEDULE API HIT (LAST STEP)
+========================= */
+if (Number(order_type) === 2 && schedule_time) {
+  await db.query(
+    `
+    INSERT INTO scheduled_api_hits
+      (order_id, hit_datetime, is_done)
+    VALUES
+      (?, ?, 0)
+    `,
+    [order_id, schedule_time]
+  );
+
+  // 🔥 sabse last me scheduler ko bol do
+  scheduleApiHits();
+}
+
 
     /* =========================
        FINAL RESPONSE
