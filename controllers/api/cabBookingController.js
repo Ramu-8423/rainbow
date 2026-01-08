@@ -107,7 +107,6 @@ export async function getCabCancelReasons(req, res) {
 
 export const cabHistory = async (req, res) => {
   try {
-
     /* =========================
        BODY EXISTENCE CHECK
     ========================= */
@@ -118,7 +117,7 @@ export const cabHistory = async (req, res) => {
         required_fields: {
           user_type: "1 (user) or 2 (driver)",
           order_type: "1",
-          order_status: "[6,7,8]",
+          order_status: "[0,5,6,7,8]",
           user_id: "required when user_type = 1",
           driver_id: "required when user_type = 2"
         }
@@ -136,6 +135,20 @@ export const cabHistory = async (req, res) => {
     /* =========================
        BASIC VALIDATION
     ========================= */
+
+    const allowedStatus = [0,1,2,3,4,5,6,7,8];
+
+    const invalidStatus = order_status.find(
+      (status) => !allowedStatus.includes(Number(status))
+    );
+
+    if (invalidStatus !== undefined) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid order_status value found. Allowed values are 0 to 8 only.",
+        invalid_value: invalidStatus
+      });
+    }
 
     if (user_type === undefined || user_type === null) {
       return res.status(400).json({
@@ -180,22 +193,7 @@ export const cabHistory = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: "order_status must be a non-empty array",
-        allowed: [0 ,6 , 7, 8]
-      });
-    }
-
-    const allowedStatus = [5, 6, 7, 8];
-
-    const invalidStatus = order_status.filter(
-      s => !allowedStatus.includes(Number(s))
-    );
-
-    if (invalidStatus.length > 0) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid order_status value(s)",
-        allowed: allowedStatus,
-        received: order_status
+        allowed: [0, 6, 5, 7, 8]
       });
     }
 
@@ -203,58 +201,68 @@ export const cabHistory = async (req, res) => {
        BUILD WHERE CONDITION
     ========================= */
 
-    let where = "WHERE order_status IN (?) AND order_type = ? ";
+    let where = "WHERE co.order_status IN (?) AND co.order_type = ? ";
     let values = [order_status, order_type];
 
     if (Number(user_type) === 1) {
-      where += "AND user_id = ? ";
+      where += "AND co.user_id = ? ";
       values.push(user_id);
     }
 
     if (Number(user_type) === 2) {
-      where += "AND driver_id = ? ";
+      where += "AND co.driver_id = ? ";
       values.push(driver_id);
     }
+
+    const BASE_URL = process.env.BASE_URL || "";
 
     /* =========================
        FETCH DATA
     ========================= */
 
-    const [rows] = await db.query(
-      `
-      SELECT
-        id,
-        wallet_apply,
-        pay_mode,
-        amount_after_wallet,
-        final_amount,
-        vehicle_name,
-        brand_name,
-        model_name,
-        distance_km,
-        estimated_amount,
-        order_status,
-        cancel_reason,
-        order_type,
-        schedule_time,
-        payment_status,
-        user_comment,
-        over_limit_passenger,
-        profile_photo,
-        vehicle_color,
-        driver_name,
-        vehicle_plate_number,
-        contact_number,
-        orderOtp,
-        rating,
-        user_name,
-        user_mobile
-      FROM cab_orders
-      ${where}
-      ORDER BY id DESC
-      `,
-      values
-    );
+  const [rows] = await db.query(
+  `
+  SELECT
+    co.id,
+    co.wallet_apply,
+    co.pay_mode,
+    co.amount_after_wallet,
+    co.final_amount,
+    co.brand_name,
+    co.model_name,
+    co.distance_km,
+    co.estimated_amount,
+    co.order_status,
+    co.pickup_location,
+    co.drop_location,
+    co.cancel_reason,
+    co.order_type,
+    co.schedule_time,
+    co.payment_status,
+    co.user_comment,
+    co.over_limit_passenger,
+    co.profile_photo,
+    co.vehicle_color,
+    co.driver_name,
+    co.vehicle_plate_number,
+    co.contact_number,
+    co.orderOtp,
+    co.rating,
+    co.user_name,
+    co.user_mobile,
+    co.vehicle_id,
+
+    v.name AS vehicle_name,
+    CONCAT(TRIM(TRAILING '/' FROM ?), '/', v.image) AS vehicle_image
+
+  FROM cab_orders co
+  LEFT JOIN vehicle v ON v.id = co.vehicle_id
+  ${where}
+  ORDER BY co.id DESC
+  `,
+  [BASE_URL, ...values]
+);
+
 
     return res.status(200).json({
       success: true,
@@ -574,3 +582,7 @@ export const submitDriverRating = async (req, res) => {
     });
   }
 };
+
+
+
+

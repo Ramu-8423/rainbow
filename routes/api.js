@@ -119,11 +119,10 @@ const router = express.Router();
 
 
 
-import { sendOtp, verifyOtp, getOTPCount} from "../controllers/api/otpVerifyController.js";
+import { sendOtp, verifyOtp} from "../controllers/api/otpVerifyController.js";
 
-router.post("/send-otp", sendOtp);
-router.post("/verify-otp", verifyOtp);
-
+router.get("/send_otp", sendOtp);
+router.get("/verifyotp", verifyOtp);
 
 /* =======================
    USER AUTH & PROFILE
@@ -276,7 +275,6 @@ router.post("/driver-profile-photos", getDriverProfilePhotos);
 router.post("/driver-offer", addOrUpdateDriverOffer);
 
 
-router.get("/count_otp", getOTPCount);
 router.post("/accept-cab-ride", acceptCabRide);
 router.get("/delete-expired-orders", deleteExpiredCabOrders);
 

@@ -11,7 +11,9 @@ import {
     subcategoriesListAjax,
     subcategoryStatusUpdate,
     addCategory,
-    addSubcategory
+    addSubcategory,
+    allSettings,
+    updateSetting
 } from "../controllers/PublicController.js";
 
 import { 
@@ -173,5 +175,8 @@ router.get("/vehicle-amount-delete/:id", vehicleAmountDelete);
 
 router.get("/serviceman", allServiceman);
 router.get("/serviceman-status-update/:id", updateServicemanStatus);
+
+router.get("/settings", allSettings);
+router.post("/settings/update", updateSetting);
 
 export default router;

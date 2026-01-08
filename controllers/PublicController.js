@@ -434,3 +434,73 @@ export const addSubcategory = async (req, res) => {
     return res.redirect("/subcategories");
   }
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+export const allSettings = async (req, res) => {
+  try {
+    const [rows] = await db.query(
+      `SELECT id, name, value, created_at, updated_at
+       FROM settings
+       ORDER BY id ASC`
+    );
+
+    return res.render("settings/allSettings", {
+      title: "Settings",
+      settings: rows
+    });
+
+  } catch (err) {
+    console.log("Settings Fetch Error:", err);
+
+    return res.render("settings/allSettings", {
+      title: "Settings",
+      settings: [],
+      error: "Something went wrong!"
+    });
+  }
+};
+
+
+
+
+export const updateSetting = async (req, res) => {
+  try {
+    const { id, value } = req.body;
+
+    if (!id || value === undefined) {
+      req.session.error = "Invalid setting data.";
+      return res.redirect("/settings");
+    }
+
+    await db.query(
+      `
+      UPDATE settings
+      SET value = ?, updated_at = NOW()
+      WHERE id = ?
+      `,
+      [value, id]
+    );
+
+    req.session.success = "Setting updated successfully.";
+    return res.redirect("/settings");
+
+  } catch (err) {
+    console.error("Settings Update Error:", err);
+    req.session.error = "Something went wrong while updating setting.";
+    return res.redirect("/settings");
+  }
+};

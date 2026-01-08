@@ -1,107 +1,111 @@
-// controllers/verifyController.js
 import axios from "axios";
 import db from "../../config/database.js";
 import { nowIST } from "../../utils/dateParser.js";
 
 /* ==============================
-   CONFIG (DLT APPROVED – LEGACY)
+   DIGIDONAR CONFIG
 ================================ */
 const DIGIDONAR_CONFIG = {
   URL: "https://sms.digidonar.com/app/smsapi/index.php",
-  API_KEY: "4694B639226E59",      
-  SENDER: "",              
-  TEMPLATE_ID: "YOUR_TEMPLATE_ID",
-  PE_ID: "YOUR_PE_ID",            
-  ROUTE: ""                 
+  API_KEY: "4694B639226E59",
+  SENDER: "RENBWD",
+  TEMPLATE_ID: "1107176649406310277",
+  PE_ID: "1101488150000091120",
+  ROUTE: "101753",
+  CAMPAIGN: "OTP_LOGIN"
 };
 
 /* ==============================
-   OTP GENERATOR
+   HELPERS
 ================================ */
-function generateOTP() {
-  return Math.floor(1000 + Math.random() * 9000).toString();
+function generateOTP(digit = 4) {
+  const min = Math.pow(10, digit - 1);
+  const max = Math.pow(10, digit) - 1;
+  return Math.floor(min + Math.random() * (max - min)).toString();
 }
 
-/* ==============================
-   ADD MINUTES (IST SAFE)
-================================ */
 function addMinutes(dateTime, minutes) {
   const date = new Date(dateTime.replace(" ", "T"));
   date.setMinutes(date.getMinutes() + minutes);
-
-  return date
-    .toISOString()
-    .slice(0, 19)
-    .replace("T", " ");
+  return date.toISOString().slice(0, 19).replace("T", " ");
 }
 
-
+/* ==============================
+   SEND OTP (GET)
+   /send_otp.php?mode=test&digit=4&mobile=XXXXXXXXXX
+================================ */
 export const sendOtp = async (req, res) => {
   try {
-    const { mobile } = req.body;
+    const { mobile, mode = "live", digit = 4 } = req.query;
 
     if (!mobile) {
-      return res.status(400).json({
-        success: false,
-        message: "mobile is required"
-      });
+      return res.json({ msg: "mobile required", error: "400" });
     }
 
-    const otp = generateOTP();
-    const createdAt = nowIST(); 
-    const expiresAt = addMinutes(createdAt, 5); 
+    const createdAt = nowIST();
+    const expiresAt = addMinutes(createdAt, 2);
 
-    // 🔹 Save OTP
+    // 🔹 TEST MODE
+    let otp = "1111";
+
+    if (mode === "live") {
+      otp = generateOTP(Number(digit));
+
+      const smsText =
+        `OTP for login your account ${otp} and valid till 2 minutes. ` +
+        `Do not share this OTP to anyone for security reasons. Via Rainbow Enterprises`;
+
+      const apiUrl =
+        `${DIGIDONAR_CONFIG.URL}` +
+        `?key=${DIGIDONAR_CONFIG.API_KEY}` +
+        `&campaign=${DIGIDONAR_CONFIG.CAMPAIGN}` +
+        `&routeid=${DIGIDONAR_CONFIG.ROUTE}` +
+        `&type=text` +
+        `&contacts=91${mobile}` +
+        `&senderid=${DIGIDONAR_CONFIG.SENDER}` +
+        `&msg=${encodeURIComponent(smsText)}` +
+        `&template_id=${DIGIDONAR_CONFIG.TEMPLATE_ID}` +
+        `&pe_id=${DIGIDONAR_CONFIG.PE_ID}`;
+
+      await axios.get(apiUrl);
+    }
+
+    // 🔹 Save OTP (both test & live)
     await db.query(
       `INSERT INTO otp_logs (mobile, otp, expires_at, created_at)
        VALUES (?, ?, ?, ?)`,
       [mobile, otp, expiresAt, createdAt]
     );
 
-    // 🔹 Message
-    const message = `Your OTP is ${otp}. Do not share it.`;
-
-    const payload = {
-      key: DIGIDONAR_CONFIG.API_KEY,        
-      campaign: "OTP_LOGIN",                
-      routeid: DIGIDONAR_CONFIG.ROUTE,      
-      type: "text",                        
-      contacts: mobile,                     
-      senderid: DIGIDONAR_CONFIG.SENDER,    
-      msg: message,                        
-      template_id: DIGIDONAR_CONFIG.TEMPLATE_ID,
-      pe_id: DIGIDONAR_CONFIG.PE_ID
-    };
-
-    await axios.post(DIGIDONAR_CONFIG.URL, payload);
-    return res.status(200).json({
-      success: true,
-      message: "OTP sent successfully"
+    return res.json({
+      otp: otp,
+      msg: "OTP sent successfully",
+      error: "200"
     });
 
-  } catch (error) {
-    console.error("Send OTP Error:", error.response?.data || error);
-    return res.status(500).json({
-      success: false,
-      message: "OTP send failed"
+  } catch (err) {
+    console.error("SEND OTP ERROR:", err);
+    return res.json({
+      msg: "OTP send failed",
+      error: "500"
     });
   }
 };
 
-
-
+/* ==============================
+   VERIFY OTP (GET)
+   /verifyotp.php?mobile=XXXXXXXXXX&otp=1111
+================================ */
 export const verifyOtp = async (req, res) => {
   try {
-    const { mobile, otp } = req.body;
+    const { mobile, otp } = req.query;
 
     if (!mobile || !otp) {
-      return res.status(400).json({
-        success: false,
-        message: "mobile and otp required"
-      });
+      return res.json({ msg: "mobile and otp required", error: "400" });
     }
 
-    const currentTime = nowIST();
+    const now = nowIST();
+
     const [rows] = await db.query(
       `SELECT id
        FROM otp_logs
@@ -111,84 +115,35 @@ export const verifyOtp = async (req, res) => {
          AND expires_at > ?
        ORDER BY id DESC
        LIMIT 1`,
-      [mobile, otp, currentTime]
+      [mobile, otp, now]
     );
 
     if (!rows.length) {
-      return res.status(401).json({
-        success: false,
-        message: "Invalid or expired OTP"
+      return res.json({
+        msg: "Invalid or expired OTP",
+        error: "401"
       });
     }
 
-    // 🔹 Mark OTP as used
     await db.query(
       `UPDATE otp_logs SET is_used = 1 WHERE id = ?`,
       [rows[0].id]
     );
 
-    return res.status(200).json({
-      success: true,
-      message: "OTP verified successfully"
+    return res.json({
+      msg: "Otp Match Successfully",
+      error: "200"
     });
 
-  } catch (error) {
-    console.error("Verify OTP Error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "OTP verification failed"
-    });
-  }
-};
-
-
-
-
-
-export const getOTPCount = async (req, res) => {
-  try {
-    const [updateResult] = await db.query(
-      `
-      UPDATE otp_counter
-      SET remaining_otp = remaining_otp - 1
-      WHERE counter_name = 'default'
-        AND remaining_otp > 0
-      `
-    );
-
-    // ❌ OTP already finished
-    if (updateResult.affectedRows === 0) {
-      const [rows] = await db.query(
-        `SELECT total_otp FROM otp_counter WHERE counter_name = 'default' LIMIT 1`
-      );
-
-      return res.status(400).json({
-        success: false,
-        message: "OTP limit finished",
-        remaining_otp: 0,
-        total_otp: rows[0]?.total_otp || 0
-      });
-    }
-
-    // ✅ Fetch updated value
-    const [rows] = await db.query(
-      `SELECT remaining_otp, total_otp
-       FROM otp_counter
-       WHERE counter_name = 'default'
-       LIMIT 1`
-    );
-
-    return res.status(200).json({
-      success: true,
-      remaining_otp: rows[0].remaining_otp,
-      total_otp: rows[0].total_otp
-    });
-
-  } catch (error) {
-    console.error("OTP Count API Error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Failed to fetch OTP count"
+  } catch (err) {
+    console.error("VERIFY OTP ERROR:", err);
+    return res.json({
+      msg: "OTP verification failed",
+      error: "500"
     });
   }
 };
+
+
+
+

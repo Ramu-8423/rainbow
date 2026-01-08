@@ -348,14 +348,15 @@ export const cabOrder = async (req, res) => {
     }
 
 
-console.log("RRRRRRRRRRRRRRR", wallet_apply);
-
+  console.log("RRRRRRRRRRRRRRR", wallet_apply);
 
 
    /* =========================
        FCM : BACKGROUND NOTIFICATION
     ========================= */
-    setImmediate(async () => {
+    
+    if(order_type ==1){
+          setImmediate(async () => {
       try {
         if (!matched_driver_ids.length) return;
 
@@ -383,6 +384,8 @@ console.log("RRRRRRRRRRRRRRR", wallet_apply);
       }
     });
 
+    }
+  
 /* =========================
        FCM : BACKGROUND NOTIFICATION END
     ========================= */
@@ -1048,12 +1051,15 @@ export async function addOrUpdateDriverOffer(req, res) {
         last_name,
         profile_photo,
         brand_name,
-        model_name
+        model_name,
+        fcm_token,
+        due_wallet
       FROM driver_registration
       WHERE id = ?
       `,
       [driver_id]
     );
+
 
     if (driverRows.length === 0) {
       return res.status(404).json({
@@ -1062,7 +1068,49 @@ export async function addOrUpdateDriverOffer(req, res) {
       });
     }
 
+    const [[settingRow]] = await db.query(
+      `
+      SELECT value
+      FROM settings
+      WHERE name = 'driver_due_limit'
+      LIMIT 1
+      `
+    );
+   
     const driver = driverRows[0];
+    
+    
+
+
+const driver_due_limit = Number(settingRow?.value || 0);
+const driver_due_wallet = Number(driver.due_wallet || 0);
+
+
+
+if (driver_due_wallet >= driver_due_limit) {
+
+  if (driver.fcm_token) {
+    try {
+      await FCMHelper.sendNotification(
+        driver.fcm_token,
+        "Wallet Due Limit Reached",
+        `Your due wallet amount is ₹${driver_due_wallet}. Please clear dues to accept or offer new rides.`,
+        {
+          type: "DUE_WALLET",
+          due_wallet: String(driver_due_wallet),
+          limit: String(driver_due_limit)
+        }
+      );
+    } catch (err) {
+      console.error("FCM Due Wallet Error:", err);
+    }
+  }
+
+  return res.status(403).json({
+    success: false,
+    message: `You cannot accept or offer a ride. Your due wallet is ₹${driver_due_wallet}.`
+  });
+}
 
     const driver_name =
       [driver.first_name, driver.last_name].filter(Boolean).join(" ");

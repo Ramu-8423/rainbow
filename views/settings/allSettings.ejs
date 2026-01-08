@@ -1,0 +1,113 @@
+
+
+<div class="main-content">
+
+  <!-- HEADER -->
+ <div class="mb-3 d-flex align-items-center justify-content-between">
+  <h3 class="mb-0">Application Settings</h3>
+
+  <button id="toggleEditBtn" class="btn btn-warning btn-sm">
+    Enable Edit
+  </button>
+</div>
+
+
+
+  <!-- TABLE -->
+  <table class="table table-dark table-bordered table-hover">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Setting Name</th>
+        <th>Value</th>
+        <th>Last Updated</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <% settings.forEach((setting, index) => { %>
+        <tr>
+          <form method="POST" action="/settings/update">
+            <td><%= index + 1 %></td>
+
+            <td>
+              <%= setting.name.replace(/_/g, ' ') %>
+              <input type="hidden" name="id" value="<%= setting.id %>">
+            </td>
+
+           <td style="width:200px">
+  <input
+    type="text"
+    name="value"
+    value="<%= (setting.id == 2 || setting.id == 4) ? setting.value + '%' : setting.value %>"
+    class="form-control form-control-sm setting-input"
+    data-setting-id="<%= setting.id %>"
+    disabled
+    required
+  >
+</td>
+
+
+            <td><%= setting.updated_at %></td>
+
+            <td>
+              <button
+                type="submit"
+                class="btn btn-success btn-sm setting-save-btn"
+                disabled
+              >
+                Save
+              </button>
+            </td>
+          </form>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+
+</div>
+
+<script>
+  // Always reset edit mode on page reload
+  localStorage.removeItem("settings_edit_enabled");
+
+  const toggleBtn = document.getElementById("toggleEditBtn");
+  const inputs = document.querySelectorAll(".setting-input");
+  const saveBtns = document.querySelectorAll(".setting-save-btn");
+
+  let editEnabled = false;
+
+  toggleBtn.addEventListener("click", () => {
+    editEnabled = !editEnabled;
+
+    inputs.forEach(input =>
+      editEnabled
+        ? input.removeAttribute("disabled")
+        : input.setAttribute("disabled", true)
+    );
+
+    saveBtns.forEach(btn =>
+      editEnabled
+        ? btn.removeAttribute("disabled")
+        : btn.setAttribute("disabled", true)
+    );
+
+    toggleBtn.innerText = editEnabled ? "Disable Edit" : "Enable Edit";
+    toggleBtn.classList.toggle("btn-danger", editEnabled);
+    toggleBtn.classList.toggle("btn-warning", !editEnabled);
+  });
+
+  // 🔥 IMPORTANT PART
+  document.querySelectorAll("form").forEach(form => {
+    form.addEventListener("submit", () => {
+      const input = form.querySelector(".setting-input");
+      const settingId = input.dataset.settingId;
+
+      // sirf id 2 & 4 ke liye % remove
+      if (settingId == 2 || settingId == 4) {
+        input.value = input.value.replace('%', '').trim();
+      }
+    });
+  });
+</script>
