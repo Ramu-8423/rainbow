@@ -63,12 +63,17 @@ import {
   callbackService,
   serviceman_transaction,
   user_transaction,
-  servicemanwithdrawServiceRequest,
-  servicemanWithdrawHistory,
   servicemanEarnings,
   servicemanServiceInfo
 } from "../controllers/api/payinController.js";
 
+
+import {
+  servicemanwithdrawServiceRequest,
+  servicemanWithdrawHistory,
+  driverWithdrawServiceRequest,
+  driverWithdrawHistory
+} from "../controllers/api/withdrawController.js";
 
 import {
 vehicles,
@@ -215,8 +220,10 @@ router.post("/change_payment_mode", changePaymentMode);
 ======================= */
 router.post("/serviceman_transaction", serviceman_transaction);
 router.post("/user-transaction", user_transaction);
+
 router.post("/serviceman-withdraw-request", servicemanwithdrawServiceRequest);
 router.post("/serviceman-withdraw-history", servicemanWithdrawHistory);
+
 router.post("/serviceman-earnings", servicemanEarnings);
 
 /* =======================
@@ -294,6 +301,10 @@ router.post("/submit-driver-rating", submitDriverRating);
 
 router.post("/accept-later-ride", acceptLaterRide);
 
+
+
+router.post("/driver-withdraw-request", driverWithdrawServiceRequest);
+router.post("/driver-withdraw-history", driverWithdrawHistory);
 
 
 export default router;

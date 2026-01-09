@@ -68,16 +68,56 @@ export const loginSubmit = async (req, res) => {
 export const dashboard = async (req, res) => {
   try {
 
+    /* ===============================
+       SERVICEMAN COUNTS
+    =============================== */
     const [[servicemanCounts]] = await db.query(`
       SELECT
         COUNT(*) AS total_serviceman,
         SUM(CASE WHEN login_status = 1 THEN 1 ELSE 0 END) AS active_serviceman,
         SUM(CASE WHEN login_status = 0 THEN 1 ELSE 0 END) AS inactive_serviceman,
-        SUM(CASE WHEN online_status = 0 THEN 1 ELSE 0 END) AS online_serviceman,
-        SUM(CASE WHEN online_status = 1 THEN 1 ELSE 0 END) AS offline_serviceman
+        SUM(CASE WHEN online_status = 1 THEN 1 ELSE 0 END) AS online_serviceman,
+        SUM(CASE WHEN online_status = 0 THEN 1 ELSE 0 END) AS offline_serviceman
       FROM serviceman
     `);
 
+    /* ===============================
+       DRIVER COUNTS
+    =============================== */
+    const [[driverCounts]] = await db.query(`
+      SELECT
+        COUNT(*) AS total_driver,
+        SUM(CASE WHEN login_status = 1 THEN 1 ELSE 0 END) AS active_driver,
+        SUM(CASE WHEN login_status = 0 THEN 1 ELSE 0 END) AS inactive_driver,
+        SUM(CASE WHEN online_status = 1 THEN 1 ELSE 0 END) AS online_driver,
+        SUM(CASE WHEN online_status = 0 THEN 1 ELSE 0 END) AS offline_driver,
+        SUM(
+          CASE 
+            WHEN
+              personal_information_status = 1
+              AND vehicle_info_status = 1
+              AND driver_licence_status = 1
+              AND aadhaar_pan_status = 1
+              AND required_certificates_status = 1
+              AND vehicle_documents_status = 1
+            THEN 1
+            ELSE 0
+          END
+        ) AS total_register_pending_doc
+      FROM driver_registration
+    `);
+
+    /* ===============================
+       JOB REQUEST COUNTS
+    =============================== */
+    const [[jobApplicationCounts]] = await db.query(`
+      SELECT COUNT(*) AS total_job_request
+      FROM job_request
+    `);
+
+    /* ===============================
+       CATEGORY / SUBCATEGORY / SERVICES
+    =============================== */
     const [[categoryCounts]] = await db.query(`
       SELECT
         COUNT(*) AS total_category,
@@ -100,7 +140,7 @@ export const dashboard = async (req, res) => {
     `);
 
     /* ===============================
-       SERVICE ORDER COUNTS
+       SERVICE ORDERS
     =============================== */
     const [[serviceOrderCounts]] = await db.query(`
       SELECT
@@ -108,51 +148,76 @@ export const dashboard = async (req, res) => {
         SUM(CASE WHEN service_status < 5 THEN 1 ELSE 0 END) AS ongoing_services
       FROM service_order
     `);
-    
+
+    /* ===============================
+       USERS
+    =============================== */
     const [[usersCounts]] = await db.query(`
       SELECT
         COUNT(*) AS total_users,
         SUM(CASE WHEN status = 0 THEN 1 ELSE 0 END) AS inactive_users
       FROM users
     `);
-    
-   const [[jobApplicationCounts]] = await db.query(`
-  SELECT COUNT(*) AS total_job_request
-  FROM job_request
+
+
+const [[withdrawCounts]] = await db.query(`
+  SELECT
+    SUM(CASE WHEN user_type = 2 AND status = 0 THEN 1 ELSE 0 END) AS pending_serviceman_withdraw,
+    SUM(CASE WHEN user_type = 3 AND status = 0 THEN 1 ELSE 0 END) AS pending_driver_withdraw
+  FROM withdraw_service
 `);
 
-
+    /* ===============================
+       FINAL RENDER
+    =============================== */
     return res.render("dashboard", {
       title: "Dashboard",
       admin_name: req.session?.admin_name || "Admin",
 
-      // Serviceman
+      /* Serviceman */
       total_serviceman: servicemanCounts.total_serviceman || 0,
       active_serviceman: servicemanCounts.active_serviceman || 0,
       inactive_serviceman: servicemanCounts.inactive_serviceman || 0,
       online_serviceman: servicemanCounts.online_serviceman || 0,
       offline_serviceman: servicemanCounts.offline_serviceman || 0,
 
-      // Category
+      /* Driver */
+      total_driver: driverCounts.total_driver || 0,
+      active_driver: driverCounts.active_driver || 0,
+      inactive_driver: driverCounts.inactive_driver || 0,
+      online_driver: driverCounts.online_driver || 0,
+      offline_driver: driverCounts.offline_driver || 0,
+      total_register_pending_doc: driverCounts.total_register_pending_doc || 0,
+
+      /* Job Requests */
+      total_job_request: jobApplicationCounts.total_job_request || 0,
+
+      /* Category */
       total_category: categoryCounts.total_category || 0,
       inactive_category: categoryCounts.inactive_category || 0,
 
-      // Subcategory
+      /* Subcategory */
       total_subcategory: subcategoryCounts.total_subcategory || 0,
       inactive_subcategory: subcategoryCounts.inactive_subcategory || 0,
 
-      // Services
+      /* Services */
       total_services: servicesCounts.total_services || 0,
       inactive_services: servicesCounts.inactive_services || 0,
 
-      // Service Orders
+      /* Orders */
       completed_services: serviceOrderCounts.completed_services || 0,
       ongoing_services: serviceOrderCounts.ongoing_services || 0,
-      
-       total_users: usersCounts.total_users || 0,
-      inactive_users: usersCounts.inactive_users || 0,
-      total_job_request: jobApplicationCounts.total_job_request || 0
-      
+
+      /* Users */
+     /* Users */
+total_users: usersCounts.total_users || 0,
+inactive_users: usersCounts.inactive_users || 0,
+
+/* Withdraw Pending */
+pending_driver_withdraw: withdrawCounts.pending_driver_withdraw || 0,
+pending_serviceman_withdraw: withdrawCounts.pending_serviceman_withdraw || 0
+
+       
     });
 
   } catch (error) {
@@ -168,6 +233,13 @@ export const dashboard = async (req, res) => {
       online_serviceman: 0,
       offline_serviceman: 0,
 
+      total_driver: 0,
+      active_driver: 0,
+      inactive_driver: 0,
+      online_driver: 0,
+      offline_driver: 0,
+      total_register_pending_doc: 0,
+
       total_category: 0,
       inactive_category: 0,
 
@@ -179,9 +251,14 @@ export const dashboard = async (req, res) => {
 
       completed_services: 0,
       ongoing_services: 0,
-      total_user: 0,
-      inactive_users:0,
-      total_job_request:0
+
+      total_users: 0,
+      inactive_users: 0,
+
+      total_job_request: 0,
+      
+      pending_driver_withdraw: 0,
+      pending_serviceman_withdraw: 0
     });
   }
 };

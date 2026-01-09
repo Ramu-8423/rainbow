@@ -2264,8 +2264,6 @@ export async function cabchangePaymentMode(req, res) {
 
 
 
-
-
 export const letterOrderNotification = async (req, res) => {
   try {
     const { order_id } = req.query;
@@ -2354,8 +2352,6 @@ export const letterOrderNotification = async (req, res) => {
     });
   }
 };
-
-
 
 
 

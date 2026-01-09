@@ -7,7 +7,7 @@ import expressLayouts from "express-ejs-layouts";
 import { autoAuth } from "./middleware/auth.js";
 import { requestTime } from "./middleware/requestTime.js";
 
-import "./scheduleHit.js";
+import { scheduleApiHits } from "./scheduleHit.js";
 
 
 import http from "http";
@@ -55,16 +55,12 @@ app.use((req, res, next) => {
 });
 
 app.use((req, res, next) => {
-  // expose messages to views
   res.locals.success = req.session.success || null;
   res.locals.error = req.session.error || null;
 
-  // 🔥 IMPORTANT:
-  // message ko response complete hone ke baad hi delete karo
-  res.on("finish", () => {
-    delete req.session.success;
-    delete req.session.error;
-  });
+  // ✅ turant clear
+  req.session.success = null;
+  req.session.error = null;
 
   next();
 });
@@ -94,4 +90,6 @@ const PORT = process.env.PORT || 1218;
 
 server.listen(PORT, () => {
   console.log(`🚀 Server + Socket running on port ${PORT}`);
+  
+  scheduleApiHits();
 });

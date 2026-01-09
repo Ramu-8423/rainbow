@@ -4,55 +4,6 @@ import { parseIST, nowIST } from "../utils/dateParser.js";
 /* =========================
    BANK DETAILS LIST
 ========================= */
-export const getBankDetails = async (req, res) => {
-  try {
-    const perPage = parseInt(req.query.perPage) || 8;
-    const page = parseInt(req.query.page) || 1;
-    const offset = (page - 1) * perPage;
-
-    const { from, to } = req.query;
-    const { type } = req.params;
-
-    let where = "WHERE type = ?";
-    let values = [type];
-
-    if (from && to) {
-      where += " AND DATE(datetime) BETWEEN ? AND ?";
-      values.push(from, to);
-    }
-
-    const [[{ total }]] = await db.query(
-      `SELECT COUNT(*) AS total FROM bank_details ${where}`,
-      values
-    );
-
-    const [rows] = await db.query(
-      `SELECT * FROM bank_details
-       ${where}
-       ORDER BY id DESC
-       LIMIT ? OFFSET ?`,
-      [...values, perPage, offset]
-    );
-
-    return res.render("bankinfo/bankdetails", {
-      title: "Bank Details",
-      banks: rows,
-      total,
-      perPage,
-      page,
-      totalPages: Math.ceil(total / perPage),
-      from,
-      to,
-      isFiltered: Boolean(from && to),
-      type
-    });
-
-  } catch (err) {
-    console.log("Bank Details Fetch Error:", err);
-    req.session.error = "Something went wrong!";
-    return res.redirect(`/bank-details/${req.params.type}`);
-  }
-};
 
 
 /* =========================
@@ -221,3 +172,59 @@ export const updateRequestStatus = async (req, res) => {
     return res.redirect(`/bank-update-request/${req.query.type}`);
   }
 };
+
+
+
+export const getBankDetails = async (req, res) => {
+  try {
+    const perPage = parseInt(req.query.perPage) || 8;
+    const page = parseInt(req.query.page) || 1;
+    const offset = (page - 1) * perPage;
+
+    const { from, to } = req.query;
+    const { type } = req.params;
+
+    let where = "WHERE type = ?";
+    let values = [type];
+
+    if (from && to) {
+      where += " AND DATE(datetime) BETWEEN ? AND ?";
+      values.push(from, to);
+    }
+
+    const [[{ total }]] = await db.query(
+      `SELECT COUNT(*) AS total FROM bank_details ${where}`,
+      values
+    );
+
+    const [rows] = await db.query(
+      `SELECT * FROM bank_details
+       ${where}
+       ORDER BY id DESC
+       LIMIT ? OFFSET ?`,
+      [...values, perPage, offset]
+    );
+
+    return res.render("bankinfo/bankdetails", {
+      title: "Bank Details",
+      banks: rows,
+      total,
+      perPage,
+      page,
+      totalPages: Math.ceil(total / perPage),
+      from,
+      to,
+      isFiltered: Boolean(from && to),
+      type
+    });
+
+  } catch (err) {
+    console.log("Bank Details Fetch Error:", err);
+    req.session.error = "Something went wrong!";
+    return res.redirect(`/bank-details/${req.params.type}`);
+  }
+};
+
+
+
+

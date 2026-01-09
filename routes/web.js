@@ -37,6 +37,14 @@ getBankUpdateRequests,
 updateRequestStatus
 } from "../controllers/BankController.js";
 
+import { 
+DriverWithdrawRequest,
+updateWithdrawRequest,
+ServicemanWithdrawRequest,
+updateServicemanWithdrawRequest
+} from "../controllers/withdrawController.js";
+
+
 
 import { 
 vehicleList,
@@ -178,5 +186,19 @@ router.get("/serviceman-status-update/:id", updateServicemanStatus);
 
 router.get("/settings", allSettings);
 router.post("/settings/update", updateSetting);
+
+
+router.get("/driver-withdraw-request", DriverWithdrawRequest);      
+router.get("/driver-withdraw-request/:status", DriverWithdrawRequest);
+router.get("/update-withdraw-request/:id", updateWithdrawRequest);
+
+
+// LIST
+
+router.get("/serviceman-withdraw-request", ServicemanWithdrawRequest);
+router.get("/serviceman-withdraw-request/:status", ServicemanWithdrawRequest);
+router.get("/update-serviceman-withdraw-request/:id", updateServicemanWithdrawRequest);
+
+
 
 export default router;

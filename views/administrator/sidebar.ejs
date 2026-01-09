@@ -16,7 +16,7 @@
     </div>
 
     <ul class="sidebar-menu">
-      <li class="menu-header">Handyman Section</li>
+     
 
       <!-- Dashboard -->
       <li class="<%= path === '/dashboard' ? 'active' : '' %>">
@@ -26,6 +26,17 @@
         </a>
       </li>
 
+   <!-- Users -->
+      <li class="<%= path.startsWith('/all-users') ? 'active' : '' %>">
+        <a href="/all-users" class="nav-link">
+          <i data-feather="users" style="color:#36b9cc;"></i>
+          <span>Users</span>
+        </a>
+      </li>
+      
+
+ <li class="menu-header">Handyman Section</li>
+ 
       <!-- Job Applications -->
       <li class="<%= path.startsWith('/job-applications') ? 'active' : '' %>">
         <a href="/job-applications" class="nav-link">
@@ -34,13 +45,7 @@
         </a>
       </li>
 
-      <!-- Users -->
-      <li class="<%= path.startsWith('/all-users') ? 'active' : '' %>">
-        <a href="/all-users" class="nav-link">
-          <i data-feather="users" style="color:#36b9cc;"></i>
-          <span>Users</span>
-        </a>
-      </li>
+   
 
       <!-- Categories -->
       <li class="<%= path.startsWith('/categories') ? 'active' : '' %>">
@@ -66,6 +71,15 @@
         </a>
       </li>
 
+
+<li class="<%= routeName === 'serviceman' ? 'active' : '' %>">
+  <a href="/serviceman" class="nav-link">
+    <i data-feather="users"></i>
+    <span>Serviceman</span>
+  </a>
+</li>
+
+
       <!-- Bank Details (PARAM = 1 only) -->
       <li class="<%= routeName === 'bank-details' && routeParam === '1' ? 'active' : '' %>">
         <a href="/bank-details/1" class="nav-link">
@@ -82,7 +96,17 @@
         </a>
       </li>
 
-      <li class="menu-header">Cab Booking Section</li>
+
+<li class="<%= routeName === 'serviceman-withdraw-request' ? 'active' : '' %>">
+  <a href="/serviceman-withdraw-request" class="nav-link">
+    <i data-feather="refresh-cw" style="color:#20c997;"></i>
+    <span>Withdraw Request</span>
+  </a>
+</li>
+
+
+
+      <li class="menu-header">Ride Booking Section</li>
 
       <li class="<%= path.startsWith('/all-drivers') ? 'active' : '' %>">
         <a href="/all-drivers" class="nav-link">
@@ -106,9 +130,17 @@
           <span>Bank Update Request</span>
         </a>
       </li>
+      
+      
+      <li class="<%= routeName === 'driver-withdraw-request' ? 'active' : '' %>">
+  <a href="/driver-withdraw-request/2" class="nav-link">
+    <i data-feather="refresh-cw" style="color:#20c997;"></i>
+    <span>Driver Withdraw Request</span>
+  </a>
+</li>
 
 
-<li class="menu-header">Vehicle Management</li>
+
 
 <li class="<%= path === '/vehicle-list' ? 'active' : '' %>">
   <a href="/vehicle-list" class="nav-link text-dark">
