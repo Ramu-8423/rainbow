@@ -11,7 +11,6 @@ export const loginPage = (req, res) => {
 
 export const loginSubmit = async (req, res) => {
   const { email, password } = req.body;
-
   // ❌ Empty validation
   if (!email || !password) {
     return res.json({
@@ -167,6 +166,19 @@ const [[withdrawCounts]] = await db.query(`
   FROM withdraw_service
 `);
 
+
+const [[orderCounts]] = await db.query(`
+  SELECT
+    SUM(CASE WHEN order_status BETWEEN 0 AND 7 THEN 1 ELSE 0 END) AS total_orders,
+    SUM(CASE WHEN order_status = 5 THEN 1 ELSE 0 END) AS completed_orders,
+    SUM(CASE WHEN order_status = 6 THEN 1 ELSE 0 END) AS cancelled_by_user,
+    SUM(CASE WHEN order_status = 7 THEN 1 ELSE 0 END) AS cancelled_by_driver,
+    SUM(CASE WHEN order_status = 8 THEN 1 ELSE 0 END) AS cancelled_by_system,
+  FROM cab_orders
+`);
+ 
+ 
+ 
     /* ===============================
        FINAL RENDER
     =============================== */
@@ -210,12 +222,18 @@ const [[withdrawCounts]] = await db.query(`
 
       /* Users */
      /* Users */
-total_users: usersCounts.total_users || 0,
-inactive_users: usersCounts.inactive_users || 0,
-
-/* Withdraw Pending */
-pending_driver_withdraw: withdrawCounts.pending_driver_withdraw || 0,
-pending_serviceman_withdraw: withdrawCounts.pending_serviceman_withdraw || 0
+    total_users: usersCounts.total_users || 0,
+    inactive_users: usersCounts.inactive_users || 0,
+    
+    /* Withdraw Pending */
+    pending_driver_withdraw: withdrawCounts.pending_driver_withdraw || 0,
+    pending_serviceman_withdraw: withdrawCounts.pending_serviceman_withdraw || 0,
+    
+    total_orders: orderCounts.total_orders || 0,
+    completed_orders: orderCounts.completed_orders || 0,
+    cancelled_by_user: orderCounts.cancelled_by_user || 0,
+    cancelled_by_driver: orderCounts.cancelled_by_driver || 0,
+    cancelled_by_system: orderCounts.cancelled_by_system || 0
 
        
     });
@@ -258,7 +276,12 @@ pending_serviceman_withdraw: withdrawCounts.pending_serviceman_withdraw || 0
       total_job_request: 0,
       
       pending_driver_withdraw: 0,
-      pending_serviceman_withdraw: 0
+      pending_serviceman_withdraw: 0,
+      total_orders: 0,
+      completed_orders: 0,
+      cancelled_by_user: 0,
+      cancelled_by_driver: 0,
+      cancelled_by_system: 0
     });
   }
 };

@@ -219,6 +219,16 @@
       </div>
     </div>
   </div>
+  
+    <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
+    <div class="mini-card">
+      <div class="mini-card-title">Padding Withdraw</div>
+      <div class="mini-card-body">
+        <div class="mini-icon icon-red"><i class="bi bi-diagram-3"></i></div>
+        <span class="mini-badge badge-red"><%= pending_serviceman_withdraw %></span>
+      </div>
+    </div>
+  </div>
 
 </div>
 <!-- ================= END MAIN DASHBOARD ================= -->
@@ -290,6 +300,88 @@
       </div>
     </div>
   </div>
+
+<div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
+  <div class="mini-card">
+    <div class="mini-card-title">Pending Withdraw</div>
+    <div class="mini-card-body">
+      <div class="mini-icon icon-blue">
+        <i class="bi bi-car-front-fill"></i>
+      </div>
+      <span class="mini-badge badge-blue"><%= pending_driver_withdraw %></span>
+    </div>
+  </div>
+</div>
+
+
+</div>
+
+<div class="row">
+<!-- TOTAL ORDERS -->
+<div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
+  <div class="mini-card">
+    <div class="mini-card-title">Total Orders</div>
+    <div class="mini-card-body">
+      <div class="mini-icon icon-purple">
+        <i class="bi bi-receipt"></i>
+      </div>
+      <span class="mini-badge badge-purple"><%= total_orders %></span>
+    </div>
+  </div>
+</div>
+
+<!-- COMPLETED ORDERS -->
+<div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
+  <div class="mini-card">
+    <div class="mini-card-title">Completed Orders</div>
+    <div class="mini-card-body">
+      <div class="mini-icon icon-green">
+        <i class="bi bi-check-circle-fill"></i>
+      </div>
+      <span class="mini-badge badge-green"><%= completed_orders %></span>
+    </div>
+  </div>
+</div>
+
+<!-- CANCELLED BY USER -->
+<div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
+  <div class="mini-card">
+    <div class="mini-card-title">Cancelled by User</div>
+    <div class="mini-card-body">
+      <div class="mini-icon icon-red">
+        <i class="bi bi-person-x-fill"></i>
+      </div>
+      <span class="mini-badge badge-red"><%= cancelled_by_user %></span>
+    </div>
+  </div>
+</div>
+
+<!-- CANCELLED BY DRIVER -->
+<div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
+  <div class="mini-card">
+    <div class="mini-card-title">Cancelled by Driver</div>
+    <div class="mini-card-body">
+      <div class="mini-icon icon-blue">
+        <i class="bi bi-car-front-fill"></i>
+      </div>
+      <span class="mini-badge badge-blue"><%= cancelled_by_driver %></span>
+    </div>
+  </div>
+</div>
+
+<div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
+  <div class="mini-card">
+    <div class="mini-card-title">Cancelled by System</div>
+    <div class="mini-card-body">
+      <div class="mini-icon icon-blue">
+        <i class="bi bi-car-front-fill"></i>
+      </div>
+      <span class="mini-badge badge-blue"><%= cancelled_by_system %></span>
+    </div>
+  </div>
+</div>
+
+
 
 </div>
 <!-- ================= END CAB & RIDE ================= -->

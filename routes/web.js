@@ -1,6 +1,7 @@
 import express from "express";
 import { loginPage, loginSubmit, dashboard ,logout, editProfile, updateProfile} from "../controllers/AuthController.js";
 
+
 import { 
     jobApplication,
     allUsers,
@@ -15,6 +16,7 @@ import {
     allSettings,
     updateSetting
 } from "../controllers/PublicController.js";
+
 
 import { 
 driver_controller,
@@ -32,6 +34,20 @@ updateServicemanStatus
 
 
 import { 
+createZone,
+insertZone,
+deleteZone
+} from "../controllers/ZoneController.js";
+
+
+import { 
+couponList,
+addCoupon,
+deleteCoupon,
+updateCouponStatus
+} from "../controllers/CouponController.js";
+
+import { 
 getBankDetails,
 getBankUpdateRequests,
 updateRequestStatus
@@ -43,7 +59,6 @@ updateWithdrawRequest,
 ServicemanWithdrawRequest,
 updateServicemanWithdrawRequest
 } from "../controllers/withdrawController.js";
-
 
 
 import { 
@@ -194,11 +209,19 @@ router.get("/update-withdraw-request/:id", updateWithdrawRequest);
 
 
 // LIST
-
 router.get("/serviceman-withdraw-request", ServicemanWithdrawRequest);
 router.get("/serviceman-withdraw-request/:status", ServicemanWithdrawRequest);
 router.get("/update-serviceman-withdraw-request/:id", updateServicemanWithdrawRequest);
 
+router.get("/coupons", couponList);
+router.post("/coupon-add", addCoupon);
+router.get("/coupon-delete/:id", deleteCoupon);
+router.get("/coupon-status-update/:id", updateCouponStatus);
+
+
+router.get("/create_zone", createZone);
+router.post("/zones/create", insertZone);
+router.post("/zones/delete/:id", deleteZone);
 
 
 export default router;

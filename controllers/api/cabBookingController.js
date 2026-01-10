@@ -251,6 +251,7 @@ export const cabHistory = async (req, res) => {
     co.user_name,
     co.user_mobile,
     co.vehicle_id,
+    co.order_rating,
 
     v.name AS vehicle_name,
     CONCAT(TRIM(TRAILING '/' FROM ?), '/', v.image) AS vehicle_image
@@ -530,14 +531,15 @@ export const submitDriverRating = async (req, res) => {
     }
 
 
-     await db.query(
-         `
-         UPDATE cab_orders
-         SET rating = ?
-         WHERE id = ?
-         `,
-         [rating, order_id]
-       );
+    await db.query(
+      `
+      UPDATE cab_orders
+      SET order_rating = ?
+      WHERE id = ?
+      `,
+      [rating, order_id]
+    );
+
 
     /* =========================
        CHECK IF RATING ALREADY EXISTS
@@ -627,6 +629,8 @@ export const submitDriverRating = async (req, res) => {
         driver_id
       ]
     );
+
+
 
     /* =========================
        SUCCESS RESPONSE

@@ -105,7 +105,8 @@ activeRide,
 cabchangePaymentMode,
 letterOrderNotification,
 laterAssignOrder,
-acceptLaterRide
+acceptLaterRide,
+driverIgnoreCabOrder
 } from "../controllers/api/CaborderController.js";
 
 
@@ -305,6 +306,8 @@ router.post("/accept-later-ride", acceptLaterRide);
 
 router.post("/driver-withdraw-request", driverWithdrawServiceRequest);
 router.post("/driver-withdraw-history", driverWithdrawHistory);
+// routes/cab.js
+router.post("/driver-ignore-ride-order", driverIgnoreCabOrder);
 
 
 export default router;

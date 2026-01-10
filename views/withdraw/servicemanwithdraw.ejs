@@ -263,7 +263,18 @@
 <div class="modal-content">
   <div class="modal-header"><h5>Reject Withdraw</h5></div>
   <div class="modal-body">
-    <textarea id="rejectReason" class="form-control" placeholder="Reason"></textarea>
+   <textarea
+  id="rejectReason"
+  class="form-control"
+  placeholder="Reason"
+  oninput="validateRejectReason(this)"
+></textarea>
+
+<span
+  id="rejectError"
+  style="color:red; font-size:13px; display:none; margin-top:5px;"
+></span>
+
   </div>
   <div class="modal-footer">
     <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -273,36 +284,99 @@
 </div>
 </div>
 
-<!-- ================= SCRIPT ================= -->
 <script>
+/* ===============================
+   GLOBALS
+================================ */
 let currentId = null;
 let currentType = null;
 
+const MAX_REASON_LEN = 100;
+
+/* ===============================
+   STATUS CHANGE HANDLER
+================================ */
 function handleStatusChange(sel, id, type){
   currentId = id;
   currentType = type;
 
-  if (sel.value == 1) new bootstrap.Modal(approveModal).show();
-  if (sel.value == 2) new bootstrap.Modal(rejectModal).show();
+  // reset reject modal fields
+  const reason = document.getElementById("rejectReason");
+  const error = document.getElementById("rejectError");
+  if (reason) reason.value = "";
+  if (error) error.style.display = "none";
+
+  if (sel.value == 1) {
+    new bootstrap.Modal(document.getElementById("approveModal")).show();
+  }
+
+  if (sel.value == 2) {
+    new bootstrap.Modal(document.getElementById("rejectModal")).show();
+  }
 }
 
+/* ===============================
+   APPROVE
+================================ */
 function confirmApprove(){
+  if (!currentId || !currentType) return;
+
   location.href =
-    `/update-serviceman-withdraw-request/${currentId}?status=1&type=${currentType}`;
+    `/update-serviceman-withdraw-request/${currentId}` +
+    `?status=1&type=${currentType}`;
 }
 
+/* ===============================
+   LIVE REJECT VALIDATION
+================================ */
+function validateRejectReason(el){
+  const errorSpan = document.getElementById("rejectError");
+  const len = el.value.length;
+
+  if (len > MAX_REASON_LEN) {
+    el.value = el.value.substring(0, MAX_REASON_LEN);
+    errorSpan.style.display = "block";
+    errorSpan.innerText = `Maximum ${MAX_REASON_LEN} characters allowed`;
+  } else {
+    errorSpan.style.display = "none";
+    errorSpan.innerText = "";
+  }
+}
+
+/* ===============================
+   CONFIRM REJECT
+================================ */
 function confirmReject(){
-  const r = document.getElementById("rejectReason").value.trim();
-  if(!r) return alert("Reason required");
+  const reasonInput = document.getElementById("rejectReason");
+  const errorSpan = document.getElementById("rejectError");
+  const reason = reasonInput.value.trim();
+
+  if (!reason) {
+    errorSpan.style.display = "block";
+    errorSpan.innerText = "Reason is required";
+    reasonInput.focus();
+    return;
+  }
+
+  if (reason.length > MAX_REASON_LEN) {
+    errorSpan.style.display = "block";
+    errorSpan.innerText = `Maximum ${MAX_REASON_LEN} characters allowed`;
+    reasonInput.focus();
+    return;
+  }
 
   location.href =
-    `/update-serviceman-withdraw-request/${currentId}?status=2&type=${currentType}&reason=${encodeURIComponent(r)}`;
+    `/update-serviceman-withdraw-request/${currentId}` +
+    `?status=2&type=${currentType}&reason=${encodeURIComponent(reason)}`;
 }
 
-document.getElementById("tableSearch").addEventListener("keyup", e=>{
-  const v = e.target.value.toLowerCase();
-  document.querySelectorAll("tbody tr").forEach(tr=>{
-    tr.style.display = tr.innerText.toLowerCase().includes(v) ? "" : "none";
+/* ===============================
+   TABLE SEARCH
+================================ */
+document.getElementById("tableSearch").addEventListener("keyup", function(e){
+  const val = e.target.value.toLowerCase();
+  document.querySelectorAll("tbody tr").forEach(tr => {
+    tr.style.display = tr.innerText.toLowerCase().includes(val) ? "" : "none";
   });
 });
 </script>

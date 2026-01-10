@@ -88,6 +88,9 @@ function validateCabOrder(body) {
 /* =========================================================
    CAB ORDER API (FASTEST POSSIBLE)
 ========================================================= */
+/* =========================================================
+   CAB ORDER API (FASTEST POSSIBLE)
+========================================================= */
 export const cabOrder = async (req, res) => {
 
   const validationError = validateCabOrder(req.body);
@@ -153,7 +156,6 @@ export const cabOrder = async (req, res) => {
 
     /* =========================
        MYSQL : INSERT ORDER
-       (AS-IT-IS)
     ========================= */
     const [orderResult] = await db.query(
       `
@@ -208,7 +210,7 @@ export const cabOrder = async (req, res) => {
         estimated_amount,
         order_type,
         Number(order_type) === 2 ? schedule_time : null,
-        pay_mode,   
+        pay_mode,
         wallet_apply,
         0,
         over_limit_passenger,
@@ -251,21 +253,16 @@ export const cabOrder = async (req, res) => {
     }
 
     /* =========================
-       FINAL PAY MODE (SAME LOGIC)
+       FINAL PAY MODE
     ========================= */
     let finalPayMode = Number(pay_mode);
 
     if (Number(wallet_apply) === 1) {
       if (finalPayMode === 1 && Number(user.wallet) >= Number(estimated_amount)) {
         finalPayMode = 3;
-        console.log("XXXXXXXXXXYYYYYYYY", finalPayMode);
       }
     }
 
-    /* =========================
-       MYSQL : UPDATE PAY MODE
-       (ONLY THIS UPDATE)
-    ========================= */
     await db.query(
       `UPDATE cab_orders SET pay_mode = ? WHERE id = ?`,
       [finalPayMode, order_id]
@@ -284,9 +281,25 @@ export const cabOrder = async (req, res) => {
 
     const matched_driver_ids = [];
 
-    snapshot.forEach(doc => {
+    for (const doc of snapshot.docs) {
       const d = doc.data();
-      if (!d.current_latitude || !d.current_longitude) return;
+      const driverId = Number(doc.id);
+
+      if (!d.current_latitude || !d.current_longitude) continue;
+
+      /* 🔥 NEW CONDITION — ACTIVE RIDE CHECK */
+      const [[activeRide]] = await db.query(
+        `
+        SELECT id
+        FROM cab_orders
+        WHERE driver_id = ?
+          AND order_status BETWEEN 0 AND 4
+        LIMIT 1
+        `,
+        [driverId]
+      );
+
+      if (activeRide) continue;
 
       const dist = getDistanceInKm(
         d.current_latitude,
@@ -296,9 +309,9 @@ export const cabOrder = async (req, res) => {
       );
 
       if (dist <= 5000) {
-        matched_driver_ids.push(Number(doc.id));
+        matched_driver_ids.push(driverId);
       }
-    });
+    }
 
     await db.query(
       `UPDATE cab_orders SET matched_driver_id = ? WHERE id = ?`,
@@ -307,7 +320,6 @@ export const cabOrder = async (req, res) => {
 
     /* =========================
        FIREBASE : STORE ORDER
-       (ONLY pay_mode CHANGED)
     ========================= */
     if (matched_driver_ids.length > 0 && order_type == 1) {
       await firestore
@@ -334,8 +346,8 @@ export const cabOrder = async (req, res) => {
           estimated_amount: Number(estimated_amount),
           order_type: Number(order_type),
           schedule_time: Number(order_type) === 2 ? schedule_time : null,
-          pay_mode: finalPayMode, 
-          wallet_apply, 
+          pay_mode: finalPayMode,
+          wallet_apply,
           payment_status: 0,
           over_limit_passenger: over_limit_passenger || null,
           user_comment: user_comment || null,
@@ -347,70 +359,54 @@ export const cabOrder = async (req, res) => {
         });
     }
 
-
-  console.log("RRRRRRRRRRRRRRR", wallet_apply);
-
-
-   /* =========================
+    /* =========================
        FCM : BACKGROUND NOTIFICATION
     ========================= */
-    
-    if(order_type ==1){
-          setImmediate(async () => {
-      try {
-        if (!matched_driver_ids.length) return;
+    if (order_type == 1) {
+      setImmediate(async () => {
+        try {
+          if (!matched_driver_ids.length) return;
 
-        const [drivers] = await db.query(
-          `SELECT fcm_token FROM driver_registration WHERE id IN (?)`,
-          [matched_driver_ids]
-        );
-
-        for (const drv of drivers) {
-          if (!drv.fcm_token) continue;
-
-          await FCMHelper.sendNotification(
-            drv.fcm_token,
-            "New Cab Ride Request",
-            pickup_location,
-            {
-              order_id: String(order_id),
-              pickup_location
-            }
+          const [drivers] = await db.query(
+            `SELECT fcm_token FROM driver_registration WHERE id IN (?)`,
+            [matched_driver_ids]
           );
+
+          for (const drv of drivers) {
+            if (!drv.fcm_token) continue;
+
+            await FCMHelper.sendNotification(
+              drv.fcm_token,
+              "New Cab Ride Request",
+              pickup_location,
+              {
+                order_id: String(order_id),
+                pickup_location
+              }
+            );
+          }
+        } catch (err) {
+          console.error("FCM Background Error:", err);
         }
-
-      } catch (err) {
-        console.error("FCM Background Error:", err);
-      }
-    });
-
+      });
     }
-  
-/* =========================
-       FCM : BACKGROUND NOTIFICATION END
+
+    /* =========================
+       SCHEDULE API HIT
     ========================= */
+    if (Number(order_type) === 2 && schedule_time) {
+      await db.query(
+        `
+        INSERT INTO scheduled_api_hits
+          (order_id, hit_datetime, is_done)
+        VALUES
+          (?, ?, 0)
+        `,
+        [order_id, schedule_time]
+      );
 
-
-
-/* =========================
-   SCHEDULE API HIT (LAST STEP)
-========================= */
-if (Number(order_type) === 2 && schedule_time) {
-  await db.query(
-    `
-    INSERT INTO scheduled_api_hits
-      (order_id, hit_datetime, is_done)
-    VALUES
-      (?, ?, 0)
-    `,
-    [order_id, schedule_time]
-  );
-
-  // 🔥 sabse last me scheduler ko bol do
-  scheduleApiHits();
-}
-
-
+      scheduleApiHits();
+    }
 
     /* =========================
        FINAL RESPONSE
@@ -432,6 +428,7 @@ if (Number(order_type) === 2 && schedule_time) {
     });
   }
 };
+
 
 
 
@@ -665,7 +662,7 @@ async function getNearbyOnlineDrivers({
 
   // 🔁 Fallback: only vehicle_type
   if (snapshot.empty) {
-    console.log("🔴 Drivers found: 0 → fallback by vehicle_type");
+    
 
     snapshot = await firestore
       .collection("driver")
@@ -677,7 +674,7 @@ async function getNearbyOnlineDrivers({
   // 🔚 FINAL fallback: random ETA (15–25 min)
   if (snapshot.empty) {
     const randomETA = Math.floor(Math.random() * (25 - 15 + 1)) + 15;
-    console.log("🔴 Drivers found: 0 → fallback ETA:", randomETA, "min");
+  
 
     return {
       distance_km: null,
@@ -711,10 +708,6 @@ async function getNearbyOnlineDrivers({
       };
     }
   });
-
-  console.log("🚗 Drivers in range (count):", driverIds.length);
-  console.log("🆔 Driver IDs:", driverIds);
-
   return nearest;
 }
 
@@ -1009,6 +1002,8 @@ export async function getDriverProfilePhotos(req, res) {
 
 
 
+
+
 export async function addOrUpdateDriverOffer(req, res) {
   try {
     const {
@@ -1040,7 +1035,57 @@ export async function addOrUpdateDriverOffer(req, res) {
     const now = nowIST();
     const firestore = getFirestore();
 
+
+
+    const [[orderRow]] = await db.query(
+      `
+      SELECT order_status
+      FROM cab_orders
+      WHERE id = ?
+      LIMIT 1
+      `,
+      [order_id]
+    );
+    
+    if (!orderRow) {
+      return res.status(404).json({
+        success: false,
+        message: "Order not found"
+      });
+    }
+    
+    if (Number(orderRow.order_status) !== 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Already accepted"
+      });
+    }
+
     /* =========================
+       ACTIVE RIDE CHECK
+       driver cannot bid if already on active ride
+       order_status: 0 → 4
+    ========================= */
+    const [[activeRide]] = await db.query(
+      `
+      SELECT id
+      FROM cab_orders
+      WHERE driver_id = ?
+        AND order_status >= 0
+        AND order_status <= 4
+      LIMIT 1
+      `,
+      [driver_id]
+    );
+    
+    if (activeRide) {
+      return res.status(400).json({
+        success: false,
+        message: "You cannot make an offer while you have an active ride"
+      });
+    }
+
+      /* =========================
        GET DRIVER DETAILS
        👉 first_name + last_name added
     ========================= */
@@ -1080,10 +1125,8 @@ export async function addOrUpdateDriverOffer(req, res) {
     const driver = driverRows[0];
     
     
-
-
-const driver_due_limit = Number(settingRow?.value || 0);
-const driver_due_wallet = Number(driver.due_wallet || 0);
+   const driver_due_limit = Number(settingRow?.value || 0);
+   const driver_due_wallet = Number(driver.due_wallet || 0);
 
 
 
@@ -1233,7 +1276,7 @@ if (driver_due_wallet >= driver_due_limit) {
 
     const finalOffer = finalRows[0];
 
-    /* =========================
+     /* =========================
        FIREBASE SYNC (SAME AS BEFORE)
        👉 matched driver_offer row only
     ========================= */
@@ -1245,7 +1288,6 @@ if (driver_due_wallet >= driver_due_limit) {
           .collection("driver_offers")
           .doc(docId)
           .set(finalOffer, { merge: true });
-
       } catch (err) {
         console.error("🔥 Firestore Offer Sync Error:", err);
       }
@@ -1270,6 +1312,7 @@ if (driver_due_wallet >= driver_due_limit) {
     });
   }
 }
+
 
 
 
@@ -1544,36 +1587,40 @@ export const deleteExpiredCabOrders = async (req, res) => {
     const firestore = getFirestore();
     const now = nowIST();
 
-    // 🔥 1.5 minute (90 sec) earlier time
-    const cutoffTime = new Date(
-      new Date(now).getTime() - 90 * 1000
-    );
+    /**
+     * order_type logic
+     * ONLY order_type = 1
+     * Expire after 90 seconds
+     */
+
     const [orders] = await db.query(
       `
       SELECT id
       FROM cab_orders
       WHERE order_status = 0
-        AND created_at <= ?
+        AND order_type = 1
+        AND created_at <= DATE_SUB(?, INTERVAL 90 SECOND)
       `,
-      [cutoffTime]
+      [now]
     );
 
     if (!orders.length) {
       return res.status(200).json({
         success: true,
-        message: "No expired pending orders found",
+        message: "No expired pending order_type 1 orders found",
         deleted_count: 0
       });
     }
 
     const orderIds = orders.map(o => o.id);
+
+    // 🗑️ Delete from MySQL
     await db.query(
-      `
-      DELETE FROM cab_orders
-      WHERE id IN (?)
-      `,
+      `DELETE FROM cab_orders WHERE id IN (?)`,
       [orderIds]
     );
+
+    // 🗑️ Delete from Firebase
     for (const id of orderIds) {
       try {
         await firestore
@@ -1587,7 +1634,7 @@ export const deleteExpiredCabOrders = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: "Expired pending orders deleted successfully",
+      message: "Expired order_type 1 pending orders deleted successfully",
       deleted_count: orderIds.length,
       deleted_order_ids: orderIds
     });
@@ -2747,6 +2794,175 @@ export async function acceptLaterRide(req, res) {
 
 
 
+
+/* =========================================================
+   DRIVER IGNORE CAB ORDER (FINAL FIXED VERSION)
+========================================================= */
+export const driverIgnoreCabOrder = async (req, res) => {
+  try {
+    const { order_id, driver_id } = req.body;
+
+    /* =========================
+       BASIC VALIDATION
+    ========================= */
+    if (!order_id || !driver_id) {
+      return res.status(400).json({
+        success: false,
+        message: "order_id and driver_id are required"
+      });
+    }
+
+    const driverIdNum = Number(driver_id);
+
+    /* =========================
+       FETCH ORDER
+    ========================= */
+    const [[order]] = await db.query(
+      `
+      SELECT
+        id,
+        order_status,
+        matched_driver_id,
+        ignored_drivers_id
+      FROM cab_orders
+      WHERE id = ?
+      LIMIT 1
+      `,
+      [order_id]
+    );
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: "Order not found"
+      });
+    }
+
+    /* =========================
+       STATUS CHECK
+    ========================= */
+    if (Number(order.order_status) !== 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Order already accepted"
+      });
+    }
+
+    /* =========================
+       SAFE PARSE DRIVER LISTS
+    ========================= */
+    let matchedDrivers = [];
+    let ignoredDrivers = [];
+
+    // matched drivers
+    if (typeof order.matched_driver_id === "string") {
+      try {
+        matchedDrivers = JSON.parse(order.matched_driver_id);
+      } catch {
+        matchedDrivers = [];
+      }
+    }
+
+    // ignored drivers
+    if (typeof order.ignored_drivers_id === "string") {
+      try {
+        ignoredDrivers = JSON.parse(order.ignored_drivers_id);
+      } catch {
+        ignoredDrivers = [];
+      }
+    }
+
+    // force arrays
+    if (!Array.isArray(matchedDrivers)) matchedDrivers = [];
+    if (!Array.isArray(ignoredDrivers)) ignoredDrivers = [];
+
+    /* =========================
+       REMOVE DRIVER FROM MATCHED
+    ========================= */
+    matchedDrivers = matchedDrivers.filter(id => id !== driverIdNum);
+
+    /* =========================
+       ADD DRIVER TO IGNORED (NO DUP)
+    ========================= */
+    if (!ignoredDrivers.includes(driverIdNum)) {
+      ignoredDrivers.push(driverIdNum);
+    }
+
+    /* =========================
+       FINAL ORDER STATUS
+    ========================= */
+    let finalOrderStatus = 0;
+
+    // 🔥 no driver left
+    if (matchedDrivers.length === 0) {
+      finalOrderStatus = 8; // ignored by all drivers
+    }
+
+    const updatedAt = nowIST();
+
+    /* =========================
+       MYSQL UPDATE
+    ========================= */
+    await db.query(
+      `
+      UPDATE cab_orders
+      SET
+        matched_driver_id = ?,
+        ignored_drivers_id = ?,
+        order_status = ?,
+        updated_at = ?
+      WHERE id = ?
+      `,
+      [
+        JSON.stringify(matchedDrivers),
+        JSON.stringify(ignoredDrivers),
+        finalOrderStatus,
+        updatedAt,
+        order_id
+      ]
+    );
+
+    /* =========================
+       FIREBASE UPDATE
+    ========================= */
+    const firestore = getFirestore();
+
+    await firestore
+      .collection("cab_orders")
+      .doc(String(order_id))
+      .update({
+        matched_driver_ids: matchedDrivers,
+        ignored_driver_ids: ignoredDrivers,
+        order_status: finalOrderStatus,
+        updated_at: updatedAt
+      });
+
+    /* =========================
+       SUCCESS RESPONSE
+    ========================= */
+    return res.status(200).json({
+      success: true,
+      message:
+        finalOrderStatus === 8
+          ? "Ignored successfully."
+          : "Ignored successfully.",
+      data: {
+        order_id,
+        matched_driver_ids: matchedDrivers,
+        ignored_driver_ids: ignoredDrivers,
+        order_status: finalOrderStatus
+      }
+    });
+
+  } catch (error) {
+    console.error("DRIVER IGNORE ERROR:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message
+    });
+  }
+};
 
 
 

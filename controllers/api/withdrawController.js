@@ -283,7 +283,6 @@ export async function driverWithdrawServiceRequest(req, res) {
 
   } catch (err) {
     console.log("driverWithdrawServiceRequest Error:", err);
-
     return res.status(500).json({
       success: false,
       message: "Internal Server Error",
@@ -291,7 +290,6 @@ export async function driverWithdrawServiceRequest(req, res) {
     });
   }
 }
-
 
 
 
@@ -315,44 +313,46 @@ export async function driverWithdrawHistory(req, res) {
         transaction_id,
         created_at
       FROM withdraw_service
-      WHERE
-        user_id = ?
+      WHERE user_id = ?
         AND user_type = 3
     `;
 
     const params = [driver_id];
 
-    /* =========================
-       Status filter (0,1,2)
-    ========================= */
-    if (status !== undefined && status !== null) {
+    // ✅ EXACT status check (no empty / null bug)
+    const hasValidStatus =
+      status === 0 ||
+      status === 1 ||
+      status === 2 ||
+      status === "0" ||
+      status === "1" ||
+      status === "2";
+
+    if (hasValidStatus) {
       sql += " AND status = ? ";
-      params.push(status);
+      params.push(Number(status));
     }
 
     sql += " ORDER BY id DESC ";
 
     const [rows] = await db.query(sql, params);
 
-    const data = rows.map(item => ({
-      id: item.id,
-      amount: item.amount,
-      status: item.status,
-      transaction_id: item.transaction_id,
-      rejected_reason: item.status == 2 ? item.rejected_reason : null,
-      created_at: item.created_at
-    }));
-
     return res.status(200).json({
       success: true,
       message: "Driver withdraw history fetched successfully",
-      data,
+      data: rows.map(r => ({
+        id: r.id,
+        amount: r.amount,
+        status: r.status,
+        transaction_id: r.transaction_id,
+        rejected_reason: r.status == 2 ? r.rejected_reason : null,
+        created_at: r.created_at
+      })),
       errors: null
     });
 
   } catch (err) {
     console.log("driverWithdrawHistory Error:", err);
-
     return res.status(500).json({
       success: false,
       message: "Internal Server Error",
@@ -360,3 +360,4 @@ export async function driverWithdrawHistory(req, res) {
     });
   }
 }
+

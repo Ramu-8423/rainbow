@@ -62,6 +62,14 @@
           <span>Subcategories</span>
         </a>
       </li>
+      
+       <!-- coupons -->
+      <li class="<%= path.startsWith('/coupons') ? 'active' : '' %>">
+        <a href="/coupons" class="nav-link">
+          <i data-feather="grid" style="color:#e74a3b;"></i>
+          <span>Coupons</span>
+        </a>
+      </li>
 
       <!-- Services -->
       <li class="<%= path.startsWith('/services') ? 'active' : '' %>">
@@ -72,12 +80,12 @@
       </li>
 
 
-<li class="<%= routeName === 'serviceman' ? 'active' : '' %>">
-  <a href="/serviceman" class="nav-link">
-    <i data-feather="users"></i>
-    <span>Serviceman</span>
-  </a>
-</li>
+    <li class="<%= routeName === 'serviceman' ? 'active' : '' %>">
+      <a href="/serviceman" class="nav-link">
+        <i data-feather="users"></i>
+        <span>Serviceman</span>
+      </a>
+    </li>
 
 
       <!-- Bank Details (PARAM = 1 only) -->
@@ -97,12 +105,12 @@
       </li>
 
 
-<li class="<%= routeName === 'serviceman-withdraw-request' ? 'active' : '' %>">
-  <a href="/serviceman-withdraw-request" class="nav-link">
-    <i data-feather="refresh-cw" style="color:#20c997;"></i>
-    <span>Withdraw Request</span>
-  </a>
-</li>
+        <li class="<%= routeName === 'serviceman-withdraw-request' ? 'active' : '' %>">
+          <a href="/serviceman-withdraw-request" class="nav-link">
+            <i data-feather="refresh-cw" style="color:#20c997;"></i>
+            <span>Withdraw Request</span>
+          </a>
+        </li>
 
 
 

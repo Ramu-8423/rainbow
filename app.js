@@ -90,6 +90,5 @@ const PORT = process.env.PORT || 1218;
 
 server.listen(PORT, () => {
   console.log(`🚀 Server + Socket running on port ${PORT}`);
-  
   scheduleApiHits();
 });
