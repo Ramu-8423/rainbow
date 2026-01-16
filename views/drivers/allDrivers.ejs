@@ -172,6 +172,7 @@
   <th>Driver Photo</th>
   <th>Documents Verification</th>
   <th>Verification Action</th>
+  <th>Online Status</th>
   <th>Login Status</th>
   <th>Date</th>
 </tr>
@@ -260,6 +261,20 @@
   </td>
 
 
+<td class="date-col">
+  <% if (d.online_status == 1) { %>
+    <span class="fw-bold text-success d-inline-flex align-items-center gap-1">
+      <i class="bi bi-wifi fw-bold"></i> Online
+    </span>
+  <% } else { %>
+    <span class="fw-bold text-danger d-inline-flex align-items-center gap-1">
+      <i class="bi bi-wifi-off fw-bold"></i> Offline
+    </span>
+  <% } %>
+</td>
+
+ 
+ 
 <td style="white-space:nowrap;">
 
   <select 

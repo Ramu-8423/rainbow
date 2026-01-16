@@ -1,5 +1,5 @@
 import express from "express";
-import { loginPage, loginSubmit, dashboard ,logout, editProfile, updateProfile} from "../controllers/AuthController.js";
+import { loginPage, redirectIfLoggedIn, loginSubmit, dashboard ,logout, editProfile, updateProfile} from "../controllers/AuthController.js";
 
 
 import { 
@@ -32,6 +32,11 @@ allServiceman,
 updateServicemanStatus
 } from "../controllers/serviceManController.js";
 
+
+import { 
+allPayments,
+allServicePayments
+} from "../controllers/PaymentController.js";
 
 import { 
 createZone,
@@ -95,7 +100,7 @@ import { uploadImageDynamic } from "../middleware/upload.js";
 
 const router = express.Router();
 
-router.get("/login", loginPage);
+router.get("/", redirectIfLoggedIn, loginPage);
 router.post("/login", loginSubmit);
 router.get("/logout", logout);
 router.get("/dashboard", dashboard);
@@ -222,6 +227,16 @@ router.get("/coupon-status-update/:id", updateCouponStatus);
 router.get("/create_zone", createZone);
 router.post("/zones/create", insertZone);
 router.post("/zones/delete/:id", deleteZone);
+
+
+
+router.get("/all_payments", allPayments);
+router.get("/all_payments/:payment_type", allPayments);
+
+
+router.get("/service_payments", allServicePayments);
+router.get("/service_payments/:payment_type", allServicePayments);
+
 
 
 export default router;

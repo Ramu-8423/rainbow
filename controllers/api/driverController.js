@@ -112,6 +112,7 @@ export const driverRegister = async (req, res) => {
       if (!data.device_id) missing.push("device_id");
       if (!data.fcm_token) missing.push("fcm_token");
       if (!getFile("profile_photo")) missing.push("profile_photo");
+
       if (missing.length) {
         return res.status(400).json({
           message: "Personal information fields are required",
@@ -119,7 +120,26 @@ export const driverRegister = async (req, res) => {
         });
       }
 
+      /* 🔥 DUPLICATE MOBILE FIX (LOGIC SAME) */
       if (!id) {
+        const [[existing]] = await db.query(
+          "SELECT id FROM driver_registration WHERE mobile = ? LIMIT 1",
+          [data.mobile]
+        );
+
+        if (existing) {
+          await db.query(
+            "UPDATE driver_registration SET ? WHERE id = ?",
+            [buildUpdateObject(data, files, folder), existing.id]
+          );
+
+          return res.status(200).json({
+            message: "Personal information saved successfully",
+            platform_type: 2,
+            id: existing.id
+          });
+        }
+
         const [result] = await db.query(
           `INSERT INTO driver_registration
            (
@@ -158,7 +178,7 @@ export const driverRegister = async (req, res) => {
         });
       }
     }
-    
+
     /* ================= DRIVER LICENCE ================= */
     if (driver_licence_status == 1) {
       const missing = [];
@@ -219,7 +239,7 @@ export const driverRegister = async (req, res) => {
       if (!data.vehicle_plate_number) missing.push("vehicle_plate_number");
       if (!data.vehicle_production_year) missing.push("vehicle_production_year");
       if (!getFile("vehicle_photo")) missing.push("vehicle_photo");
-      
+
       if (missing.length) {
         return res.status(400).json({
           message: "Vehicle information fields are required",
@@ -276,6 +296,7 @@ export const driverRegister = async (req, res) => {
     });
   }
 };
+
 
 
 

@@ -103,6 +103,15 @@
           <span>Bank Update Request</span>
         </a>
       </li>
+      
+
+<li class="<%= routeName.startsWith('service_payments') ? 'active' : '' %>">
+  <a href="/service_payments" class="nav-link">
+    <i data-feather="credit-card" style="color:#0d6efd;"></i>
+    <span>Service Payments</span>
+  </a>
+</li>
+
 
 
         <li class="<%= routeName === 'serviceman-withdraw-request' ? 'active' : '' %>">
@@ -139,6 +148,13 @@
         </a>
       </li>
       
+<li class="<%= routeName.startsWith('all_payments') ? 'active' : '' %>">
+  <a href="/all_payments" class="nav-link">
+    <i data-feather="credit-card" style="color:#0d6efd;"></i>
+    <span>Ride Payments</span>
+  </a>
+</li>
+
       
       <li class="<%= routeName === 'driver-withdraw-request' ? 'active' : '' %>">
   <a href="/driver-withdraw-request/2" class="nav-link">
@@ -198,3 +214,21 @@
     </ul>
   </aside>
 </div>
+
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const sidebar = document.querySelector(".main-sidebar");
+    const activeItem = sidebar?.querySelector("li.active");
+
+    if (!sidebar || !activeItem) return;
+
+    // thoda delay taaki layout fully ready ho jaaye
+    setTimeout(() => {
+      activeItem.scrollIntoView({
+        behavior: "smooth",
+        block: "center"
+      });
+    }, 100);
+  });
+</script>

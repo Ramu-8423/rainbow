@@ -1,5 +1,77 @@
-// controllers/driver_controller.js
 import db from "../config/database.js";
+import { FCMHelper } from "../middleware/fcmHelper.js";
+
+export const approveAllDocuments = async (req, res) => {
+  try {
+    const { driver_id } = req.body;
+
+    if (!driver_id) {
+      req.session.error = "Invalid driver request.";
+      return res.redirect("/all-drivers");
+    }
+
+    await db.query(
+      `
+      UPDATE driver_registration
+      SET
+        personal_information_status = 2,
+        personal_information_reject_reason = NULL,
+
+        driver_licence_status = 2,
+        driver_licence_reject_reason = NULL,
+
+        aadhaar_pan_status = 2,
+        aadhaar_pan_reject_reason = NULL,
+
+        required_certificates_status = 2,
+        required_certificates_reject_reason = NULL,
+
+        vehicle_info_status = 2,
+        vehicle_info_reject_reason = NULL,
+
+        vehicle_documents_status = 2,
+        vehicle_documents_reject_reason = NULL
+      WHERE id = ?
+      `,
+      [driver_id]
+    );
+
+    /* 🔔 FETCH FCM TOKEN + DRIVER DATA */
+    const [[driver]] = await db.query(
+      `SELECT * FROM driver_registration WHERE id = ?`,
+      [driver_id]
+    );
+
+    /* 🔔 SEND PUSH NOTIFICATION */
+    if (driver && driver.fcm_token) {
+      setImmediate(async () => {
+        try {
+          await FCMHelper.sendNotification(
+            driver.fcm_token,
+            "Document Verified ✅",
+            "Documents verified successfully — you can now start earning with rides",
+            {
+              hiddenData: {
+                type: "doc_verified",
+                driver: JSON.stringify(driver)
+              }
+            }
+          );
+        } catch (err) {
+          // silent fail
+        }
+      });
+    }
+
+    req.session.success = "All driver documents approved successfully.";
+    return res.redirect(`/driver-view/${driver_id}`);
+
+  } catch (err) {
+    req.session.error = "Failed to approve all documents.";
+    return res.redirect("/all-drivers");
+  }
+};
+
 
 export const driver_controller = async (req, res) => {
   try {
@@ -171,6 +243,7 @@ export const updateDriverStatus = async (req, res) => {
       );
 
       req.session.success = "Document rejected successfully.";
+      return res.redirect(`/driver-view/${id}`);
     }
 
     /* 🟢 APPROVE CASE (2) */
@@ -188,58 +261,56 @@ export const updateDriverStatus = async (req, res) => {
       req.session.success = "Document approved successfully.";
     }
 
+    /* ✅ FINAL CHECK: ALL DOCUMENTS APPROVED */
+    const [[driver]] = await db.query(
+      `
+      SELECT
+        fcm_token,
+        personal_information_status,
+        driver_licence_status,
+        aadhaar_pan_status,
+        required_certificates_status,
+        vehicle_info_status,
+        vehicle_documents_status
+      FROM driver_registration
+      WHERE id = ?
+      `,
+      [id]
+    );
+
+    if (
+      driver &&
+      driver.fcm_token &&
+      driver.personal_information_status === 2 &&
+      driver.driver_licence_status === 2 &&
+      driver.aadhaar_pan_status === 2 &&
+      driver.required_certificates_status === 2 &&
+      driver.vehicle_info_status === 2 &&
+      driver.vehicle_documents_status === 2
+    ) {
+      setImmediate(async () => {
+          try {
+            await FCMHelper.sendNotification(
+              driver.fcm_token,
+              "Document Verified ✅",
+              "Documents verified successfully — you can now start earning with rides",
+              {
+                hiddenData: {
+                  type: "doc_verified",
+                  driver: JSON.stringify(driver)
+                }
+              }
+            );
+          } catch (err) {
+            // silent fail (no console needed)
+          }
+        });
+    }
+
     return res.redirect(`/driver-view/${id}`);
 
   } catch (err) {
-    console.log("Driver Status Update Error:", err);
     req.session.error = "Something went wrong while updating document status.";
-    return res.redirect("/all-drivers");
-  }
-};
-
-
-export const approveAllDocuments = async (req, res) => {
-  try {
-    const { driver_id } = req.body;
-
-    if (!driver_id) {
-      req.session.error = "Invalid driver request.";
-      return res.redirect("/all-drivers");
-    }
-
-    await db.query(
-      `
-      UPDATE driver_registration
-      SET
-        personal_information_status = 2,
-        personal_information_reject_reason = NULL,
-
-        driver_licence_status = 2,
-        driver_licence_reject_reason = NULL,
-
-        aadhaar_pan_status = 2,
-        aadhaar_pan_reject_reason = NULL,
-
-        required_certificates_status = 2,
-        required_certificates_reject_reason = NULL,
-
-        vehicle_info_status = 2,
-        vehicle_info_reject_reason = NULL,
-
-        vehicle_documents_status = 2,
-        vehicle_documents_reject_reason = NULL
-      WHERE id = ?
-      `,
-      [driver_id]
-    );
-
-    req.session.success = "All driver documents approved successfully.";
-
-    return res.redirect(`/driver-view/${driver_id}`);
-
-  } catch (err) {
-    console.log("Approve All Documents Error:", err);
-    req.session.error = "Failed to approve all documents.";
     return res.redirect("/all-drivers");
   }
 };

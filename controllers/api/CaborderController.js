@@ -1653,7 +1653,7 @@ export const deleteExpiredCabOrders = async (req, res) => {
 
 export async function changeCabOrderStatus(req, res) {
   try {
-    const {
+    let {
       order_id,
       order_status,
       type,
@@ -1701,6 +1701,8 @@ export async function changeCabOrderStatus(req, res) {
       });
     }
 
+
+
     if (Number(order_status) === 6 && Number(type) !== 1) {
       return res.status(400).json({
         success: false,
@@ -1733,7 +1735,9 @@ export async function changeCabOrderStatus(req, res) {
       SELECT
         id,
         orderOtp,
+        order_status,
         pay_mode,
+        user_id,
         wallet_apply,
         final_amount
       FROM cab_orders
@@ -1748,6 +1752,22 @@ export async function changeCabOrderStatus(req, res) {
         success: false,
         message: "Order not found"
       });
+    }
+
+
+    if (Number(orderRows[0].order_status) === Number(order_status)) {
+      return res.status(400).json({
+        success: false,
+        message: "Order status already updated",
+        order_id,
+        order_status: Number(order_status)
+      });
+    }
+
+
+
+    if (!user_id) {
+      user_id = orderRows[0].user_id;
     }
 
     const {
@@ -1909,6 +1929,8 @@ export async function changeCabOrderStatus(req, res) {
           ]
         );
 
+
+   console.log("abc user ki id", user_id);
         // Add full amount to driver wallet
         await db.query(
           `
@@ -2755,23 +2777,27 @@ export async function acceptLaterRide(req, res) {
     /* =========================
        USER FCM NOTIFICATION
     ========================= */
-    if (user_fcm_token) {
-      try {
-        await FCMHelper.sendNotification(
-          user_fcm_token,
-          "Ride Accepted",
-          `Your scheduled ride has been accepted by driver ${driver_name}.`,
-          {
-            type: "scheduled_ride_accepted",
-            order_id: String(order_id),
-            user_id: String(user_id),
-            driver_id: String(driver_id)
-          }
-        );
-      } catch (fcmErr) {
-        console.error("User FCM Error:", fcmErr);
+   if (user_fcm_token) {
+  try {
+    await FCMHelper.sendNotification(
+      user_fcm_token,
+      "Ride Accepted",
+      `Your scheduled ride has been accepted by driver ${driver_name}.`,
+      {
+        hiddenData: {
+          type: "scheduled_ride_accepted",
+          redirect: "active_ride",
+          order: JSON.stringify({
+            order_id,
+            ride_type: "scheduled"
+          })
+        }
       }
-    }
+    );
+  } catch (fcmErr) {
+    // silent fail or existing error handling
+  }
+}
 
     return res.status(200).json({
       success: true,
@@ -2789,9 +2815,6 @@ export async function acceptLaterRide(req, res) {
     });
   }
 }
-
-
-
 
 
 

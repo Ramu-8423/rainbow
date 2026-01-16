@@ -9,6 +9,15 @@
   box-shadow:
     0 1px 3px rgba(255, 255, 255, 0.9),
     0 2px 6px rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.mini-card:hover {
+  transform: translateY(-3px);
+  box-shadow:
+    0 4px 6px rgba(0, 0, 0, 0.1),
+    0 2px 4px rgba(0, 0, 0, 0.06);
 }
 
 .mini-card-title {
@@ -57,10 +66,46 @@
 </style>
 
 <!-- ================= MAIN DASHBOARD ROW ================= -->
+
+<form method="GET" action="/dashboard" class="row g-2 align-items-end mb-3">
+
+  <div class="col-sm-3">
+    <label class="form-label form-label-sm mb-1">From Date</label>
+    <input
+      type="date"
+      name="from"
+      class="form-control form-control-sm"
+      value="<%= from || '' %>"
+      required
+    >
+  </div>
+
+  <div class="col-sm-3">
+    <label class="form-label form-label-sm mb-1">To Date</label>
+    <input
+      type="date"
+      name="to"
+      class="form-control form-control-sm"
+      value="<%= to || '' %>"
+      required
+    >
+  </div>
+
+  <div class="col-sm-6 d-flex gap-2">
+    <button type="submit" class="btn btn-sm btn-primary">
+      Filter
+    </button>
+
+    <a href="/dashboard" class="btn btn-sm btn-secondary">
+      Reset
+    </a>
+  </div>
+
+</form>
 <div class="row">
 
   <!-- Total Serviceman -->
-  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
+  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='/serviceman'">
     <div class="mini-card">
       <div class="mini-card-title">Total Serviceman</div>
       <div class="mini-card-body">
@@ -71,7 +116,7 @@
   </div>
 
   <!-- Active Serviceman -->
-  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
+  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='/serviceman?status=1'">
     <div class="mini-card">
       <div class="mini-card-title">Active Serviceman</div>
       <div class="mini-card-body">
@@ -82,7 +127,7 @@
   </div>
 
   <!-- Online -->
-  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
+  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='/serviceman'">
     <div class="mini-card">
       <div class="mini-card-title">Online</div>
       <div class="mini-card-body">
@@ -93,7 +138,7 @@
   </div>
 
   <!-- Offline -->
-  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
+  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='/serviceman'">
     <div class="mini-card">
       <div class="mini-card-title">Offline</div>
       <div class="mini-card-body">
@@ -104,7 +149,7 @@
   </div>
 
   <!-- Total Category -->
-  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
+  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='/categories'">
     <div class="mini-card">
       <div class="mini-card-title">Total Category</div>
       <div class="mini-card-body">
@@ -115,7 +160,7 @@
   </div>
 
   <!-- Inactive Category -->
-  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
+  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='/categories?status=inactive'">
     <div class="mini-card">
       <div class="mini-card-title">Inactive Category</div>
       <div class="mini-card-body">
@@ -126,7 +171,7 @@
   </div>
 
   <!-- Total Subcategory -->
-  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
+  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='/subcategories'">
     <div class="mini-card">
       <div class="mini-card-title">Total Subcategory</div>
       <div class="mini-card-body">
@@ -137,7 +182,7 @@
   </div>
 
   <!-- Inactive Subcategory -->
-  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
+  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='/subcategories?status=inactive'">
     <div class="mini-card">
       <div class="mini-card-title">Inactive Subcategory</div>
       <div class="mini-card-body">
@@ -148,7 +193,7 @@
   </div>
 
   <!-- Services -->
-  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
+  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='/services/1'">
     <div class="mini-card">
       <div class="mini-card-title">Total Services</div>
       <div class="mini-card-body">
@@ -158,7 +203,7 @@
     </div>
   </div>
 
-  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
+  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='/services/1?status=inactive'">
     <div class="mini-card">
       <div class="mini-card-title">Inactive Services</div>
       <div class="mini-card-body">
@@ -169,7 +214,7 @@
   </div>
 
   <!-- Orders -->
-  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
+  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='#'">
     <div class="mini-card">
       <div class="mini-card-title">Completed Orders</div>
       <div class="mini-card-body">
@@ -179,7 +224,7 @@
     </div>
   </div>
 
-  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
+  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='#'">
     <div class="mini-card">
       <div class="mini-card-title">Ongoing Orders</div>
       <div class="mini-card-body">
@@ -190,7 +235,7 @@
   </div>
 
   <!-- Users -->
-  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
+  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='/all-users'">
     <div class="mini-card">
       <div class="mini-card-title">Total Users</div>
       <div class="mini-card-body">
@@ -200,7 +245,7 @@
     </div>
   </div>
 
-  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
+  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='/all-users?status=inactive'">
     <div class="mini-card">
       <div class="mini-card-title">Inactive Users</div>
       <div class="mini-card-body">
@@ -210,7 +255,7 @@
     </div>
   </div>
 
-  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
+  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='/job-applications'">
     <div class="mini-card">
       <div class="mini-card-title">Total Job Request</div>
       <div class="mini-card-body">
@@ -220,9 +265,9 @@
     </div>
   </div>
   
-    <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
+  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='/serviceman-withdraw-request'">
     <div class="mini-card">
-      <div class="mini-card-title">Padding Withdraw</div>
+      <div class="mini-card-title">Pending Withdraw</div>
       <div class="mini-card-body">
         <div class="mini-icon icon-red"><i class="bi bi-diagram-3"></i></div>
         <span class="mini-badge badge-red"><%= pending_serviceman_withdraw %></span>
@@ -241,7 +286,7 @@
     <h4>Cab and Ride Section</h4>
   </div>
 
-  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
+  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='/all-drivers'">
     <div class="mini-card">
       <div class="mini-card-title">Total Drivers</div>
       <div class="mini-card-body">
@@ -251,7 +296,7 @@
     </div>
   </div>
 
-  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
+  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='/all-drivers?status=active'">
     <div class="mini-card">
       <div class="mini-card-title">Active Drivers</div>
       <div class="mini-card-body">
@@ -261,7 +306,7 @@
     </div>
   </div>
 
-  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
+  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='/all-drivers?status=inactive'">
     <div class="mini-card">
       <div class="mini-card-title">Inactive Drivers</div>
       <div class="mini-card-body">
@@ -271,7 +316,7 @@
     </div>
   </div>
 
-  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
+  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='/all-drivers?status=online'">
     <div class="mini-card">
       <div class="mini-card-title">Online Drivers</div>
       <div class="mini-card-body">
@@ -281,7 +326,7 @@
     </div>
   </div>
 
-  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
+  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='/all-drivers?status=offline'">
     <div class="mini-card">
       <div class="mini-card-title">Offline Drivers</div>
       <div class="mini-card-body">
@@ -291,7 +336,7 @@
     </div>
   </div>
 
-  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
+  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='#'">
     <div class="mini-card">
       <div class="mini-card-title">Drivers Pending Doc</div>
       <div class="mini-card-body">
@@ -301,7 +346,7 @@
     </div>
   </div>
 
-<div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
+<div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='/driver-withdraw-request/2'">
   <div class="mini-card">
     <div class="mini-card-title">Pending Withdraw</div>
     <div class="mini-card-body">
@@ -313,12 +358,11 @@
   </div>
 </div>
 
-
 </div>
 
 <div class="row">
 <!-- TOTAL ORDERS -->
-<div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
+<div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='#'">
   <div class="mini-card">
     <div class="mini-card-title">Total Orders</div>
     <div class="mini-card-body">
@@ -331,7 +375,7 @@
 </div>
 
 <!-- COMPLETED ORDERS -->
-<div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
+<div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='#'">
   <div class="mini-card">
     <div class="mini-card-title">Completed Orders</div>
     <div class="mini-card-body">
@@ -344,7 +388,7 @@
 </div>
 
 <!-- CANCELLED BY USER -->
-<div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
+<div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='#'">
   <div class="mini-card">
     <div class="mini-card-title">Cancelled by User</div>
     <div class="mini-card-body">
@@ -357,7 +401,7 @@
 </div>
 
 <!-- CANCELLED BY DRIVER -->
-<div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
+<div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='#'">
   <div class="mini-card">
     <div class="mini-card-title">Cancelled by Driver</div>
     <div class="mini-card-body">
@@ -369,7 +413,7 @@
   </div>
 </div>
 
-<div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
+<div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='#'">
   <div class="mini-card">
     <div class="mini-card-title">Cancelled by System</div>
     <div class="mini-card-body">
@@ -381,9 +425,41 @@
   </div>
 </div>
 
-
-
 </div>
 <!-- ================= END CAB & RIDE ================= -->
 
 </div>
+
+
+<script>
+(function () {
+
+  // 1. Dashboard ko current history me replace karo
+  history.replaceState({ page: "dashboard" }, "", location.href);
+
+  // 2. Extra fake state push
+  history.pushState({ page: "dashboard" }, "", location.href);
+
+  // 3. Back dabane par turant wapas lao
+  window.addEventListener("popstate", function () {
+    location.replace(location.href);
+  });
+
+  // 4. Tab switch / minimize / back cache detect
+  document.addEventListener("visibilitychange", function () {
+    if (document.visibilityState === "visible") {
+      history.pushState({ page: "dashboard" }, "", location.href);
+    }
+  });
+
+  // 5. Page restore (Chrome bfcache killer)
+  window.addEventListener("pageshow", function (e) {
+    if (e.persisted) {
+      location.replace(location.href);
+    }
+  });
+
+})();
+</script>
+
+

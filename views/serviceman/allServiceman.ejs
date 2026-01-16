@@ -224,6 +224,7 @@
   <th>Wallet</th>
   <th>Gender</th>
   <th>Status</th>
+  <th>Login Status</th>
   <th>Image</th>
   <th class="date-col">Date</th>
 </tr>
@@ -261,6 +262,21 @@
       </div>
     <% } %>
   </td>
+
+
+  <td class="date-col">
+  <% if (s.online_status == 1) { %>
+    <span class="fw-bold text-success d-inline-flex align-items-center gap-1">
+      <i class="bi bi-wifi fw-bold"></i> Online
+    </span>
+  <% } else { %>
+    <span class="fw-bold text-danger d-inline-flex align-items-center gap-1">
+      <i class="bi bi-wifi-off fw-bold"></i> Offline
+    </span>
+  <% } %>
+</td>
+
+   
 
   <!-- IMAGE -->
   <td>

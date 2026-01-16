@@ -82,8 +82,7 @@ export const allServisesa = async (req, res) => {
       `
     );
 
-    // ✅ LOG
-    console.log("ROWS =>", rows);
+
 
     return res.render("Service/allservises", {
       title: "All Services",
