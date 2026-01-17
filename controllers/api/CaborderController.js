@@ -2991,6 +2991,94 @@ export const driverIgnoreCabOrder = async (req, res) => {
 
 
 
+export const updateEstimatedAmount = async (req, res) => {
+  try {
+    const { order_id, estimated_amount } = req.body;
 
+    /* =========================
+       BASIC VALIDATION
+    ========================= */
+    if (!order_id) {
+      return res.status(400).json({
+        message: "order_id is required"
+      });
+    }
 
+    if (!estimated_amount || Number(estimated_amount) <= 0) {
+      return res.status(400).json({
+        message: "valid estimated_amount is required"
+      });
+    }
 
+    /* =========================
+       CHECK ORDER EXIST
+    ========================= */
+    const [[order]] = await db.query(
+      `
+      SELECT id, order_status
+      FROM cab_orders
+      WHERE id = ?
+      LIMIT 1
+      `,
+      [order_id]
+    );
+
+    if (!order) {
+      return res.status(404).json({
+        message: "Order not found"
+      });
+    }
+
+    /* =========================
+       CHECK ORDER STATUS
+    ========================= */
+    if (Number(order.order_status) !== 0) {
+      return res.status(400).json({
+        message: "Only pending orders allowed."
+      });
+    }
+
+    const updatedAt = nowIST();
+
+    /* =========================
+       MYSQL UPDATE
+    ========================= */
+    await db.query(
+      `
+      UPDATE cab_orders
+      SET estimated_amount = ?, updated_at = ?
+      WHERE id = ?
+      `,
+      [estimated_amount, updatedAt, order_id]
+    );
+
+    /* =========================
+       FIREBASE UPDATE
+    ========================= */
+    const firestore = getFirestore();
+
+    await firestore
+      .collection("cab_orders")
+      .doc(String(order_id))
+      .update({
+        estimated_amount: Number(estimated_amount),
+        updated_at: updatedAt
+      });
+
+    /* =========================
+       FINAL RESPONSE
+    ========================= */
+    return res.status(200).json({
+      message: "Raise fare updated successfully",
+      order_id,
+      estimated_amount
+    });
+
+  } catch (err) {
+    console.error("Raise fare Amount Error:", err);
+    return res.status(500).json({
+      message: "Internal Server Error",
+      error: err.message
+    });
+  }
+};

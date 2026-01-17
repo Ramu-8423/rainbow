@@ -105,7 +105,7 @@ export const allServisesa = async (req, res) => {
   } catch (err) {
     console.log("Services Fetch Error:", err);
     req.session.error = "Something went wrong!";
-    return res.redirect(`/servises/${req.params.id}`);
+    return res.redirect(`/service/${req.params.id}`);
   }
 };
 
@@ -203,12 +203,101 @@ export async function storeService(req, res) {
 
     // ✅ SUCCESS
     req.session.success = "Service added successfully!";
-    return res.redirect(`/servises/${status ?? 1}`);
+    return res.redirect(`/service/${status ?? 1}`);
 
   } catch (err) {
     console.log("STORE SERVICE ERROR:", err);
     req.session.error = "Something went wrong!";
-    return res.redirect(`/servises/${status ?? 1}`);
+    return res.redirect(`/service/${status ?? 1}`);
+  }
+}
+
+
+
+
+export async function updateService(req, res) {
+  try {
+    const {
+      service_id,
+      title,
+      description,
+      price,
+      status,
+      faqs,
+      old_image,
+      faq_q,
+      faq_a
+    } = req.body;
+
+    /* ---------------- IMAGE ---------------- */
+    const folderName = "serviceImage";
+    let imagePath = old_image || null;
+
+    if (req.file) {
+      imagePath = `${folderName}/${req.file.filename}`;
+    }
+
+    /* ---------------- FAQS ---------------- */
+    let faqsArray = [];
+
+    // Case 1: frontend sends JSON string
+    if (faqs && faqs.trim() !== "") {
+      try {
+        const parsed = JSON.parse(faqs);
+        if (Array.isArray(parsed)) {
+          faqsArray = parsed;
+        }
+      } catch {}
+    }
+
+    // Case 2: frontend sends faq_q[] & faq_a[]
+    if (
+      faqsArray.length === 0 &&
+      Array.isArray(faq_q) &&
+      Array.isArray(faq_a)
+    ) {
+      faq_q.forEach((q, i) => {
+        if (q && faq_a[i]) {
+          faqsArray.push({
+            id: i + 1,
+            question: q,
+            answer: faq_a[i]
+          });
+        }
+      });
+    }
+
+    const faqsJson = JSON.stringify(faqsArray);
+
+    /* ---------------- UPDATE DB ---------------- */
+    await db.query(
+      `
+      UPDATE services SET
+        title = ?,
+        description = ?,
+        image = ?,
+        price = ?,
+        faqs = ?,
+        status = ?
+      WHERE id = ?
+      `,
+      [
+        title,
+        description,
+        imagePath,
+        price,
+        faqsJson,
+        status,
+        service_id
+      ]
+    );
+
+    req.session.success = "Service updated successfully!";
+    return res.redirect(`/service/${status}`);
+
+  } catch (err) {
+    req.session.error = "Something went wrong!";
+    return res.redirect("back");
   }
 }
 
@@ -242,7 +331,7 @@ export async function updateServiceStatus(req, res) {
         : "Service deactivated successfully!";
 
     // 🔁 redirect same listing
-    return res.redirect(`/servises/${status}`);
+    return res.redirect(`/service/${status}`);
 
   } catch (err) {
     console.log("SERVICE STATUS UPDATE ERROR:", err);
@@ -269,7 +358,7 @@ export async function deleteService(req, res) {
 
     req.session.success = "Service deleted successfully!";
 
-    return res.redirect(`/servises/${status}`);
+    return res.redirect(`/service/${status}`);
 
   } catch (err) {
     console.log("SERVICE DELETE ERROR:", err);

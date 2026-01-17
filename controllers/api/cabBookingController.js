@@ -416,7 +416,7 @@ export async function cabEarning(req, res) {
       );
 
       console.log("Earning Rows:", earningRows);
-      total_earning = Number(earningRows[0]?.total || 0);
+      total_earning = earningRows[0]?.total || 0.00;
     }
 
     console.log("Total Earning:", total_earning);
@@ -467,22 +467,24 @@ export async function cabEarning(req, res) {
     console.log("Total Hours:", total_hours);
     console.log("Total Minutes:", total_minutes);
 
+ 
+  console.log("Total total_earning:", total_earning);
     /* =========================
        FINAL RESPONSE
     ========================= */
-    const responseData = {
-      success: true,
-      data: {
-        total_earning,
-        total_completed_ride,
-        total_distance,
-        online_time: {
-          hours: total_hours,
-          minutes: total_minutes
-        },
-        trip_details: orders
-      }
-    };
+  const responseData = {
+  success: true,
+  data: {
+    total_earning: total_earning, 
+    total_completed_ride,
+    total_distance,
+    online_time: {
+      hours: total_hours,
+      minutes: total_minutes
+    },
+    trip_details: orders
+  }
+};
 
     console.log("FINAL RESPONSE:", responseData);
 

@@ -90,6 +90,7 @@ vehicleAmountDelete
 
 import { 
 allServisesa,
+updateService,
 getSubcategoriesByCategory,
 storeService,
 updateServiceStatus,
@@ -145,7 +146,13 @@ router.get(
 );
 
 
-router.get("/services/:id", allServisesa);
+router.get("/service/:id", allServisesa);
+router.post(
+  "/ajax/edit-service",
+  uploadImageDynamic("serviceImage").single("image"),
+  updateService
+);
+
 
 
 router.get("/ajax/subcategories/:category_id", getSubcategoriesByCategory);

@@ -192,6 +192,7 @@
                 <th>FAQs</th>
                 <th>Status</th>
                 <th>Date</th>
+                <th>Edit</th>
                 <th>Delete</th>
               </tr>
             </thead>
@@ -281,6 +282,14 @@
 
                     <td><%= service.created_at %></td>
                     <td>
+                    <button
+  class="btn btn-warning btn-sm"
+  onclick='openEditServiceModal(<%- JSON.stringify(service) %>)'
+>
+  Edit
+</button>
+                    </td>
+                    <td>
             <button
   class="btn btn-danger btn-sm"
   onclick="deleteService('<%= service.id %>', '<%= status %>')"
@@ -330,6 +339,236 @@
     </div>
   </section>
 </div>
+
+
+
+
+ //===============update table data  ==========
+ 
+ <script>
+function openEditServiceModal(service) {
+  document.getElementById("edit_service_id").value = service.id;
+  document.getElementById("edit_title").value = service.title || "";
+  document.getElementById("edit_price").value = service.price || "";
+  document.getElementById("edit_description").value = service.description || "";
+  document.getElementById("edit_status").value = service.status;
+  document.getElementById("edit_old_image").value = service.service_image || "";
+
+  const img = document.getElementById("editImgPreview");
+  if (service.service_image) {
+    img.src = "/" + service.service_image;
+    img.classList.remove("d-none");
+  } else {
+    img.classList.add("d-none");
+  }
+
+  // RESET FAQS
+  const faqBox = document.getElementById("editFaqContainer");
+  faqBox.innerHTML = "";
+
+  let faqs = [];
+  try {
+    faqs = JSON.parse(service.faqs);
+  } catch {}
+
+  if (Array.isArray(faqs)) {
+    faqs.forEach(f => addEditFaq(f.question || "", f.answer || ""));
+  }
+
+  new bootstrap.Modal(
+    document.getElementById("editServiceModal")
+  ).show();
+}
+
+function addEditFaq(q = "", a = "") {
+  const box = document.createElement("div");
+  box.className = "border p-2 mb-2 position-relative";
+
+  box.innerHTML = `
+    <button type="button"
+      class="position-absolute end-0 top-0"
+      style="border:none;background:transparent"
+      onclick="this.parentElement.remove()">
+      <i class="fa fa-times"></i>
+    </button>
+
+    <input
+      type="text"
+      class="form-control mb-1"
+      placeholder="Question"
+      name="faq_q[]"
+      value="${q}"
+    >
+
+    <textarea
+      class="form-control"
+      placeholder="Answer"
+      name="faq_a[]"
+    >${a}</textarea>
+  `;
+
+  document.getElementById("editFaqContainer").appendChild(box);
+}
+
+function previewEditImage(input) {
+  const file = input.files[0];
+  if (!file) return;
+
+  document.getElementById("editImgPreview").src =
+    URL.createObjectURL(file);
+
+  document.getElementById("editImgPreview")
+    .classList.remove("d-none");
+
+  document.getElementById("editImgName").innerText = file.name;
+}
+
+// 🔥 IMPORTANT: BUILD FAQs JSON ON SUBMIT
+document.getElementById("editServiceForm")
+  .addEventListener("submit", function () {
+
+    const qs = document.querySelectorAll(
+      '#editFaqContainer input[name="faq_q[]"]'
+    );
+    const as = document.querySelectorAll(
+      '#editFaqContainer textarea[name="faq_a[]"]'
+    );
+
+    const faqs = [];
+
+    qs.forEach((q, i) => {
+      if (q.value.trim() && as[i] && as[i].value.trim()) {
+        faqs.push({
+          id: i + 1,
+          question: q.value.trim(),
+          answer: as[i].value.trim()
+        });
+      }
+    });
+
+    document.getElementById("editFaqsInput").value =
+      JSON.stringify(faqs);
+});
+</script>
+
+<div class="modal fade" id="editServiceModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title">Edit Service</h5>
+        <button type="button" class="btn btn-light" data-bs-dismiss="modal">
+          <i class="fa fa-times"></i>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <form
+          id="editServiceForm"
+          method="POST"
+          action="/ajax/edit-service"
+          enctype="multipart/form-data"
+        >
+
+          <input type="hidden" name="service_id" id="edit_service_id">
+          <input type="hidden" name="old_image" id="edit_old_image">
+          <input type="hidden" name="faqs" id="editFaqsInput">
+
+          <div class="row">
+
+            <div class="col-md-6 mb-3">
+              <label>Title *</label>
+              <input type="text" name="title" id="edit_title" class="form-control">
+            </div>
+
+            <div class="col-md-6 mb-3">
+              <label>Price *</label>
+              <input type="number" name="price" id="edit_price" class="form-control">
+            </div>
+
+            <div class="col-md-12 mb-3">
+              <label>Description</label>
+              <textarea
+                name="description"
+                id="edit_description"
+                class="form-control"
+              ></textarea>
+            </div>
+
+            <div class="col-md-6 mb-3">
+              <label>Status</label>
+              <select name="status" id="edit_status" class="form-control">
+                <option value="1">Active</option>
+                <option value="0">Inactive</option>
+              </select>
+            </div>
+
+            <div class="col-md-6 mb-3">
+              <label>Service Image</label><br>
+
+              <label class="file-box">
+                <input
+                  type="file"
+                  name="image"
+                  hidden
+                  onchange="previewEditImage(this)"
+                >
+                <img id="editImgPreview" class="file-thumb d-none">
+              </label>
+
+              <div class="img-name" id="editImgName"></div>
+            </div>
+
+            <div class="col-md-12 mb-3">
+              <label>FAQs</label>
+              <div id="editFaqContainer"></div>
+
+              <button
+                type="button"
+                class="btn btn-sm btn-success mt-2"
+                onclick="addEditFaq()"
+              >
+                + Add FAQ
+              </button>
+            </div>
+
+          </div>
+
+          <div class="text-right">
+            <button type="submit" class="btn btn-primary">
+              Update Service
+            </button>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+ //===============update table data  ==========
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 <script>
 function changePerPage(val){
