@@ -134,7 +134,7 @@ export const updateProfile = async (req, res) => {
 
     await db.query(sql, values);
 
-    // ✅ current user ko alive rakho
+    //// ✅ current user ko alive rakho
     const [verRows] = await db.query(
       "SELECT session_version FROM adminuser WHERE id = ? LIMIT 1",
       [adminId]

@@ -6,7 +6,7 @@ import { parseIST, nowIST } from "../utils/dateParser.js";
 ========================= */
 
 
-/* =========================
+/* ==========================
    BANK UPDATE REQUEST LIST
 ========================= */
 export const getBankUpdateRequests = async (req, res) => {
