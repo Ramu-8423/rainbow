@@ -453,7 +453,7 @@ export const addSubcategory = async (req, res) => {
 export const allSettings = async (req, res) => {
   try {
     const [rows] = await db.query(
-      `SELECT id, name, value, created_at, updated_at
+      `SELECT id, name, admin_label, value, created_at, updated_at
        FROM settings
        ORDER BY id ASC`
     );
@@ -479,12 +479,27 @@ export const allSettings = async (req, res) => {
 
 export const updateSetting = async (req, res) => {
   try {
-    const { id, value } = req.body;
+    let { id, value } = req.body;
 
     if (!id || value === undefined) {
       req.session.error = "Invalid setting data.";
       return res.redirect("/settings");
     }
+
+    // 🧹 STEP 1: value ko string banao (safe)
+    value = String(value);
+
+    // 🧹 STEP 2: saare % remove karo (jitne bhi ho)
+    value = value.replace(/%/g, "").trim();
+
+    // 🧮 STEP 3: number validate karo (integer ya decimal)
+    if (value === "" || isNaN(value)) {
+      req.session.error = "Invalid numeric value.";
+      return res.redirect("/settings");
+    }
+
+    // STEP 4: final numeric value
+    const finalValue = Number(value);
 
     await db.query(
       `
@@ -492,7 +507,7 @@ export const updateSetting = async (req, res) => {
       SET value = ?, updated_at = NOW()
       WHERE id = ?
       `,
-      [value, id]
+      [finalValue, id]
     );
 
     req.session.success = "Setting updated successfully.";

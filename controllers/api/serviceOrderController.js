@@ -154,7 +154,6 @@ export const serviceOrder = [
         distance: row.distance
       }));
       console.table(cleanDistanceTable);
-
       const servicemen = allServicemenDistance.filter(s => s.distance <= radius_km);
       const available_service_man = servicemen.map(s => s.id);
       const sql = `
@@ -223,7 +222,7 @@ export const serviceOrder = [
             );
       }
 
-      sendOrderToServicemen(servicemen, {
+  sendOrderToServicemen(servicemen, {
   order_id: result.insertId,
   service_name,
   customer_name: user_name,
@@ -285,6 +284,8 @@ export const serviceOrder = [
     }
   }
 ];
+
+
 
 
 function calculateDistanceInMeters(lat1, lon1, lat2, lon2) {

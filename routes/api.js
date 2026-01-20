@@ -1,7 +1,7 @@
 import express from "express";
 import { uploadImageDynamic } from "../middleware/upload.js";
 
-/* ========================
+/* =======================
    USER PUBLIC CONTROLLERS
 ======================= */
 

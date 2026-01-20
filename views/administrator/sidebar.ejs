@@ -1,8 +1,9 @@
 <%
-  var path = typeof activePath !== "undefined" ? activePath : "";
-  var parts = path.split("/");
-  var routeName = parts[1] || "";
-  var routeParam = parts[2] || "";
+  const path = typeof activePath !== "undefined" ? activePath : "";
+  const parts = path.split("/").filter(Boolean);
+
+  const routeName  = parts[0] || "";
+  const routeParam = parts[1] || "";
 %>
 
 <div class="main-sidebar sidebar-style-2">
@@ -16,197 +17,187 @@
     </div>
 
     <ul class="sidebar-menu">
-     
 
       <!-- Dashboard -->
-      <li class="<%= path === '/dashboard' ? 'active' : '' %>">
+      <li class="<%= routeName === 'dashboard' ? 'active' : '' %>">
         <a href="/dashboard" class="nav-link">
-          <i data-feather="monitor" style="color:#4e73df;"></i>
+          <i data-feather="monitor"></i>
           <span>Dashboard</span>
         </a>
       </li>
 
-   <!-- Users -->
-      <li class="<%= path.startsWith('/all-users') ? 'active' : '' %>">
+      <!-- Users -->
+      <li class="<%= routeName === 'all-users' ? 'active' : '' %>">
         <a href="/all-users" class="nav-link">
-          <i data-feather="users" style="color:#36b9cc;"></i>
+          <i data-feather="users"></i>
           <span>Users</span>
         </a>
       </li>
-      
 
- <li class="menu-header">Handyman Section</li>
- 
+      <li class="menu-header">Handyman Section</li>
+
       <!-- Job Applications -->
-      <li class="<%= path.startsWith('/job-applications') ? 'active' : '' %>">
+      <li class="<%= routeName === 'job-applications' ? 'active' : '' %>">
         <a href="/job-applications" class="nav-link">
-          <i data-feather="file-text" style="color:#1cc88a;"></i>
+          <i data-feather="file-text"></i>
           <span>Applications</span>
         </a>
       </li>
 
-   
-
       <!-- Categories -->
-      <li class="<%= path.startsWith('/categories') ? 'active' : '' %>">
+      <li class="<%= routeName === 'categories' ? 'active' : '' %>">
         <a href="/categories" class="nav-link">
-          <i data-feather="layers" style="color:#f6c23e;"></i>
+          <i data-feather="layers"></i>
           <span>Categories</span>
         </a>
       </li>
 
       <!-- Subcategories -->
-      <li class="<%= path.startsWith('/subcategories') ? 'active' : '' %>">
+      <li class="<%= routeName === 'subcategories' ? 'active' : '' %>">
         <a href="/subcategories" class="nav-link">
-          <i data-feather="grid" style="color:#e74a3b;"></i>
+          <i data-feather="grid"></i>
           <span>Subcategories</span>
         </a>
       </li>
-      
-       <!-- coupons -->
-      <li class="<%= path.startsWith('/coupons') ? 'active' : '' %>">
+
+      <!-- Coupons -->
+      <li class="<%= routeName === 'coupons' ? 'active' : '' %>">
         <a href="/coupons" class="nav-link">
-          <i data-feather="grid" style="color:#e74a3b;"></i>
+          <i data-feather="tag"></i>
           <span>Coupons</span>
         </a>
       </li>
 
       <!-- Services -->
-      <li class="<%= path.startsWith('/service') ? 'active' : '' %>">
+      <li class="<%= routeName === 'service' && routeParam === '1' ? 'active' : '' %>">
         <a href="/service/1" class="nav-link">
-          <i data-feather="grid" style="color:#e74a3b;"></i>
+          <i data-feather="grid"></i>
           <span>Services</span>
         </a>
       </li>
 
+      <!-- Serviceman -->
+      <li class="<%= routeName === 'serviceman' ? 'active' : '' %>">
+        <a href="/serviceman" class="nav-link">
+          <i data-feather="users"></i>
+          <span>Serviceman</span>
+        </a>
+      </li>
 
-    <li class="<%= routeName === 'serviceman' ? 'active' : '' %>">
-      <a href="/serviceman" class="nav-link">
-        <i data-feather="users"></i>
-        <span>Serviceman</span>
-      </a>
-    </li>
-
-
-      <!-- Bank Details (PARAM = 1 only) -->
+      <!-- Bank Details (Serviceman) -->
       <li class="<%= routeName === 'bank-details' && routeParam === '1' ? 'active' : '' %>">
         <a href="/bank-details/1" class="nav-link">
-          <i data-feather="credit-card" style="color:#6610f2;"></i>
+          <i data-feather="credit-card"></i>
           <span>Bank Details</span>
         </a>
       </li>
 
-      <!-- Bank Update Request (PARAM = 1 only) -->
+      <!-- Bank Update Request (Serviceman) -->
       <li class="<%= routeName === 'bank-update-request' && routeParam === '1' ? 'active' : '' %>">
         <a href="/bank-update-request/1" class="nav-link">
-          <i data-feather="refresh-cw" style="color:#20c997;"></i>
+          <i data-feather="refresh-cw"></i>
           <span>Bank Update Request</span>
         </a>
       </li>
-      
 
-<li class="<%= routeName.startsWith('service_payments') ? 'active' : '' %>">
-  <a href="/service_payments" class="nav-link">
-    <i data-feather="credit-card" style="color:#0d6efd;"></i>
-    <span>Service Payments</span>
-  </a>
-</li>
+      <!-- Service Payments -->
+      <li class="<%= routeName === 'service_payments' ? 'active' : '' %>">
+        <a href="/service_payments" class="nav-link">
+          <i data-feather="credit-card"></i>
+          <span>Service Payments</span>
+        </a>
+      </li>
 
-
-
-        <li class="<%= routeName === 'serviceman-withdraw-request' ? 'active' : '' %>">
-          <a href="/serviceman-withdraw-request" class="nav-link">
-            <i data-feather="refresh-cw" style="color:#20c997;"></i>
-            <span>Withdraw Request</span>
-          </a>
-        </li>
-
-
+      <!-- Serviceman Withdraw -->
+      <li class="<%= routeName === 'serviceman-withdraw-request' ? 'active' : '' %>">
+        <a href="/serviceman-withdraw-request" class="nav-link">
+          <i data-feather="refresh-cw"></i>
+          <span>Withdraw Request</span>
+        </a>
+      </li>
 
       <li class="menu-header">Ride Booking Section</li>
 
-      <li class="<%= path.startsWith('/all-drivers') ? 'active' : '' %>">
+      <!-- All Drivers -->
+      <li class="<%= routeName === 'all-drivers' ? 'active' : '' %>">
         <a href="/all-drivers" class="nav-link">
-          <i data-feather="refresh-cw" style="color:#20c997;"></i>
+          <i data-feather="users"></i>
           <span>All Drivers</span>
         </a>
       </li>
 
-      <!-- Driver Bank Details (PARAM = 2 only) -->
+      <!-- Driver Bank Details -->
       <li class="<%= routeName === 'bank-details' && routeParam === '2' ? 'active' : '' %>">
         <a href="/bank-details/2" class="nav-link">
-          <i data-feather="credit-card" style="color:#6610f2;"></i>
+          <i data-feather="credit-card"></i>
           <span>Driver Bank Details</span>
         </a>
       </li>
 
-      <!-- Driver Bank Update Request (PARAM = 2 only) -->
+      <!-- Driver Bank Update -->
       <li class="<%= routeName === 'bank-update-request' && routeParam === '2' ? 'active' : '' %>">
         <a href="/bank-update-request/2" class="nav-link">
-          <i data-feather="refresh-cw" style="color:#20c997;"></i>
+          <i data-feather="refresh-cw"></i>
           <span>Bank Update Request</span>
         </a>
       </li>
-      
-<li class="<%= routeName.startsWith('all_payments') ? 'active' : '' %>">
-  <a href="/all_payments" class="nav-link">
-    <i data-feather="credit-card" style="color:#0d6efd;"></i>
-    <span>Ride Payments</span>
-  </a>
-</li>
 
-      
+      <!-- Ride Payments -->
+      <li class="<%= routeName === 'all_payments' ? 'active' : '' %>">
+        <a href="/all_payments" class="nav-link">
+          <i data-feather="credit-card"></i>
+          <span>Ride Payments</span>
+        </a>
+      </li>
+
+      <!-- Driver Withdraw -->
       <li class="<%= routeName === 'driver-withdraw-request' ? 'active' : '' %>">
-  <a href="/driver-withdraw-request/2" class="nav-link">
-    <i data-feather="refresh-cw" style="color:#20c997;"></i>
-    <span>Driver Withdraw Request</span>
-  </a>
-</li>
+        <a href="/driver-withdraw-request/2" class="nav-link">
+          <i data-feather="refresh-cw"></i>
+          <span>Driver Withdraw Request</span>
+        </a>
+      </li>
 
+      <!-- Vehicle -->
+      <li class="<%= routeName === 'vehicle-list' ? 'active' : '' %>">
+        <a href="/vehicle-list" class="nav-link">
+          <i data-feather="truck"></i>
+          <span>Vehicle List</span>
+        </a>
+      </li>
 
+      <li class="<%= routeName === 'brand-list' ? 'active' : '' %>">
+        <a href="/brand-list" class="nav-link">
+          <i data-feather="tag"></i>
+          <span>Brand List</span>
+        </a>
+      </li>
 
+      <li class="<%= routeName === 'model-list' ? 'active' : '' %>">
+        <a href="/model-list" class="nav-link">
+          <i data-feather="layers"></i>
+          <span>Model List</span>
+        </a>
+      </li>
 
-<li class="<%= path === '/vehicle-list' ? 'active' : '' %>">
-  <a href="/vehicle-list" class="nav-link text-dark">
-    <i data-feather="truck" style="color:#4e73df;"></i>
-    <span>Vehicle List</span>
-  </a>
-</li>
+      <li class="<%= routeName === 'vehicle-amount-list' ? 'active' : '' %>">
+        <a href="/vehicle-amount-list" class="nav-link">
+          <i data-feather="dollar-sign"></i>
+          <span>Vehicle Amount List</span>
+        </a>
+      </li>
 
-<!-- Brand List -->
-<li class="<%= path === '/brand-list' ? 'active' : '' %>">
-  <a href="/brand-list" class="nav-link text-dark">
-    <i data-feather="tag" style="color:#1cc88a;"></i>
-    <span>Brand List</span>
-  </a>
-</li>
-
-<!-- Model List -->
-<li class="<%= path === '/model-list' ? 'active' : '' %>">
-  <a href="/model-list" class="nav-link text-dark">
-    <i data-feather="layers" style="color:#f6c23e;"></i>
-    <span>Model List</span>
-  </a>
-</li>
-
-<li class="<%= path === '/vehicle-amount-list' ? 'active' : '' %>">
-  <a href="/vehicle-amount-list" class="nav-link text-dark">
-    <i data-feather="dollar-sign" style="color:#36b9cc;"></i>
-    <span>Vehicle Amount List</span>
-  </a>
-</li>
-
-<li class="<%= path === '/settings' ? 'active' : '' %>">
-  <a href="/settings" class="nav-link text-dark">
-    <i data-feather="dollar-sign" style="color:#36b9cc;"></i>
-    <span>Settings</span>
-  </a>
-</li>
+      <li class="<%= routeName === 'settings' ? 'active' : '' %>">
+        <a href="/settings" class="nav-link">
+          <i data-feather="settings"></i>
+          <span>Settings</span>
+        </a>
+      </li>
 
       <!-- Logout -->
       <li>
         <a href="/logout" class="nav-link">
-          <i data-feather="log-out" style="color:#858796;"></i>
+          <i data-feather="log-out"></i>
           <span>Logout</span>
         </a>
       </li>
@@ -215,20 +206,9 @@
   </aside>
 </div>
 
-
 <script>
-  document.addEventListener("DOMContentLoaded", function () {
-    const sidebar = document.querySelector(".main-sidebar");
-    const activeItem = sidebar?.querySelector("li.active");
-
-    if (!sidebar || !activeItem) return;
-
-    // thoda delay taaki layout fully ready ho jaaye
-    setTimeout(() => {
-      activeItem.scrollIntoView({
-        behavior: "smooth",
-        block: "center"
-      });
-    }, 100);
-  });
+document.addEventListener("DOMContentLoaded", () => {
+  const active = document.querySelector(".sidebar-menu li.active");
+  active?.scrollIntoView({ block: "center" });
+});
 </script>

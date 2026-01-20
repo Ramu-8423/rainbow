@@ -25,45 +25,45 @@
       </tr>
     </thead>
 
-    <tbody>
-      <% settings.forEach((setting, index) => { %>
-        <tr>
-          <form method="POST" action="/settings/update">
-            <td><%= index + 1 %></td>
+  <tbody>
+  <% settings.forEach((setting, index) => { %>
+    <tr>
+      <form method="POST" action="/settings/update">
+        <td><%= index + 1 %></td>
 
-            <td>
-              <%= setting.name.replace(/_/g, ' ') %>
-              <input type="hidden" name="id" value="<%= setting.id %>">
-            </td>
+        <td>
+          <strong><%= setting.admin_label %></strong>
+          <input type="hidden" name="id" value="<%= setting.id %>">
+        </td>
 
-           <td style="width:200px">
-  <input
-    type="text"
-    name="value"
-    value="<%= (setting.id == 2 || setting.id == 4) ? setting.value + '%' : setting.value %>"
-    class="form-control form-control-sm setting-input"
-    data-setting-id="<%= setting.id %>"
-    disabled
-    required
-  >
-</td>
+        <td style="width:200px">
+          <input
+            type="text"
+            name="value"
+            value="<%= (setting.id == 2 || setting.id == 4) ? setting.value + '%' : setting.value %>"
+            class="form-control form-control-sm setting-input"
+            data-setting-id="<%= setting.id %>"
+            disabled
+            required
+          >
+        </td>
 
+        <td><%= setting.updated_at %></td>
 
-            <td><%= setting.updated_at %></td>
+        <td>
+          <button
+            type="submit"
+            class="btn btn-success btn-sm setting-save-btn"
+            disabled
+          >
+            Save
+          </button>
+        </td>
+      </form>
+    </tr>
+  <% }) %>
+</tbody>
 
-            <td>
-              <button
-                type="submit"
-                class="btn btn-success btn-sm setting-save-btn"
-                disabled
-              >
-                Save
-              </button>
-            </td>
-          </form>
-        </tr>
-      <% }) %>
-    </tbody>
   </table>
 
 </div>

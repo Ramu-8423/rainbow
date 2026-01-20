@@ -1932,15 +1932,14 @@ export async function changeCabOrderStatus(req, res) {
 
    console.log("abc user ki id", user_id);
         // Add full amount to driver wallet
-        await db.query(
+       await db.query(
           `
           UPDATE driver_registration
           SET
-            wallet = wallet + ?,
             due_wallet = due_wallet + ?
           WHERE id = ?
           `,
-          [final_amount, fee, driver_id]
+          [fee, driver_id]
         );
       }
     }

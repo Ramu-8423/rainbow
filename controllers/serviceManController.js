@@ -1,6 +1,6 @@
 import db from "../config/database.js";
 
-/* ============================
+/* ===========================
    ALL SERVICEMAN LIST
 =========================== */
 export const allServiceman = async (req, res) => {
