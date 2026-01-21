@@ -13,9 +13,9 @@ export const servicemanRegisterValidation = [
   body("last_name")
     .notEmpty().withMessage("last_name is required"),
 
-  body("email")
-    .notEmpty().withMessage("email is required")
-    .isEmail().withMessage("Invalid email format"),
+     body("city")
+     .notEmpty().withMessage("city is required"),
+
 
   body("address")
     .notEmpty().withMessage("address is required"),
@@ -24,9 +24,39 @@ export const servicemanRegisterValidation = [
     .notEmpty().withMessage("mobile is required")
     .matches(/^[0-9]{10,12}$/).withMessage("Invalid mobile number"),
 
+  // 🔥 MODIFIED PART (ARRAY ACCEPT करेगा)
   body("service_category")
     .notEmpty().withMessage("service_category is required")
-    .isInt().withMessage("service_category must be number"),
+    .custom((value, { req }) => {
+      let parsed;
+
+      // agar string me array aaya ho
+      if (typeof value === "string") {
+        try {
+          parsed = JSON.parse(value);
+        } catch (e) {
+          throw new Error("service_category must be a valid array");
+        }
+      } else {
+        parsed = value;
+      }
+
+      // array check
+      if (!Array.isArray(parsed) || parsed.length === 0) {
+        throw new Error("service_category must be a non-empty array");
+      }
+
+      // array ke andar sirf numbers hone chahiye
+      const allNumbers = parsed.every(v => Number.isInteger(Number(v)));
+      if (!allNumbers) {
+        throw new Error("service_category array must contain only numbers");
+      }
+
+      // controller ke liye parsed array save kar do
+      req.body.service_category = parsed;
+
+      return true;
+    }),
 
   body("device_id")
     .notEmpty().withMessage("device_id is required"),
@@ -36,7 +66,7 @@ export const servicemanRegisterValidation = [
 
   body("gender")
     .notEmpty().withMessage("fcm_token is required"),
-    
+
   body("current_latitude")
     .notEmpty().withMessage("current_latitude is required"),
 
@@ -77,13 +107,14 @@ export const servicemanRegisterValidation = [
     const skill = Number(value);
     if (skill === 0) {
       if (!req.files || !req.files["experience_certificate"]) {
-        throw new Error("Experience certificate is required unless you choose 'I don't have any skill");
+        throw new Error(
+          "Experience certificate is required unless you choose 'I don't have any skill"
+        );
       }
     }
     return true;
   })
 ];
-
 
 export const servicemanRegister = [
   ...servicemanRegisterValidation,
@@ -106,6 +137,7 @@ export const servicemanRegister = [
         last_name,
         email,
         address,
+        city,
         mobile,
         service_category,
         skill_status,
@@ -118,19 +150,23 @@ export const servicemanRegister = [
 
       const currentDate = nowIST();
 
-      const [emailCheck] = await db.query(
-        "SELECT id FROM serviceman WHERE LOWER(email) = LOWER(?) LIMIT 1",
-        [email]
+    
+
+
+     const [mobileCheck] = await db.query(
+        "SELECT id FROM serviceman WHERE mobile = ? LIMIT 1",
+        [mobile]
       );
 
-      if (emailCheck.length > 0) {
+      if (mobileCheck.length > 0) {
         return res.status(409).json({
           success: false,
-          message: "This email is already registered.",
+          message: "This mobile number is already registered.",
           errors: null
         });
       }
-
+      
+      
       const folder = "ServicemanFiles";
 
       const profile_photo = req.files["profile_photo"]
@@ -154,11 +190,11 @@ export const servicemanRegister = [
 
       const sql = `
         INSERT INTO serviceman 
-        (first_name, last_name, email, address, mobile, service_category,
+        (first_name, last_name, email, address, city, mobile, service_category,
          profile_photo, aadhaar_front, aadhaar_back, skill_status, experience_certificate,
          device_id, fcm_token, gender, current_latitude, current_longitude,
          login_status, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?,?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?)
       `;
 
       const [result] = await db.query(sql, [
@@ -166,6 +202,7 @@ export const servicemanRegister = [
         last_name,
         email,
         address,
+        city,
         mobile,
         service_category,
         profile_photo,
@@ -175,7 +212,7 @@ export const servicemanRegister = [
         experience_certificate,
         device_id,
         fcm_token,
-        gender,                         // ⭐ added
+        gender,                        
         current_latitude,
         current_longitude,
         currentDate,
@@ -311,8 +348,6 @@ export async function servicemanLogin(req, res) {
 
 
 
-
-
 export async function servicemanProfile(req, res) {
     
   if (!req.body || Object.keys(req.body).length === 0) {
@@ -416,13 +451,15 @@ export async function servicemanProfile(req, res) {
     const data = rows[0];
 
     // STEP 6: Fetch service name from subcategories
-    let serviceName = null;
-    if (data.service_category) {
+  let serviceName = null;
+
+    if (Array.isArray(data.service_category) && data.service_category.length > 0) {
+      const placeholders = data.service_category.map(() => '?').join(',');
       const [subcat] = await db.query(
-        "SELECT name FROM subcategories WHERE id = ? LIMIT 1",
-        [data.service_category]
+        `SELECT name FROM categories WHERE id IN (${placeholders})`,
+        data.service_category
       );
-      serviceName = subcat.length > 0 ? subcat[0].name : null;
+      serviceName = subcat.map(row => row.name).join(', ');
     }
 
     // Add to response
@@ -452,7 +489,6 @@ export async function servicemanProfile(req, res) {
     });
   }
 }
-
 
 
 export async function servicemanOnlineStatus(req, res) {
@@ -568,5 +604,41 @@ export async function servicemanOnlineStatus(req, res) {
     });
   }
 }
+
+export const zoneCities = async (req, res) => {
+  try {
+    const [rows] = await db.query(
+      `
+      SELECT id, zone_name
+      FROM zones
+      ORDER BY id ASC
+      `
+    );
+
+    if (!rows.length) {
+      return res.status(404).json({
+        message: "Zones not found",
+        cities: []
+      });
+    }
+
+    // same key & same structure
+    const cities = rows.map(zone => ({
+      id: zone.id,
+      name: zone.zone_name
+    }));
+
+    return res.status(200).json({
+      message: "Zone cities fetched successfully",
+      cities
+    });
+
+  } catch (err) {
+    console.log("Zone List Error:", err);
+    return res.status(500).json({
+      message: "Internal Server Error"
+    });
+  }
+};
 
 

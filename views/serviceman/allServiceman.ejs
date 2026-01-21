@@ -131,6 +131,23 @@
   .card-header .form-control {
     border-radius: 0 !important;
   }
+  
+
+.file-box.no-file {
+  background: #000;                 /* black background */
+  display: flex;
+  align-items: center;              /* vertical center */
+  justify-content: center;           /* horizontal center */
+}
+
+/* X icon exact midpoint */
+.file-box.no-file .x-icon {
+  font-size: 22px;
+  color: #ff4d4d;
+  line-height: 1;
+  display: block;
+}
+
 </style>
 
 <div class="main-content">
@@ -223,9 +240,21 @@
   <th>Mobile</th>
   <th>Wallet</th>
   <th>Gender</th>
-  <th>Status</th>
   <th>Login Status</th>
-  <th>Image</th>
+  <th>Online Status</th>
+  <th>Profile Photo</th>
+  
+  
+  
+  
+
+  <th>Aadhaar Front</th>
+  <th>Aadhaar Fack</th>
+  <th>Profile Photo</th>
+  
+  
+  <th>Skill Certificate</th>
+  <th>Skill</th>
   <th class="date-col">Date</th>
 </tr>
 </thead>
@@ -287,7 +316,64 @@
       </div>
     <% } else { %> — <% } %>
   </td>
+  
+  
+  
+  
 
+
+   <td>
+    <% if(s.aadhaar_front){ %>
+      <div class="file-box">
+        <img src="/<%= s.aadhaar_front %>" class="file-thumb"
+             onclick="openImageModal('/<%= s.aadhaar_front %>')">
+      </div>
+    <% } else { %> — <% } %>
+  </td>
+
+
+
+
+
+   <td>
+    <% if(s.aadhaar_back){ %>
+      <div class="file-box">
+        <img src="/<%= s.aadhaar_back %>" class="file-thumb"
+             onclick="openImageModal('/<%= s.aadhaar_back %>')">
+      </div>
+    <% } else { %> — <% } %>
+  </td>
+
+
+   <td>
+    <% if(s.profile_photo){ %>
+      <div class="file-box">
+        <img src="/<%= s.profile_photo %>" class="file-thumb"
+             onclick="openImageModal('/<%= s.profile_photo %>')">
+      </div>
+    <% } else { %> — <% } %>
+  </td>
+
+
+<td>
+  <% if (s.experience_certificate) { %>
+    <div class="file-box">
+      <img src="/<%= s.experience_certificate %>"
+           class="file-thumb"
+           onclick="openImageModal('/<%= s.experience_certificate %>')">
+    </div>
+  <% } else { %>
+    <div class="file-box no-file">
+      <i class="bi bi-x-lg x-icon"></i>
+    </div>
+  <% } %>
+</td>
+
+
+
+
+ <td class="date-col"><%= s.service_name %></td>
+ 
   <!-- DATE -->
   <td class="date-col"><%= s.created_at %></td>
 </tr>
@@ -299,11 +385,80 @@
 
 </table>
 </div>
+
+
+
+<!-- PAGINATION -->
+<% if (totalPages > 1) { %>
+<div class="pagination-container">
+
+  <!-- LEFT SIDE -->
+  <div class="pagination-left">
+    <span>
+      Showing
+      <strong><%= ((page - 1) * perPage) + 1 %></strong>
+      -
+      <strong><%= Math.min(page * perPage, total) %></strong>
+      of
+      <strong><%= total %></strong>
+    </span>
+
+    <select onchange="changePerPage(this.value)">
+      <option value="8"  <%= perPage==8?'selected':'' %>>8</option>
+      <option value="15" <%= perPage==15?'selected':'' %>>15</option>
+      <option value="25" <%= perPage==25?'selected':'' %>>25</option>
+      <option value="50" <%= perPage==50?'selected':'' %>>50</option>
+    </select>
+  </div>
+
+  <!-- RIGHT SIDE -->
+  <div class="pagination-right">
+
+    <% if (page > 1) { %>
+      <a class="pg-btn" href="?page=<%= page-1 %>&perPage=<%= perPage %><%= from ? '&from='+from : '' %><%= to ? '&to='+to : '' %><%= status!==undefined ? '&status='+status : '' %>">
+        Prev
+      </a>
+    <% } %>
+
+    <input class="pg-input" type="number" min="1" max="<%= totalPages %>"
+      value="<%= page %>"
+      onchange="goToPage(this.value)" />
+
+    <span>/ <%= totalPages %></span>
+
+    <% if (page < totalPages) { %>
+      <a class="pg-btn" href="?page=<%= page+1 %>&perPage=<%= perPage %><%= from ? '&from='+from : '' %><%= to ? '&to='+to : '' %><%= status!==undefined ? '&status='+status : '' %>">
+        Next
+      </a>
+    <% } %>
+
+  </div>
+
 </div>
+<% } %>
+
+
+
+
+
+
+</div>
+
+
+
+
+
+
+
 
 </div>
 </section>
 </div>
+
+
+
+
+
 
 <!-- IMAGE MODAL -->
 <div id="imageModal" style="
@@ -367,5 +522,25 @@ function changeStatus(id,newStatus){
       location.href=`/serviceman-status-update/${id}?status=1`;
     }
   });
+}
+</script>
+
+
+
+
+
+<script>
+function changePerPage(val){
+  const url = new URL(window.location.href);
+  url.searchParams.set("perPage", val);
+  url.searchParams.set("page", 1);
+  window.location.href = url.toString();
+}
+
+function goToPage(p){
+  if(!p) return;
+  const url = new URL(window.location.href);
+  url.searchParams.set("page", p);
+  window.location.href = url.toString();
 }
 </script>

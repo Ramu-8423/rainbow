@@ -35,7 +35,8 @@ import {
   servicemanRegister,
   servicemanLogin,
   servicemanProfile,
-  servicemanOnlineStatus
+  servicemanOnlineStatus,
+  zoneCities
 } from "../controllers/api/serviceManController.js";
 
 /* =======================
@@ -193,6 +194,7 @@ router.post(
   servicemanRegister
 );
 
+
 router.post("/serviceman_login", servicemanLogin);
 router.post("/serviceman_profile", servicemanProfile);
 router.post("/online_status", servicemanOnlineStatus);
@@ -315,6 +317,10 @@ router.post(
   "/update-estimated-amount",
   updateEstimatedAmount
 );
+
+
+
+router.get("/zone_cities", zoneCities);
 
 
 export default router;

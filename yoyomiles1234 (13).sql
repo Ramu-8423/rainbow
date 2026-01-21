@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Jan 10, 2026 at 08:19 PM
+-- Generation Time: Jan 21, 2026 at 08:32 PM
 -- Server version: 5.7.44-log
 -- PHP Version: 8.3.14
 
@@ -33,15 +33,16 @@ CREATE TABLE `adminuser` (
   `email` varchar(150) NOT NULL,
   `password` varchar(100) NOT NULL,
   `image` varchar(255) DEFAULT NULL,
-  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `session_version` int(11) DEFAULT '1'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data for table `adminuser`
 --
 
-INSERT INTO `adminuser` (`id`, `name`, `email`, `password`, `image`, `created_at`) VALUES
-(1, 'Admin User', 'admin@gmail.com', '12345678', 'profileImage/1767933713855.png', '2025-12-04 05:00:20');
+INSERT INTO `adminuser` (`id`, `name`, `email`, `password`, `image`, `created_at`, `session_version`) VALUES
+(1, 'Admin User', 'admin@gmail.com', '12345678', 'profileImage/1768905819611.png', '2025-12-04 05:00:20', 6);
 
 -- --------------------------------------------------------
 
@@ -225,8 +226,24 @@ CREATE TABLE `cab_orders` (
 --
 
 INSERT INTO `cab_orders` (`id`, `order_status`, `wallet_apply`, `driver_id`, `pay_mode`, `amount_after_wallet`, `final_amount`, `matched_driver_id`, `ignored_drivers_id`, `user_id`, `vehicle_id`, `vehicle_name`, `brand_id`, `brand_name`, `model_id`, `model_name`, `pickup_location`, `pickup_latitude`, `pickup_longitude`, `drop_location`, `drop_latitude`, `drop_longitude`, `distance_km`, `estimated_amount`, `accepted_offer_id`, `cancel_reason`, `order_type`, `schedule_time`, `payment_status`, `coupon_id`, `created_at`, `updated_at`, `user_comment`, `over_limit_passenger`, `profile_photo`, `vehicle_color`, `driver_name`, `vehicle_plate_number`, `contact_number`, `orderOtp`, `rating`, `user_name`, `user_mobile`, `order_rating`) VALUES
-(1, 0, 0, NULL, 2, 0.00, 0.00, '[20]', '[19]', 3, 3, 'Bike', 6, 'Bajaj', 12, 'Platina', 'Vistar Yojna, Lucknow, Uttar Pradesh, 226031', 26.9434913, 80.9404745, 'Hazratganj, Lucknow, Uttar Pradesh, India', 26.8541536, 80.9447827, 9.94, 185.00, NULL, NULL, 2, '2026-01-10 17:42:00', 0, NULL, '2026-01-10 17:39:52', '2026-01-10 17:42:06', '', 0, NULL, NULL, NULL, NULL, NULL, 3672, NULL, 'pankaj ji', 9876543210, NULL),
-(2, 5, 0, 19, 2, 0.00, 149.00, '[19,20]', NULL, 3, 3, 'Bike', 6, 'Bajaj', 12, 'Platina', 'Vistar Yojna, Lucknow, Uttar Pradesh, 226031', 26.9435612, 80.9405539, 'Hazratganj, Lucknow, Uttar Pradesh, India', 26.8541536, 80.9447827, 9.95, 149.00, 51, NULL, 1, NULL, 0, NULL, '2026-01-10 17:44:35', '2026-01-10 17:45:25', '', 0, 'https://admin.rainbowsenterprises.com/DriverDocuments/1766834163079.jpg', NULL, 'Ramu  Sharma ', NULL, 9876543210, 1403, 4, 'pankaj ji', 9876543210, NULL);
+(1, 5, 0, 78, 2, 0.00, 269.00, '[78]', NULL, 18, 2, 'Car', 3, 'Maruti Suzuki', 6, 'WagonR', 'Vistar Yojna, Lucknow, Uttar Pradesh, 226031', 26.9434415, 80.9403007, 'Hazratganj, Lucknow, Uttar Pradesh, India', 26.8541536, 80.9447827, 9.94, 269.00, 1, NULL, 1, NULL, 0, NULL, '2026-01-17 17:52:56', '2026-01-17 17:55:02', '', 0, 'https://admin.rainbowsenterprises.com/DriverDocuments/1768651954610.jpg', 'Beige', 'aman mishra', 'UP42HH7270', 7705827321, 5100, 4.5, 'ANSAL', 9651511938, NULL),
+(3, 8, 0, NULL, 1, 0.00, 0.00, '[]', '[78]', 18, 2, 'Car', 3, 'Maruti Suzuki', 6, 'WagonR', '1/533, Lucknow, Uttar Pradesh, 226031', 26.9433367, 80.9381783, 'XWMG+PH9, Asti Rd, in front of lowrence inter College, Bargadi, Bakshi Ka Talab, Chanda Coder, Bargadi Magath, Uttar Pradesh 226201, India', 26.9842961, 80.9264973, 4.70, 235.00, NULL, NULL, 1, NULL, 0, NULL, '2026-01-17 18:36:28', '2026-01-17 18:37:54', '', 0, NULL, NULL, NULL, NULL, NULL, 1502, NULL, 'ANSAL', 9651511938, NULL),
+(4, 5, 0, 78, 2, 0.00, 299.00, '[78]', NULL, 18, 2, 'Car', 3, 'Maruti Suzuki', 6, 'WagonR', '1/533, Lucknow, Uttar Pradesh, 226031', 26.9434183, 80.9381733, 'Hazratganj, Lucknow, Uttar Pradesh, India', 26.8541536, 80.9447827, 9.95, 299.00, 4, NULL, 1, NULL, 0, NULL, '2026-01-17 18:40:04', '2026-01-17 19:44:20', '', 0, 'https://admin.rainbowsenterprises.com/DriverDocuments/1768651954610.jpg', 'Beige', 'aman mishra', 'UP42HH7270', 7705827321, 1281, 4.5, 'ANSAL', 9651511938, NULL),
+(9, 5, 0, 78, 2, 0.00, 207.00, '[78]', NULL, 20, 2, 'Car', 3, 'Maruti Suzuki', 6, 'WagonR', 'XWMJ+2H2, Bargadi Magath, Uttar Pradesh, 226201', 26.9823017, 80.9317383, 'Madiyaon, Lucknow, Uttar Pradesh, India', 26.9313253, 80.9525655, 6.03, 207.00, 5, NULL, 1, NULL, 0, NULL, '2026-01-17 19:44:59', '2026-01-17 22:40:51', '', 0, 'https://admin.rainbowsenterprises.com/DriverDocuments/1768651954610.jpg', 'Beige', 'aman mishra', 'UP42HH7270', 7705827321, 2319, 4.5, 'aman', 8303204543, NULL),
+(20, 5, 0, 78, 2, 0.00, 304.00, '[78]', NULL, 20, 2, 'Car', 3, 'Maruti Suzuki', 6, 'WagonR', 'Kamakhya Devi Marg, Saraswati Puram, Khargapur, Gomti Nagar, Lucknow, Uttar Pradesh 226010, India', 26.8446339, 81.0161371, 'Tedhi Pulia, Sector D, Jankipuram, Lucknow, Uttar Pradesh 226021, India', 26.9170385, 80.9543270, 10.12, 304.00, 6, NULL, 1, NULL, 0, NULL, '2026-01-17 22:42:55', '2026-01-17 22:45:26', '', 0, 'https://admin.rainbowsenterprises.com/DriverDocuments/1768651954610.jpg', 'Beige', 'aman mishra', 'UP42HH7270', 7705827321, 8356, 4.5, 'aman', 8303204543, NULL),
+(21, 5, 0, 78, 2, 0.00, 175.00, '[78]', NULL, 20, 2, 'Car', 3, 'Maruti Suzuki', 6, 'WagonR', 'XWMJ+2H2, Bargadi Magath, Uttar Pradesh, 226201', 26.9822533, 80.9317867, 'Shukla Chauraha, Rasoolpur Rd, Beti Village, Jankipuram, Lucknow, Uttar Pradesh 226021, India', 26.9407246, 80.9539088, 5.11, 175.00, 7, NULL, 1, NULL, 0, NULL, '2026-01-17 22:50:57', '2026-01-17 22:51:50', '', 0, 'https://admin.rainbowsenterprises.com/DriverDocuments/1768651954610.jpg', 'Beige', 'aman mishra', 'UP42HH7270', 7705827321, 7811, 4.5, 'aman', 8303204543, NULL),
+(22, 5, 0, 78, 2, 0.00, 429.00, '[78]', NULL, 20, 2, 'Car', 3, 'Maruti Suzuki', 6, 'WagonR', 'XWMJ+2H2, Bargadi Magath, Uttar Pradesh, 226201', 26.9822617, 80.9317717, 'Hazratganj, Lucknow, Uttar Pradesh, India', 26.8541536, 80.9447827, 14.30, 429.00, 8, NULL, 1, NULL, 0, NULL, '2026-01-17 22:52:54', '2026-01-17 22:53:38', '', 0, 'https://admin.rainbowsenterprises.com/DriverDocuments/1768651954610.jpg', 'Beige', 'aman mishra', 'UP42HH7270', 7705827321, 2603, 4.5, 'aman', 8303204543, NULL),
+(23, 5, 0, 78, 2, 0.00, 431.00, '[78]', NULL, 20, 2, 'Car', 3, 'Maruti Suzuki', 6, 'WagonR', 'XWMJ+2H2, Bargadi Magath, Uttar Pradesh, 226201', 26.9822567, 80.9317867, 'VW3H+77Q, Kaiser Bagh, Lucknow, Uttar Pradesh 226018, India', 26.8532129, 80.9282270, 14.35, 431.00, 9, NULL, 1, NULL, 0, NULL, '2026-01-17 22:55:54', '2026-01-17 22:56:39', '', 0, 'https://admin.rainbowsenterprises.com/DriverDocuments/1768651954610.jpg', 'Beige', 'aman mishra', 'UP42HH7270', 7705827321, 8060, 4.5, 'aman', 8303204543, NULL),
+(24, 5, 0, 78, 2, 0.00, 264.00, '[78]', NULL, 20, 2, 'Car', 3, 'Maruti Suzuki', 6, 'WagonR', 'Shukla Chauraha, Rasoolpur Rd, Beti Village, Jankipuram, Lucknow, Uttar Pradesh 226021, India', 26.9407246, 80.9539088, 'Shah Mina Rd, Chowk, Lucknow, Uttar Pradesh 226003, India', 26.8692441, 80.9161691, 8.79, 264.00, 10, NULL, 1, NULL, 0, NULL, '2026-01-18 07:53:43', '2026-01-18 07:54:36', '', 0, 'https://admin.rainbowsenterprises.com/DriverDocuments/1768651954610.jpg', 'Beige', 'aman mishra', 'UP42HH7270', 7705827321, 6388, 4.5, 'aman', 8303204543, NULL),
+(25, 5, 0, 78, 2, 0.00, 264.00, '[78]', NULL, 20, 2, 'Car', 3, 'Maruti Suzuki', 6, 'WagonR', 'XWMJ+2H2, Bargadi Magath, Uttar Pradesh, 226201', 26.9822817, 80.9317717, 'Kamakhya Devi Marg, Saraswati Puram, Khargapur, Gomti Nagar, Lucknow, Uttar Pradesh 226010, India', 26.8446339, 81.0161371, 17.44, 264.00, 11, NULL, 1, NULL, 0, NULL, '2026-01-18 07:57:06', '2026-01-18 07:57:54', '', 0, 'https://admin.rainbowsenterprises.com/DriverDocuments/1768651954610.jpg', 'Beige', 'aman mishra', 'UP42HH7270', 7705827321, 8331, 4.5, 'aman', 8303204543, NULL),
+(26, 5, 0, 78, 2, 0.00, 207.00, '[78]', NULL, 21, 2, 'Car', 3, 'Maruti Suzuki', 6, 'WagonR', 'XWMJ+2H2, Bargadi Magath, Uttar Pradesh, 226201', 26.9826506, 80.9317625, 'Tedhi Pulia, Sector D, Jankipuram, Lucknow, Uttar Pradesh 226021, India', 26.9170385, 80.9543270, 7.63, 207.00, 12, NULL, 1, NULL, 0, NULL, '2026-01-18 11:59:29', '2026-01-18 12:01:24', '', 0, 'https://admin.rainbowsenterprises.com/DriverDocuments/1768651954610.jpg', 'Beige', 'aman mishra', 'UP42HH7270', 7705827321, 3536, 4.5, 'Ankit ', 7800019135, NULL),
+(28, 5, 0, 78, 2, 0.00, 182.00, '[78]', NULL, 21, 2, 'Car', 3, 'Maruti Suzuki', 6, 'WagonR', 'Madiyaon, Lucknow, Uttar Pradesh, India', 26.9313253, 80.9525655, 'NH 230, Sindhunagar, Lucknow, Uttar Pradesh 226023, India', 26.7775844, 80.8824811, 18.45, 182.00, 13, NULL, 1, NULL, 0, NULL, '2026-01-18 12:02:42', '2026-01-18 12:03:09', '', 0, 'https://admin.rainbowsenterprises.com/DriverDocuments/1768651954610.jpg', 'Beige', 'aman mishra', 'UP42HH7270', 7705827321, 5724, 4.5, 'Ankit ', 7800019135, NULL),
+(29, 8, 0, NULL, 1, 0.00, 0.00, '[]', '[78]', 21, 2, 'Car', 3, 'Maruti Suzuki', 6, 'WagonR', 'XWMJ+2H2, Bargadi Magath, Uttar Pradesh, 226201', 26.9826282, 80.9317341, 'Munshipulia Chouraha, Munshi Pulia, Block D, Indira Nagar, Lucknow, Uttar Pradesh 226016, India', 26.8852340, 80.9959173, 12.56, 1.00, NULL, NULL, 1, NULL, 0, NULL, '2026-01-18 12:04:20', '2026-01-18 12:05:12', '', 0, NULL, NULL, NULL, NULL, NULL, 5922, NULL, 'Ankit ', 7800019135, NULL),
+(30, 8, 0, NULL, 1, 0.00, 0.00, '[]', '[78]', 21, 2, 'Car', 3, 'Maruti Suzuki', 6, 'WagonR', 'XWMJ+2H2, Bargadi Magath, Uttar Pradesh, 226201', 26.9826282, 80.9317341, 'Munshipulia Chouraha, Munshi Pulia, Block D, Indira Nagar, Lucknow, Uttar Pradesh 226016, India', 26.8852340, 80.9959173, 12.56, 377.00, NULL, NULL, 1, NULL, 0, NULL, '2026-01-18 12:04:45', '2026-01-18 12:05:24', '', 0, NULL, NULL, NULL, NULL, NULL, 2005, NULL, 'Ankit ', 7800019135, NULL),
+(31, 8, 0, NULL, 1, 0.00, 0.00, '[]', '[78]', 21, 2, 'Car', 3, 'Maruti Suzuki', 6, 'WagonR', 'XWMJ+2H2, Bargadi Magath, Uttar Pradesh, 226201', 26.9826282, 80.9317341, 'Munshipulia Chouraha, Munshi Pulia, Block D, Indira Nagar, Lucknow, Uttar Pradesh 226016, India', 26.8852340, 80.9959173, 12.56, 377.00, NULL, NULL, 1, NULL, 0, NULL, '2026-01-18 12:05:26', '2026-01-18 12:05:42', '', 0, NULL, NULL, NULL, NULL, NULL, 7960, NULL, 'Ankit ', 7800019135, NULL),
+(33, 8, 0, NULL, 1, 0.00, 0.00, '[]', '[78]', 22, 2, 'Car', 3, 'Maruti Suzuki', 6, 'WagonR', 'XWMJ+FQF, Bargadi Magath, Uttar Pradesh, 226201', 26.9837976, 80.9319445, 'Jankipuram Extension, Lucknow, Uttar Pradesh, India', 26.9425687, 80.9382750, 4.63, 232.00, NULL, NULL, 1, NULL, 0, NULL, '2026-01-18 15:33:55', '2026-01-18 15:34:26', '', 0, NULL, NULL, NULL, NULL, NULL, 3112, NULL, 'abhay singh', 9236639289, NULL),
+(34, 8, 0, NULL, 1, 0.00, 0.00, '[]', '[78]', 20, 2, 'Car', 3, 'Maruti Suzuki', 6, 'WagonR', 'XWMJ+2H2, Bargadi Magath, Uttar Pradesh, 226201', 26.9823233, 80.9316767, 'Shukla Chauraha, Rasoolpur Rd, Beti Village, Jankipuram, Lucknow, Uttar Pradesh 226021, India', 26.9407246, 80.9539088, 5.12, 162.00, NULL, NULL, 1, NULL, 0, NULL, '2026-01-19 15:47:45', '2026-01-19 15:48:28', '', 0, NULL, NULL, NULL, NULL, NULL, 3885, NULL, 'aman', 8303204543, NULL),
+(35, 0, 0, NULL, 2, 0.00, 0.00, '[19,20,77]', NULL, 4, 3, 'Bike', 6, 'Bajaj', 12, 'Platina', 'Vistar Yojna, Lucknow, Uttar Pradesh, 226031', 26.9436036, 80.9405848, 'Gomti Nagar, Lucknow, Uttar Pradesh, India', 26.8496217, 81.0072193, 12.36, 185.00, NULL, NULL, 1, NULL, 0, NULL, '2026-01-21 17:44:29', '2026-01-21 12:14:29', '', 0, NULL, NULL, NULL, NULL, NULL, 7205, NULL, 'Ramu ', 8423953286, NULL);
 
 -- --------------------------------------------------------
 
@@ -262,7 +279,8 @@ INSERT INTO `categories` (`id`, `name`, `image`, `status`, `created_at`) VALUES
 (13, 'Remote Service', 'categories/remote_support-removebg-preview.png', 1, '2025-12-06 08:31:30'),
 (14, 'Salon', 'categories/salon-removebg-preview.png', 1, '2025-12-06 08:31:30'),
 (15, 'Sanitization', 'categories/sanitaization-removebg-preview.png', 1, '2025-12-06 08:31:30'),
-(16, 'Smart Home', 'categories/automatic-removebg-preview.png', 1, '2025-12-06 08:31:30');
+(16, 'Smart Home', 'categories/automatic-removebg-preview.png', 1, '2025-12-06 08:31:30'),
+(17, 'PBC Working', 'categories/1768648261261.jpg', 1, '2026-01-17 11:11:01');
 
 -- --------------------------------------------------------
 
@@ -399,70 +417,19 @@ CREATE TABLE `driver_offer` (
 --
 
 INSERT INTO `driver_offer` (`id`, `order_id`, `profile_photo`, `estimated_amount`, `offer_amount`, `offer_status`, `created_at`, `updated_at`, `user_id`, `driver_id`, `brand_name`, `model_name`, `driver_name`, `total_rides`, `rating`) VALUES
-(1, 1, 'https://admin.rainbowsenterprises.com/DriverDocuments/1766576896221.jpg', 150.00, 150.00, 0, '2026-01-05 10:46:40', '2026-01-05 10:46:40', 3, 20, 'Hyundai', 'i10', 'wao ki', 56, 4.5),
-(2, 3, 'https://admin.rainbowsenterprises.com/DriverDocuments/1766576896221.jpg', 149.00, 149.00, 0, '2026-01-05 11:13:35', '2026-01-05 11:13:35', 3, 20, 'Hyundai', 'i10', 'wao ki', 56, 4.5),
-(3, 4, 'https://admin.rainbowsenterprises.com/DriverDocuments/1766576896221.jpg', 149.00, 150.00, 0, '2026-01-05 11:54:43', '2026-01-05 11:54:43', 3, 20, 'Hyundai', 'i10', 'wao ki', 56, 4.5),
-(4, 5, 'https://admin.rainbowsenterprises.com/DriverDocuments/1766576896221.jpg', 149.00, 149.00, 0, '2026-01-05 12:24:17', '2026-01-05 12:24:17', 3, 20, 'Hyundai', 'i10', 'wao ki', 56, 4.5),
-(5, 6, 'https://admin.rainbowsenterprises.com/DriverDocuments/1766576896221.jpg', 149.00, 150.00, 0, '2026-01-05 12:44:43', '2026-01-05 12:44:43', 3, 20, 'Hyundai', 'i10', 'wao ki', 56, 4.5),
-(6, 7, 'https://admin.rainbowsenterprises.com/DriverDocuments/1766576896221.jpg', 149.00, 149.00, 0, '2026-01-05 13:13:02', '2026-01-05 13:13:02', 3, 20, 'Hyundai', 'i10', 'wao ki', 56, 4.5),
-(7, 8, 'https://admin.rainbowsenterprises.com/DriverDocuments/1766576896221.jpg', 149.00, 149.00, 0, '2026-01-05 13:20:13', '2026-01-05 13:20:13', 3, 20, 'Hyundai', 'i10', 'wao ki', 56, 4.5),
-(8, 9, 'https://admin.rainbowsenterprises.com/DriverDocuments/1766576896221.jpg', 149.00, 149.00, 0, '2026-01-05 13:25:36', '2026-01-05 13:25:36', 3, 20, 'Hyundai', 'i10', 'wao ki', 56, 4.5),
-(9, 10, 'https://admin.rainbowsenterprises.com/DriverDocuments/1766576896221.jpg', 131.00, 131.00, 0, '2026-01-05 13:35:06', '2026-01-05 13:35:06', 3, 20, 'Hyundai', 'i10', 'wao ki', 56, 4.5),
-(10, 11, 'https://admin.rainbowsenterprises.com/DriverDocuments/1766576896221.jpg', 188.00, 188.00, 0, '2026-01-05 13:45:52', '2026-01-05 13:45:59', 3, 20, 'Hyundai', 'i10', 'wao ki', 56, 4.5),
-(11, 12, 'https://admin.rainbowsenterprises.com/DriverDocuments/1766576896221.jpg', 149.00, 149.00, 0, '2026-01-05 13:48:59', '2026-01-05 13:48:59', 3, 20, 'Hyundai', 'i10', 'wao ki', 56, 4.5),
-(12, 13, 'https://admin.rainbowsenterprises.com/DriverDocuments/1766576896221.jpg', 149.00, 149.00, 0, '2026-01-05 13:55:32', '2026-01-05 13:55:32', 3, 20, 'Hyundai', 'i10', 'wao ki', 56, 4.5),
-(13, 14, 'https://admin.rainbowsenterprises.com/DriverDocuments/1766576896221.jpg', 185.00, 185.00, 0, '2026-01-05 14:01:09', '2026-01-05 14:01:09', 3, 20, 'Hyundai', 'i10', 'wao ki', 56, 4.5),
-(14, 15, 'https://admin.rainbowsenterprises.com/DriverDocuments/1766576896221.jpg', 149.00, 149.00, 0, '2026-01-05 14:47:06', '2026-01-05 14:47:06', 3, 20, 'Hyundai', 'i10', 'wao ki', 56, 4.5),
-(15, 16, 'https://admin.rainbowsenterprises.com/DriverDocuments/1766576896221.jpg', 226.00, 226.00, 0, '2026-01-05 14:58:10', '2026-01-05 14:58:10', 3, 20, 'Hyundai', 'i10', 'wao ki', 56, 4.5),
-(16, 17, 'https://admin.rainbowsenterprises.com/DriverDocuments/1766576896221.jpg', 149.00, 149.00, 0, '2026-01-05 15:26:20', '2026-01-05 15:26:20', 3, 20, 'Hyundai', 'i10', 'wao ki', 56, 4.5),
-(17, 18, 'https://admin.rainbowsenterprises.com/DriverDocuments/1766576896221.jpg', 149.00, 149.00, 0, '2026-01-05 15:49:12', '2026-01-05 15:49:12', 3, 20, 'Hyundai', 'i10', 'wao ki', 56, 4.5),
-(18, 19, 'https://admin.rainbowsenterprises.com/DriverDocuments/1766576896221.jpg', 188.00, 188.00, 0, '2026-01-05 15:59:13', '2026-01-05 15:59:13', 3, 20, 'Hyundai', 'i10', 'wao ki', 56, 4.5),
-(19, 20, 'https://admin.rainbowsenterprises.com/DriverDocuments/1766576896221.jpg', 149.00, 149.00, 0, '2026-01-05 16:06:42', '2026-01-05 16:06:42', 3, 20, 'Hyundai', 'i10', 'wao ki', 56, 4.5),
-(20, 21, 'https://admin.rainbowsenterprises.com/DriverDocuments/1766576896221.jpg', 149.00, 149.00, 0, '2026-01-05 16:15:01', '2026-01-05 16:15:01', 3, 20, 'Hyundai', 'i10', 'wao ki', 56, 4.5),
-(21, 22, 'https://admin.rainbowsenterprises.com/DriverDocuments/1766576896221.jpg', 149.00, 149.00, 0, '2026-01-05 16:27:16', '2026-01-05 16:27:16', 3, 20, 'Hyundai', 'i10', 'wao ki', 56, 4.5),
-(22, 23, 'https://admin.rainbowsenterprises.com/DriverDocuments/1766576896221.jpg', 186.00, 186.00, 0, '2026-01-05 16:29:33', '2026-01-05 16:29:33', 3, 20, 'Hyundai', 'i10', 'wao ki', 56, 4.5),
-(23, 24, 'https://admin.rainbowsenterprises.com/DriverDocuments/1766576896221.jpg', 149.00, 149.00, 0, '2026-01-05 16:31:33', '2026-01-05 16:31:33', 3, 20, 'Hyundai', 'i10', 'wao ki', 56, 4.5),
-(24, 25, 'https://admin.rainbowsenterprises.com/DriverDocuments/1766576896221.jpg', 185.00, 185.00, 0, '2026-01-05 16:33:13', '2026-01-05 16:33:13', 3, 20, 'Hyundai', 'i10', 'wao ki', 56, 4.5),
-(25, 26, 'https://admin.rainbowsenterprises.com/DriverDocuments/1766576896221.jpg', 185.00, 185.00, 0, '2026-01-05 17:17:36', '2026-01-05 17:17:36', 3, 20, 'Hyundai', 'i10', 'wao ki', 56, 4.5),
-(26, 28, 'https://admin.rainbowsenterprises.com/DriverDocuments/1766576896221.jpg', 185.00, 185.00, 0, '2026-01-05 17:41:36', '2026-01-05 17:41:36', 3, 20, 'Hyundai', 'i10', 'wao ki', 56, 4.5),
-(27, 29, 'https://admin.rainbowsenterprises.com/DriverDocuments/1766576896221.jpg', 185.00, 185.00, 0, '2026-01-05 17:46:45', '2026-01-05 17:46:45', 3, 20, 'Hyundai', 'i10', 'wao ki', 56, 4.5),
-(28, 30, 'https://admin.rainbowsenterprises.com/DriverDocuments/1766576896221.jpg', 185.00, 185.00, 0, '2026-01-05 18:05:14', '2026-01-05 18:05:14', 3, 20, 'Hyundai', 'i10', 'wao ki', 56, 4.5),
-(29, 31, 'https://admin.rainbowsenterprises.com/DriverDocuments/1766576896221.jpg', 149.00, 149.00, 0, '2026-01-05 18:10:21', '2026-01-05 18:10:21', 3, 20, 'Hyundai', 'i10', 'wao ki', 56, 4.5),
-(30, 32, 'https://admin.rainbowsenterprises.com/DriverDocuments/1766576896221.jpg', 149.00, 150.00, 0, '2026-01-05 18:19:40', '2026-01-05 18:19:40', 3, 20, 'Hyundai', 'i10', 'wao ki', 56, 4.5),
-(31, 36, 'https://admin.rainbowsenterprises.com/DriverDocuments/1766834163079.jpg', 157.00, 158.00, 0, '2026-01-05 22:33:59', '2026-01-05 22:33:59', 12, 19, NULL, NULL, 'Ramu  Sharma ', 56, 4.5),
-(32, 37, 'https://admin.rainbowsenterprises.com/DriverDocuments/1766834163079.jpg', 192.00, 192.00, 0, '2026-01-05 22:47:55', '2026-01-05 22:47:55', 12, 19, NULL, NULL, 'Ramu  Sharma ', 56, 4.5),
-(33, 38, 'https://admin.rainbowsenterprises.com/DriverDocuments/1766834163079.jpg', 191.00, 191.00, 0, '2026-01-05 22:51:15', '2026-01-05 22:51:15', 12, 19, NULL, NULL, 'Ramu  Sharma ', 56, 4.5),
-(34, 39, 'https://admin.rainbowsenterprises.com/DriverDocuments/1766834163079.jpg', 192.00, 192.00, 0, '2026-01-05 22:57:49', '2026-01-05 22:57:49', 12, 19, NULL, NULL, 'Ramu  Sharma ', 56, 4.5),
-(35, 40, 'https://admin.rainbowsenterprises.com/DriverDocuments/1766834163079.jpg', 192.00, 192.00, 0, '2026-01-05 23:03:53', '2026-01-05 23:03:53', 12, 19, NULL, NULL, 'Ramu  Sharma ', 56, 4.5),
-(36, 41, 'https://admin.rainbowsenterprises.com/DriverDocuments/1766834163079.jpg', 159.00, 159.00, 0, '2026-01-05 23:19:24', '2026-01-05 23:19:24', 12, 19, NULL, NULL, 'Ramu  Sharma ', 56, 4.5),
-(37, 42, 'https://admin.rainbowsenterprises.com/DriverDocuments/1766834163079.jpg', 73.00, 75.00, 0, '2026-01-05 23:22:42', '2026-01-05 23:22:42', 12, 19, NULL, NULL, 'Ramu  Sharma ', 56, 4.5),
-(38, 43, 'https://admin.rainbowsenterprises.com/DriverDocuments/1766834163079.jpg', 132.00, 132.00, 0, '2026-01-05 23:25:40', '2026-01-05 23:25:40', 12, 19, NULL, NULL, 'Ramu  Sharma ', 56, 4.5),
-(39, 44, 'https://admin.rainbowsenterprises.com/DriverDocuments/1766834163079.jpg', 132.00, 132.00, 0, '2026-01-05 23:26:55', '2026-01-05 23:26:55', 12, 19, NULL, NULL, 'Ramu  Sharma ', 56, 4.5),
-(40, 46, 'https://admin.rainbowsenterprises.com/DriverDocuments/1766576896221.jpg', 185.00, 186.00, 0, '2026-01-06 16:56:59', '2026-01-06 16:56:59', 13, 20, 'Hyundai', 'i10', 'wao ki', 56, 4.5),
-(41, 47, 'https://admin.rainbowsenterprises.com/DriverDocuments/1766576896221.jpg', 185.00, 186.00, 0, '2026-01-06 17:07:41', '2026-01-06 17:07:41', 13, 20, 'Hyundai', 'i10', 'wao ki', 56, 4.5),
-(42, 48, 'https://admin.rainbowsenterprises.com/DriverDocuments/1766576896221.jpg', 185.00, 185.00, 0, '2026-01-06 17:15:47', '2026-01-06 17:15:47', 13, 20, 'Hyundai', 'i10', 'wao ki', 56, 4.5),
-(43, 49, 'https://admin.rainbowsenterprises.com/DriverDocuments/1766576896221.jpg', 185.00, 185.00, 0, '2026-01-06 17:16:51', '2026-01-06 17:16:51', 13, 20, 'Hyundai', 'i10', 'wao ki', 56, 4.5),
-(44, 50, 'https://admin.rainbowsenterprises.com/DriverDocuments/1766576896221.jpg', 185.00, 187.00, 0, '2026-01-06 17:17:59', '2026-01-06 17:17:59', 13, 20, 'Hyundai', 'i10', 'wao ki', 56, 4.5),
-(45, 51, 'https://admin.rainbowsenterprises.com/DriverDocuments/1766576896221.jpg', 185.00, 185.00, 0, '2026-01-06 17:30:07', '2026-01-06 17:30:07', 13, 20, 'Hyundai', 'i10', 'wao ki', 56, 4.5),
-(46, 52, 'https://admin.rainbowsenterprises.com/DriverDocuments/1766576896221.jpg', 149.00, 151.00, 0, '2026-01-06 17:44:34', '2026-01-06 17:44:34', 13, 20, 'Hyundai', 'i10', 'wao ki', 56, 4.5),
-(47, 68, 'https://admin.rainbowsenterprises.com/DriverDocuments/1766576896221.jpg', 300.00, 340.00, 0, '2026-01-07 15:14:56', '2026-01-07 15:14:56', 1, 20, 'Hyundai', 'i10', 'wao ki', 56, 4.5),
-(48, 81, 'https://admin.rainbowsenterprises.com/DriverDocuments/1766576896221.jpg', 300.00, 340.00, 0, '2026-01-07 17:01:35', '2026-01-07 17:01:35', 1, 20, 'Hyundai', 'i10', 'wao ki', 56, 4.5),
-(49, 87, 'https://admin.rainbowsenterprises.com/DriverDocuments/1766576896221.jpg', 300.00, 340.00, 0, '2026-01-08 12:35:54', '2026-01-08 12:47:14', 1, 20, 'Hyundai', 'i10', 'wao ki', 56, 4.5),
-(50, 1, 'https://admin.rainbowsenterprises.com/DriverDocuments/1766834163079.jpg', 185.00, 185.00, 0, '2026-01-08 18:09:31', '2026-01-09 16:18:02', 3, 19, NULL, NULL, 'Ramu  Sharma ', 56, 4.5),
-(51, 2, 'https://admin.rainbowsenterprises.com/DriverDocuments/1766834163079.jpg', 149.00, 149.00, 0, '2026-01-09 09:56:29', '2026-01-10 17:44:41', 3, 19, NULL, NULL, 'Ramu  Sharma ', 56, 4.5),
-(52, 3, 'https://admin.rainbowsenterprises.com/DriverDocuments/1766834163079.jpg', 185.00, 186.00, 0, '2026-01-09 16:18:08', '2026-01-09 16:18:08', 13, 19, NULL, NULL, 'Ramu  Sharma ', 56, 4.5),
-(53, 4, 'https://admin.rainbowsenterprises.com/DriverDocuments/1766834163079.jpg', 161.00, 161.00, 0, '2026-01-10 09:44:53', '2026-01-10 09:44:53', 3, 19, NULL, NULL, 'Ramu  Sharma ', 56, 4.5),
-(54, 5, 'https://admin.rainbowsenterprises.com/DriverDocuments/1766834163079.jpg', 149.00, 149.00, 0, '2026-01-10 10:22:52', '2026-01-10 10:22:52', 3, 19, NULL, NULL, 'Ramu  Sharma ', 56, 4.5),
-(55, 6, 'https://admin.rainbowsenterprises.com/DriverDocuments/1766834163079.jpg', 149.00, 149.00, 0, '2026-01-10 10:33:53', '2026-01-10 10:34:31', 3, 19, NULL, NULL, 'Ramu  Sharma ', 56, 4.5),
-(56, 7, 'https://admin.rainbowsenterprises.com/DriverDocuments/1766834163079.jpg', 300.00, 340.00, 0, '2026-01-10 10:41:19', '2026-01-10 10:41:19', 3, 19, NULL, NULL, 'Ramu  Sharma ', 56, 4.5),
-(57, 9, 'https://admin.rainbowsenterprises.com/DriverDocuments/1766834163079.jpg', 185.00, 185.00, 0, '2026-01-10 11:26:09', '2026-01-10 11:26:09', 3, 19, NULL, NULL, 'Ramu  Sharma ', 56, 4.5),
-(58, 12, 'https://admin.rainbowsenterprises.com/DriverDocuments/1766834163079.jpg', 128.00, 128.00, 0, '2026-01-10 11:45:43', '2026-01-10 11:45:43', 3, 19, NULL, NULL, 'Ramu  Sharma ', 56, 4.5),
-(59, 13, 'https://admin.rainbowsenterprises.com/DriverDocuments/1766834163079.jpg', 185.00, 185.00, 0, '2026-01-10 11:54:29', '2026-01-10 13:26:28', 3, 19, NULL, NULL, 'Ramu  Sharma ', 56, 4.5),
-(60, 14, 'https://admin.rainbowsenterprises.com/DriverDocuments/1766834163079.jpg', 149.00, 149.00, 0, '2026-01-10 12:03:44', '2026-01-10 12:03:44', 3, 19, NULL, NULL, 'Ramu  Sharma ', 56, 4.5),
-(61, 15, 'https://admin.rainbowsenterprises.com/DriverDocuments/1766834163079.jpg', 149.00, 150.00, 0, '2026-01-10 12:09:37', '2026-01-10 12:09:37', 3, 19, NULL, NULL, 'Ramu  Sharma ', 56, 4.5),
-(62, 11, 'https://admin.rainbowsenterprises.com/DriverDocuments/1766834163079.jpg', 300.00, 340.00, 0, '2026-01-10 12:11:53', '2026-01-10 12:11:53', 3, 19, NULL, NULL, 'Ramu  Sharma ', 56, 4.5),
-(63, 17, 'https://admin.rainbowsenterprises.com/DriverDocuments/1766834163079.jpg', 185.00, 185.00, 0, '2026-01-10 12:15:48', '2026-01-10 12:15:48', 3, 19, NULL, NULL, 'Ramu  Sharma ', 56, 4.5),
-(64, 23, 'https://admin.rainbowsenterprises.com/DriverDocuments/1766834163079.jpg', 185.00, 185.00, 0, '2026-01-10 16:11:11', '2026-01-10 16:11:11', 3, 19, NULL, NULL, 'Ramu  Sharma ', 56, 4.5);
+(1, 1, 'https://admin.rainbowsenterprises.com/DriverDocuments/1768651954610.jpg', 269.00, 269.00, 0, '2026-01-17 17:53:03', '2026-01-17 17:53:03', 18, 78, 'Maruti Suzuki', 'WagonR', 'aman mishra', 56, 4.5),
+(2, 2, 'https://admin.rainbowsenterprises.com/DriverDocuments/1768651954610.jpg', 235.00, 235.00, 0, '2026-01-17 18:36:33', '2026-01-17 18:36:49', 18, 78, 'Maruti Suzuki', 'WagonR', 'aman mishra', 56, 4.5),
+(3, 3, 'https://admin.rainbowsenterprises.com/DriverDocuments/1768651954610.jpg', 235.00, 217.00, 0, '2026-01-17 18:37:38', '2026-01-17 18:37:38', 18, 78, 'Maruti Suzuki', 'WagonR', 'aman mishra', 56, 4.5),
+(4, 4, 'https://admin.rainbowsenterprises.com/DriverDocuments/1768651954610.jpg', 299.00, 299.00, 0, '2026-01-17 18:40:07', '2026-01-17 18:40:10', 18, 78, 'Maruti Suzuki', 'WagonR', 'aman mishra', 56, 4.5),
+(5, 9, 'https://admin.rainbowsenterprises.com/DriverDocuments/1768651954610.jpg', 207.00, 207.00, 0, '2026-01-17 19:45:04', '2026-01-17 19:45:04', 20, 78, 'Maruti Suzuki', 'WagonR', 'aman mishra', 56, 4.5),
+(6, 20, 'https://admin.rainbowsenterprises.com/DriverDocuments/1768651954610.jpg', 304.00, 304.00, 0, '2026-01-17 22:43:12', '2026-01-17 22:43:17', 20, 78, 'Maruti Suzuki', 'WagonR', 'aman mishra', 56, 4.5),
+(7, 21, 'https://admin.rainbowsenterprises.com/DriverDocuments/1768651954610.jpg', 175.00, 175.00, 0, '2026-01-17 22:51:11', '2026-01-17 22:51:20', 20, 78, 'Maruti Suzuki', 'WagonR', 'aman mishra', 56, 4.5),
+(8, 22, 'https://admin.rainbowsenterprises.com/DriverDocuments/1768651954610.jpg', 429.00, 429.00, 0, '2026-01-17 22:53:08', '2026-01-17 22:53:08', 20, 78, 'Maruti Suzuki', 'WagonR', 'aman mishra', 56, 4.5),
+(9, 23, 'https://admin.rainbowsenterprises.com/DriverDocuments/1768651954610.jpg', 431.00, 431.00, 0, '2026-01-17 22:55:57', '2026-01-17 22:55:57', 20, 78, 'Maruti Suzuki', 'WagonR', 'aman mishra', 56, 4.5),
+(10, 24, 'https://admin.rainbowsenterprises.com/DriverDocuments/1768651954610.jpg', 264.00, 264.00, 0, '2026-01-18 07:53:47', '2026-01-18 07:53:47', 20, 78, 'Maruti Suzuki', 'WagonR', 'aman mishra', 56, 4.5),
+(11, 25, 'https://admin.rainbowsenterprises.com/DriverDocuments/1768651954610.jpg', 264.00, 264.00, 0, '2026-01-18 07:57:22', '2026-01-18 07:57:22', 20, 78, 'Maruti Suzuki', 'WagonR', 'aman mishra', 56, 4.5),
+(12, 26, 'https://admin.rainbowsenterprises.com/DriverDocuments/1768651954610.jpg', 207.00, 207.00, 0, '2026-01-18 11:59:35', '2026-01-18 11:59:40', 21, 78, 'Maruti Suzuki', 'WagonR', 'aman mishra', 56, 4.5),
+(13, 28, 'https://admin.rainbowsenterprises.com/DriverDocuments/1768651954610.jpg', 182.00, 182.00, 0, '2026-01-18 12:02:46', '2026-01-18 12:02:46', 21, 78, 'Maruti Suzuki', 'WagonR', 'aman mishra', 56, 4.5);
 
 -- --------------------------------------------------------
 
@@ -490,7 +457,12 @@ INSERT INTO `driver_online_logs` (`id`, `driver_id`, `online_time`, `offline_tim
 (4, 20, '2026-01-06 16:56:40', '2026-01-10 13:08:33', '2026-01-06 16:56:40', '2026-01-10 13:08:33'),
 (5, 19, '2026-01-09 09:20:32', '2026-01-09 09:24:09', '2026-01-09 09:23:32', '2026-01-09 09:24:09'),
 (6, 19, '2026-01-09 09:24:32', NULL, '2026-01-09 09:24:32', '2026-01-09 09:24:32'),
-(7, 20, '2026-01-10 13:08:50', NULL, '2026-01-10 13:08:50', '2026-01-10 13:08:50');
+(7, 20, '2026-01-10 13:08:50', NULL, '2026-01-10 13:08:50', '2026-01-10 13:08:50'),
+(8, 77, '2026-01-17 12:26:05', NULL, '2026-01-17 12:26:05', '2026-01-17 12:26:05'),
+(9, 78, '2026-01-17 17:48:56', '2026-01-17 20:01:43', '2026-01-17 17:48:56', '2026-01-17 20:01:43'),
+(10, 78, '2026-01-17 20:01:49', '2026-01-17 21:00:00', '2026-01-17 20:01:49', '2026-01-17 21:00:00'),
+(11, 78, '2026-01-17 21:02:28', NULL, '2026-01-17 21:02:28', '2026-01-17 21:02:28'),
+(12, 78, '2026-01-17 21:02:28', NULL, '2026-01-17 21:02:28', '2026-01-17 21:02:28');
 
 -- --------------------------------------------------------
 
@@ -552,6 +524,7 @@ CREATE TABLE `driver_registration` (
   `current_latitude` varchar(100) DEFAULT NULL,
   `current_longitude` varchar(100) DEFAULT NULL,
   `vehicle_type` varchar(50) DEFAULT NULL,
+  `vehicle_category` tinyint(1) DEFAULT NULL COMMENT '2=Two Wheeler, 3=Three Wheeler, 4=Four Wheeler',
   `model_id` tinyint(4) DEFAULT NULL,
   `brand_id` tinyint(4) DEFAULT NULL,
   `model_name` varchar(100) DEFAULT NULL,
@@ -567,22 +540,36 @@ CREATE TABLE `driver_registration` (
 -- Dumping data for table `driver_registration`
 --
 
-INSERT INTO `driver_registration` (`id`, `wallet`, `due_wallet`, `personal_information_status`, `vehicle_info_status`, `driver_licence_status`, `aadhaar_pan_status`, `required_certificates_status`, `vehicle_documents_status`, `platform_type`, `vehicle_name`, `mobile`, `profile_photo`, `first_name`, `last_name`, `date_of_birth`, `personal_information_reject_reason`, `driver_licence_reject_reason`, `driver_licence_front`, `driver_licence_back`, `driver_licence_number`, `licence_validity_date`, `aadhaar_pan_reject_reason`, `aadhaar_front`, `aadhaar_back`, `aadhaar_number`, `pan_card_front`, `pan_card_back`, `pan_card_number`, `required_certificates_reject_reason`, `fitness_certificate`, `pollution_certificate`, `insurance_certificate`, `police_certificate`, `vehicle_info_reject_reason`, `vehicle_photo`, `vehicle_color`, `vehicle_plate_number`, `vehicle_documents_reject_reason`, `vehicle_permit_part_a`, `vehicle_permit_part_b`, `vehicle_registration_front`, `vehicle_registration_back`, `created_at`, `updated_at`, `device_id`, `fcm_token`, `online_status`, `login_status_inactive_reasion`, `login_status`, `current_latitude`, `current_longitude`, `vehicle_type`, `model_id`, `brand_id`, `model_name`, `brand_name`, `vehicle_production_year`, `rating`, `email`, `rating_count`, `rating_sum`) VALUES
-(1, 0.00, -1000.00, 1, 0, 0, NULL, NULL, NULL, NULL, NULL, '8423953211', 'DriverDocuments/1766217684864.png', 'ramu sharma', 'aaaaaaaaa', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-12-20 08:01:25', '2025-12-26 12:31:37', 'ABC123XYZ', 'token123', 0, NULL, 0, '28.6139', '77.2090', NULL, NULL, NULL, NULL, NULL, NULL, 4.5, 'cabuser@gmail.com', 0, 0),
-(2, 200.00, 0.00, 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '8956562326', 'DriverDocuments/1766219167852.jpg', 'dhdgdh', 'bfbfhfh', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-12-20 08:26:08', '2025-12-22 05:22:19', 'kmjnhbg', 'kjhgjnh', 1, NULL, 1, '28.6139', '77.2090', NULL, NULL, NULL, NULL, NULL, NULL, 4.5, 'cabuser@gmail.com', 0, 0),
-(3, 470.00, 0.00, 3, NULL, 1, 1, 1, NULL, NULL, NULL, '5986532256', 'DriverDocuments/1766222586331.jpg', 'sbshsush', 'dbdhsh', NULL, 'easrtghj', NULL, 'DriverDocuments/1766223181469.jpg', 'DriverDocuments/1766223181577.jpg', 'vjvkviivk', '2025-12-26', NULL, 'DriverDocuments/1766223216777.jpg', 'DriverDocuments/1766223216877.jpg', 'hfhdhfh', 'DriverDocuments/1766223216977.jpg', 'DriverDocuments/1766223217065.jpg', 'hfhfhf', NULL, 'DriverDocuments/1766223341703.jpg', 'DriverDocuments/1766223341918.jpg', 'DriverDocuments/1766223342012.jpg', 'DriverDocuments/1766223342018.jpg', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-12-20 09:23:06', '2025-12-22 08:24:46', 'kmjnhbg', 'kjhgjnh', 0, NULL, 1, '26.946196', '80.937907', NULL, NULL, NULL, NULL, NULL, NULL, 4.5, 'cabuser@gmail.com', 0, 0),
-(4, 0.00, 0.00, 2, 2, 2, 2, 2, 3, NULL, NULL, '8864546232', 'DriverDocuments/1766223428775.jpg', 'hdhd', 'dgdgd', NULL, NULL, NULL, 'DriverDocuments/1766223450527.jpg', 'DriverDocuments/1766223450647.jpg', 'hhuuh', '2025-12-26', NULL, 'DriverDocuments/1766223474325.jpg', 'DriverDocuments/1766223474418.jpg', 'bhhuh', 'DriverDocuments/1766223474511.jpg', 'DriverDocuments/1766223474516.jpg', 'bhhu', NULL, 'DriverDocuments/1766223495972.jpg', 'DriverDocuments/1766223496067.jpg', 'DriverDocuments/1766223496163.jpg', 'DriverDocuments/1766223496221.jpg', NULL, NULL, NULL, NULL, 'vehicle document status reject', NULL, NULL, NULL, NULL, '2025-12-20 09:37:08', '2025-12-27 11:14:18', 'kmjnhbg', 'kjhgjnh', 0, NULL, 1, '26.9435287', '80.9405264', NULL, NULL, NULL, NULL, NULL, NULL, 4.5, 'cabuser@gmail.com', 0, 0),
-(5, 0.00, 0.00, 2, 1, 2, 1, 1, 1, 2, NULL, '5656565656', 'DriverDocuments/1766223739400.jpg', 'gussa', 'aa rha hai ', NULL, NULL, NULL, 'DriverDocuments/1766223752569.jpg', 'DriverDocuments/1766223752677.jpg', 'dhdudh', '2025-12-27', NULL, 'DriverDocuments/1766223779881.jpg', 'DriverDocuments/1766223779978.jpg', 'bzjssh', 'DriverDocuments/1766223780069.jpg', 'DriverDocuments/1766223780077.jpg', 'upsbhsh', NULL, 'DriverDocuments/1766223795889.jpg', 'DriverDocuments/1766223795990.jpg', 'DriverDocuments/1766223796088.jpg', 'DriverDocuments/1766223796175.jpg', NULL, 'DriverDocuments/1766224394130.jpg', 'Bronze', 'bfbdbd', NULL, 'DriverDocuments/1766224434425.jpg', 'DriverDocuments/1766224434527.jpg', 'DriverDocuments/1766224434626.jpg', 'DriverDocuments/1766224434724.jpg', '2025-12-20 09:42:19', '2025-12-20 12:36:54', 'RP1A.200720.011', 'e-zsq6KyS9KoyigjnH6cFl:APA91bESbKeD_J-luQzMvWQ39-bS4qQAH1hh8KCJdr1mYqEuNdX4LY_RD9QYm25ZStcQ1ykRVH9_M2wvpRzOuJmmfOGltHFc736WGtGQZ5qdbwdTnUBtbO0', 1, NULL, 1, '26.9433457', '80.940395', NULL, 6, 3, 'HF Deluxe', 'Maruti', NULL, 4.5, 'cabuser@gmail.com', 0, 0),
-(6, 0.00, 0.00, 1, NULL, NULL, NULL, NULL, NULL, 2, 'abc', '8423953286', 'DriverDocuments/1766224649841.png', 'ramu sharma', 'aaaaaaaaa', '2001-08-30', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-12-20 09:55:43', '2025-12-23 09:24:11', 'sdzfxcghjklhgfxchjk', 'szdxfghjkhgcfxd', 1, NULL, 1, '26.8506', '80.9462', '1', NULL, NULL, NULL, NULL, NULL, 4.5, 'cabuser@gmail.com', 0, 0),
-(7, 0.00, 0.00, 2, 2, 2, 2, 2, 2, 2, 'abc', '8423953286', 'DriverDocuments/1766225268057.png', 'ramu sharma', 'aaaaaaaaa', '2001-08-30', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-12-20 10:07:48', NULL, 'sdzfxcghjklhgfxchjk', 'szdxfghjkhgcfxd', 1, NULL, 1, NULL, NULL, '1', NULL, NULL, NULL, NULL, NULL, 4.5, 'cabuser@gmail.com', 0, 0),
-(8, 0.00, 0.00, 2, 2, 2, 2, 2, 2, 2, 'abc', '8423953286', 'DriverDocuments/1766225733188.png', 'ramu sharma', 'aaaaaaaaa', '2001-08-30', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-12-20 10:15:33', NULL, 'sdzfxcghjklhgfxchjk', 'szdxfghjkhgcfxd', 1, NULL, 1, NULL, NULL, '1', NULL, NULL, NULL, NULL, NULL, 4.5, 'cabuser@gmail.com', 0, 0),
-(9, 0.00, 0.00, 1, NULL, NULL, NULL, NULL, NULL, 2, 'abc', '8423953286', 'DriverDocuments/1766376185037.png', 'ramu sharma', 'aaaaaaaaa', '2001-08-30', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-12-22 04:03:05', '2025-12-23 09:24:19', 'sdzfxcghjklhgfxchjk', 'eoxUxobiQ-OJXTruVTTe2s:APA91bHguJPQKINGsjP6Oge4zOIofbcizdKEWvd9TgKKWql_VcyhPffoDqHSzhT96QXCu8pF0Lm5LUqEzCBUXnF1k97p74jjDaaFRg8SNJm1W-JJ29aA5N0', 1, NULL, 1, '26.9435628', '80.9405068', '2', 3, 2, 'Maruti', 'HF Deluxe', NULL, 4.5, 'cabuser@gmail.com', 0, 0),
-(12, 0.00, 0.00, 2, 2, 2, 2, 2, 2, 2, 'abc', '7235947666', 'DriverDocuments/1766376185037.png', 'ramu sharma', 'aaaaaaaaa', '2001-08-30', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-12-22 04:03:05', '2026-01-06 05:23:17', 'fvgbhnj', 'd1uVSDquQKCh6RhAb66BlV:APA91bEn0inBi4IFGG15w2-6-ZGgdcALmuzPJ49oDcgLJNFADMjsmBayJa5pRsQtDlVpzIjIcCP_hi3V57BuQ9S2NqMNxxqiJXp6GtvMyMYA8agkmt2FiWY', 1, NULL, 1, '28.6139', '77.2090', '2', 3, 2, NULL, NULL, NULL, 4.5, 'cabuser@gmail.com', 0, 0),
-(18, 0.00, 0.00, 2, 2, 2, 2, 2, 2, 2, 'Black Car', '6333222552', 'DriverDocuments/1766576896221.jpg', 'Rohit ', 'kumar', '2000-01-22', NULL, NULL, 'DriverDocuments/1766576916117.jpg', 'DriverDocuments/1766576916583.jpg', 'jhuihu', '2025-12-25', NULL, 'DriverDocuments/1766576941812.jpg', 'DriverDocuments/1766576942303.jpg', 'hhuu', 'DriverDocuments/1766576942740.jpg', 'DriverDocuments/1766576943038.jpg', 'hjiu', NULL, 'DriverDocuments/1766576966422.jpg', 'DriverDocuments/1766576967027.jpg', 'DriverDocuments/1766576967161.jpg', 'DriverDocuments/1766576967426.jpg', NULL, 'DriverDocuments/1766576987633.jpg', 'Bronze', 'vbhuh', NULL, 'DriverDocuments/1766577014905.jpg', 'DriverDocuments/1766577015419.jpg', 'DriverDocuments/1766577015844.jpg', 'DriverDocuments/1766577016114.jpg', '2025-12-24 11:48:16', '2026-01-05 16:33:55', 'fvgbhnj', 'cEDPol0xQLyCDWhzxv27uu:APA91bGo_2Ka7p0mptSujTpQ3clhrn87sBGOF-4OLUZiJm9X4BMyr962-gfiTczs1-pivwbuV680Zw6zaALLqP7-3aC8quA65-vukwnDkjkYADYYg3rFzcE', 1, NULL, 1, '26.9476236', '80.9387408', '3', 2, 1, 'i10', 'Hyundai', '2020', 4.5, 'cabuser@gmail.com', 0, 0),
-(19, 2976.00, 150.77, 2, 2, 2, 2, 2, 2, 2, 'Bike', '9876543210', 'DriverDocuments/1766834163079.jpg', 'Ramu ', 'Sharma ', '2000-01-29', NULL, NULL, 'DriverDocuments/1766839604960.jpg', 'DriverDocuments/1766839605191.jpg', 'gshshd', '2025-12-24', NULL, 'DriverDocuments/1766839629326.jpg', 'DriverDocuments/1766839629559.jpg', 'xbshhdhdb', 'DriverDocuments/1766839629661.jpg', 'DriverDocuments/1766839629756.jpg', 'shhshshshs', NULL, 'DriverDocuments/1766839703064.jpg', 'DriverDocuments/1766839703326.jpg', 'DriverDocuments/1766839703435.jpg', 'DriverDocuments/1766839703531.jpg', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-12-27 11:16:04', '2026-01-10 12:15:34', 'fvgbhnj', 'fIHKV0i5RJmrl_bGYK_kyE:APA91bFnK9PmPZ8Z4hdBpByJr-C_Yu0FtxxXSLf6Mzp_0eu2vFuWyjhDC2347WCV6bO7nZYa8QSHjg482qTL0kCuge5rBkccS65Y-40esjBu3Zi8mH6MxYU', 1, NULL, 1, '26.943506', '80.9405402', '3', NULL, NULL, NULL, NULL, NULL, 4, 'cabuser@gmail.com', 7, 2),
-(20, 546.78, 3000.00, 2, 2, 2, 2, 2, 2, 2, 'Black Car', '1111111111', 'DriverDocuments/1766576896221.jpg', 'wao', 'ki', '2000-01-22', NULL, NULL, 'DriverDocuments/1766576916117.jpg', 'DriverDocuments/1766576916583.jpg', 'jhuihu', '2025-12-25', NULL, 'DriverDocuments/1766576941812.jpg', 'DriverDocuments/1766576942303.jpg', 'hhuu', 'DriverDocuments/1766576942740.jpg', 'DriverDocuments/1766576943038.jpg', 'hjiu', NULL, 'DriverDocuments/1766576966422.jpg', 'DriverDocuments/1766576967027.jpg', 'DriverDocuments/1766576967161.jpg', 'DriverDocuments/1766576967426.jpg', NULL, 'DriverDocuments/1766576987633.jpg', 'Bronze', 'vbhuh', NULL, 'DriverDocuments/1766577014905.jpg', 'DriverDocuments/1766577015419.jpg', 'DriverDocuments/1766577015844.jpg', 'DriverDocuments/1766577016114.jpg', '2025-12-24 11:48:16', '2026-01-10 07:38:50', 'fvgbhnj', 'c0WwPmxESFmXhUJSy5GH3i:APA91bFYVW2orZ_dALjbaaRYGvSYQ9ZHaE-AL9be7Thc2Fr4b8J4A5-NDJhhPoGCTFNBlcHCHOSYm6lkcAFjQCd5RWhqgwNlSCDLSilZ9AzWDw4rAwxvEks', 1, NULL, 1, '26.9434758', '80.9405371', '3', 2, 1, 'i10', 'Hyundai', '2020', 5, 'cabuser@gmail.com', 46, 10),
-(58, 0.00, 3000.00, 1, 0, 1, 1, 1, 0, 2, 'Bike', '7607336673', 'DriverDocuments/1767691341062.jpg', 'Nitesh ', 'Sharma ', '2001-01-01', NULL, NULL, 'DriverDocuments/1767691427852.jpg', 'DriverDocuments/1767691430978.jpg', 'Nitesh ', '2026-01-06', NULL, 'DriverDocuments/1767691580589.jpg', 'DriverDocuments/1767691582365.jpg', '496137593369', 'DriverDocuments/1767691582876.jpg', 'DriverDocuments/1767691583354.jpg', 'abddho', NULL, 'DriverDocuments/1767691644267.jpg', 'DriverDocuments/1767691648345.jpg', 'DriverDocuments/1767691649582.jpg', 'DriverDocuments/1767691650631.jpg', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-01-06 09:22:21', '2026-01-07 04:46:05', 'edfrgtyujy', 'dqefwtrhy', 1, NULL, 1, '26.9435053', '80.9405569', '3', NULL, NULL, NULL, NULL, NULL, 4.5, 'cabuser@gmail.com', 0, 0),
-(59, 0.00, 0.00, 2, 2, 2, 2, 2, 2, 2, 'Car', '9856325641', 'DriverDocuments/1767694239880.jpg', 'Kumar', 'dog', '2000-01-14', NULL, NULL, 'DriverDocuments/1767694840895.jpg', 'DriverDocuments/1767694841352.jpg', 'gjfjrhfh', '2022-01-06', NULL, 'DriverDocuments/1767695719404.jpg', 'DriverDocuments/1767695720281.jpg', '989894545121', 'DriverDocuments/1767695720836.jpg', 'DriverDocuments/1767695721856.jpg', 'XDDDD33636', NULL, 'DriverDocuments/1767695833514.jpg', 'DriverDocuments/1767695833822.jpg', 'DriverDocuments/1767695834201.jpg', 'DriverDocuments/1767695834521.jpg', NULL, 'DriverDocuments/1767696399567.jpg', 'Beige', 'GF08QW1234', NULL, 'DriverDocuments/1767696680051.jpg', 'DriverDocuments/1767696680412.pdf', 'DriverDocuments/1767696683607.jpg', NULL, '2026-01-06 10:10:40', '2026-01-06 10:54:39', 'edfrgtyujy', 'dqefwtrhy', 1, NULL, 1, '28.6139', '77.2090', '2', 6, 3, 'WagonR', 'Maruti Suzuki', '2025', 4.5, 'cabuser@gmail.com', 0, 0);
+INSERT INTO `driver_registration` (`id`, `wallet`, `due_wallet`, `personal_information_status`, `vehicle_info_status`, `driver_licence_status`, `aadhaar_pan_status`, `required_certificates_status`, `vehicle_documents_status`, `platform_type`, `vehicle_name`, `mobile`, `profile_photo`, `first_name`, `last_name`, `date_of_birth`, `personal_information_reject_reason`, `driver_licence_reject_reason`, `driver_licence_front`, `driver_licence_back`, `driver_licence_number`, `licence_validity_date`, `aadhaar_pan_reject_reason`, `aadhaar_front`, `aadhaar_back`, `aadhaar_number`, `pan_card_front`, `pan_card_back`, `pan_card_number`, `required_certificates_reject_reason`, `fitness_certificate`, `pollution_certificate`, `insurance_certificate`, `police_certificate`, `vehicle_info_reject_reason`, `vehicle_photo`, `vehicle_color`, `vehicle_plate_number`, `vehicle_documents_reject_reason`, `vehicle_permit_part_a`, `vehicle_permit_part_b`, `vehicle_registration_front`, `vehicle_registration_back`, `created_at`, `updated_at`, `device_id`, `fcm_token`, `online_status`, `login_status_inactive_reasion`, `login_status`, `current_latitude`, `current_longitude`, `vehicle_type`, `vehicle_category`, `model_id`, `brand_id`, `model_name`, `brand_name`, `vehicle_production_year`, `rating`, `email`, `rating_count`, `rating_sum`) VALUES
+(1, 0.00, -1000.00, 1, 0, 0, NULL, NULL, NULL, NULL, NULL, '8423953211', 'DriverDocuments/1766217684864.png', 'ramu sharma', 'aaaaaaaaa', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-12-20 08:01:25', '2025-12-26 12:31:37', 'ABC123XYZ', 'token123', 0, NULL, 0, '28.6139', '77.2090', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 4.5, 'cabuser@gmail.com', 0, 0),
+(2, 200.00, 0.00, 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '8956562326', 'DriverDocuments/1766219167852.jpg', 'dhdgdh', 'bfbfhfh', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-12-20 08:26:08', '2026-01-21 11:01:48', 'kmjnhbg', 'kjhgjnh', 1, NULL, 1, '28.6139', '77.2090', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 4.5, 'cabuser@gmail.com', 0, 0),
+(3, 470.00, 0.00, 3, NULL, 1, 1, 1, NULL, NULL, NULL, '5986532256', 'DriverDocuments/1766222586331.jpg', 'sbshsush', 'dbdhsh', NULL, 'easrtghj', NULL, 'DriverDocuments/1766223181469.jpg', 'DriverDocuments/1766223181577.jpg', 'vjvkviivk', '2025-12-26', NULL, 'DriverDocuments/1766223216777.jpg', 'DriverDocuments/1766223216877.jpg', 'hfhdhfh', 'DriverDocuments/1766223216977.jpg', 'DriverDocuments/1766223217065.jpg', 'hfhfhf', NULL, 'DriverDocuments/1766223341703.jpg', 'DriverDocuments/1766223341918.jpg', 'DriverDocuments/1766223342012.jpg', 'DriverDocuments/1766223342018.jpg', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-12-20 09:23:06', '2025-12-22 08:24:46', 'kmjnhbg', 'kjhgjnh', 0, NULL, 1, '26.946196', '80.937907', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 4.5, 'cabuser@gmail.com', 0, 0),
+(4, 0.00, 0.00, 2, 2, 2, 2, 2, 3, NULL, NULL, '8864546232', 'DriverDocuments/1766223428775.jpg', 'hdhd', 'dgdgd', NULL, NULL, NULL, 'DriverDocuments/1766223450527.jpg', 'DriverDocuments/1766223450647.jpg', 'hhuuh', '2025-12-26', NULL, 'DriverDocuments/1766223474325.jpg', 'DriverDocuments/1766223474418.jpg', 'bhhuh', 'DriverDocuments/1766223474511.jpg', 'DriverDocuments/1766223474516.jpg', 'bhhu', NULL, 'DriverDocuments/1766223495972.jpg', 'DriverDocuments/1766223496067.jpg', 'DriverDocuments/1766223496163.jpg', 'DriverDocuments/1766223496221.jpg', NULL, NULL, NULL, NULL, 'vehicle document status reject', NULL, NULL, NULL, NULL, '2025-12-20 09:37:08', '2025-12-27 11:14:18', 'kmjnhbg', 'kjhgjnh', 0, NULL, 1, '26.9435287', '80.9405264', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 4.5, 'cabuser@gmail.com', 0, 0),
+(5, 0.00, 0.00, 2, 1, 2, 1, 1, 1, 2, NULL, '5656565656', 'DriverDocuments/1766223739400.jpg', 'gussa', 'aa rha hai ', NULL, NULL, NULL, 'DriverDocuments/1766223752569.jpg', 'DriverDocuments/1766223752677.jpg', 'dhdudh', '2025-12-27', NULL, 'DriverDocuments/1766223779881.jpg', 'DriverDocuments/1766223779978.jpg', 'bzjssh', 'DriverDocuments/1766223780069.jpg', 'DriverDocuments/1766223780077.jpg', 'upsbhsh', NULL, 'DriverDocuments/1766223795889.jpg', 'DriverDocuments/1766223795990.jpg', 'DriverDocuments/1766223796088.jpg', 'DriverDocuments/1766223796175.jpg', NULL, 'DriverDocuments/1766224394130.jpg', 'Bronze', 'bfbdbd', NULL, 'DriverDocuments/1766224434425.jpg', 'DriverDocuments/1766224434527.jpg', 'DriverDocuments/1766224434626.jpg', 'DriverDocuments/1766224434724.jpg', '2025-12-20 09:42:19', '2025-12-20 12:36:54', 'RP1A.200720.011', 'e-zsq6KyS9KoyigjnH6cFl:APA91bESbKeD_J-luQzMvWQ39-bS4qQAH1hh8KCJdr1mYqEuNdX4LY_RD9QYm25ZStcQ1ykRVH9_M2wvpRzOuJmmfOGltHFc736WGtGQZ5qdbwdTnUBtbO0', 1, NULL, 1, '26.9433457', '80.940395', NULL, NULL, 6, 3, 'HF Deluxe', 'Maruti', NULL, 4.5, 'cabuser@gmail.com', 0, 0),
+(6, 0.00, 0.00, 1, NULL, NULL, NULL, NULL, NULL, 2, 'abc', '8423953286', 'DriverDocuments/1766224649841.png', 'ramu sharma', 'aaaaaaaaa', '2001-08-30', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-12-20 09:55:43', '2025-12-23 09:24:11', 'sdzfxcghjklhgfxchjk', 'szdxfghjkhgcfxd', 1, NULL, 1, '26.8506', '80.9462', '1', NULL, NULL, NULL, NULL, NULL, NULL, 4.5, 'cabuser@gmail.com', 0, 0),
+(7, 0.00, 0.00, 2, 2, 2, 2, 2, 2, 2, 'abc', '8423953286', 'DriverDocuments/1766225268057.png', 'ramu sharma', 'aaaaaaaaa', '2001-08-30', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-12-20 10:07:48', NULL, 'sdzfxcghjklhgfxchjk', 'szdxfghjkhgcfxd', 1, NULL, 1, NULL, NULL, '1', NULL, NULL, NULL, NULL, NULL, NULL, 4.5, 'cabuser@gmail.com', 0, 0),
+(8, 0.00, 0.00, 2, 2, 2, 2, 2, 2, 2, 'abc', '8423953286', 'DriverDocuments/1766225733188.png', 'ramu sharma', 'aaaaaaaaa', '2001-08-30', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-12-20 10:15:33', NULL, 'sdzfxcghjklhgfxchjk', 'szdxfghjkhgcfxd', 1, NULL, 1, NULL, NULL, '1', NULL, NULL, NULL, NULL, NULL, NULL, 4.5, 'cabuser@gmail.com', 0, 0),
+(9, 0.00, 0.00, 1, NULL, NULL, NULL, NULL, NULL, 2, 'abc', '8423953286', 'DriverDocuments/1766376185037.png', 'ramu sharma', 'aaaaaaaaa', '2001-08-30', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-12-22 04:03:05', '2026-01-21 11:02:22', 'sdzfxcghjklhgfxchjk', 'eoxUxobiQ-OJXTruVTTe2s:APA91bHguJPQKINGsjP6Oge4zOIofbcizdKEWvd9TgKKWql_VcyhPffoDqHSzhT96QXCu8pF0Lm5LUqEzCBUXnF1k97p74jjDaaFRg8SNJm1W-JJ29aA5N0', 1, NULL, 1, '28.6139', '77.2090', '2', NULL, 3, 2, 'Maruti', 'HF Deluxe', NULL, 4.5, 'cabuser@gmail.com', 0, 0),
+(12, 0.00, 0.00, 2, 2, 2, 2, 2, 2, 2, 'abc', '7235947666', 'DriverDocuments/1766376185037.png', 'ramu sharma', 'aaaaaaaaa', '2001-08-30', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-12-22 04:03:05', '2026-01-06 05:23:17', 'fvgbhnj', 'd1uVSDquQKCh6RhAb66BlV:APA91bEn0inBi4IFGG15w2-6-ZGgdcALmuzPJ49oDcgLJNFADMjsmBayJa5pRsQtDlVpzIjIcCP_hi3V57BuQ9S2NqMNxxqiJXp6GtvMyMYA8agkmt2FiWY', 1, NULL, 1, '28.6139', '77.2090', '2', NULL, 3, 2, NULL, NULL, NULL, 4.5, 'cabuser@gmail.com', 0, 0),
+(18, 0.00, 0.00, 2, 2, 2, 2, 2, 2, 2, 'Black Car', '6333222552', 'DriverDocuments/1766576896221.jpg', 'Rohit ', 'kumar', '2000-01-22', NULL, NULL, 'DriverDocuments/1766576916117.jpg', 'DriverDocuments/1766576916583.jpg', 'jhuihu', '2025-12-25', NULL, 'DriverDocuments/1766576941812.jpg', 'DriverDocuments/1766576942303.jpg', 'hhuu', 'DriverDocuments/1766576942740.jpg', 'DriverDocuments/1766576943038.jpg', 'hjiu', NULL, 'DriverDocuments/1766576966422.jpg', 'DriverDocuments/1766576967027.jpg', 'DriverDocuments/1766576967161.jpg', 'DriverDocuments/1766576967426.jpg', NULL, 'DriverDocuments/1766576987633.jpg', 'Bronze', 'vbhuh', NULL, 'DriverDocuments/1766577014905.jpg', 'DriverDocuments/1766577015419.jpg', 'DriverDocuments/1766577015844.jpg', 'DriverDocuments/1766577016114.jpg', '2025-12-24 11:48:16', '2026-01-05 16:33:55', 'fvgbhnj', 'cEDPol0xQLyCDWhzxv27uu:APA91bGo_2Ka7p0mptSujTpQ3clhrn87sBGOF-4OLUZiJm9X4BMyr962-gfiTczs1-pivwbuV680Zw6zaALLqP7-3aC8quA65-vukwnDkjkYADYYg3rFzcE', 1, NULL, 1, '26.9476236', '80.9387408', '3', NULL, 2, 1, 'i10', 'Hyundai', '2020', 4.5, 'cabuser@gmail.com', 0, 0),
+(19, 3693.00, 200.96, 2, 2, 2, 2, 2, 2, 2, 'Bike', '9876543210', 'DriverDocuments/1766834163079.jpg', 'Ramu ', 'Sharma ', '2000-01-29', NULL, NULL, 'DriverDocuments/1766839604960.jpg', 'DriverDocuments/1766839605191.jpg', 'gshshd', '2025-12-24', NULL, 'DriverDocuments/1766839629326.jpg', 'DriverDocuments/1766839629559.jpg', 'xbshhdhdb', 'DriverDocuments/1766839629661.jpg', 'DriverDocuments/1766839629756.jpg', 'shhshshshs', NULL, 'DriverDocuments/1766839703064.jpg', 'DriverDocuments/1766839703326.jpg', 'DriverDocuments/1766839703435.jpg', 'DriverDocuments/1766839703531.jpg', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-12-27 11:16:04', '2026-01-12 04:50:23', 'fvgbhnj', 'fIHKV0i5RJmrl_bGYK_kyE:APA91bFnK9PmPZ8Z4hdBpByJr-C_Yu0FtxxXSLf6Mzp_0eu2vFuWyjhDC2347WCV6bO7nZYa8QSHjg482qTL0kCuge5rBkccS65Y-40esjBu3Zi8mH6MxYU', 1, NULL, 1, '26.943519', '80.9405489', '3', NULL, NULL, NULL, NULL, NULL, NULL, 4, 'cabuser@gmail.com', 7, 2),
+(20, 546.78, 3000.00, 2, 2, 2, 2, 2, 2, 2, 'Black Car', '1111111111', 'DriverDocuments/1766576896221.jpg', 'wao', 'ki', '2000-01-22', NULL, NULL, 'DriverDocuments/1766576916117.jpg', 'DriverDocuments/1766576916583.jpg', 'jhuihu', '2025-12-25', NULL, 'DriverDocuments/1766576941812.jpg', 'DriverDocuments/1766576942303.jpg', 'hhuu', 'DriverDocuments/1766576942740.jpg', 'DriverDocuments/1766576943038.jpg', 'hjiu', NULL, 'DriverDocuments/1766576966422.jpg', 'DriverDocuments/1766576967027.jpg', 'DriverDocuments/1766576967161.jpg', 'DriverDocuments/1766576967426.jpg', NULL, 'DriverDocuments/1766576987633.jpg', 'Bronze', 'vbhuh', NULL, 'DriverDocuments/1766577014905.jpg', 'DriverDocuments/1766577015419.jpg', 'DriverDocuments/1766577015844.jpg', 'DriverDocuments/1766577016114.jpg', '2025-12-24 11:48:16', '2026-01-10 07:38:50', 'fvgbhnj', 'c0WwPmxESFmXhUJSy5GH3i:APA91bFYVW2orZ_dALjbaaRYGvSYQ9ZHaE-AL9be7Thc2Fr4b8J4A5-NDJhhPoGCTFNBlcHCHOSYm6lkcAFjQCd5RWhqgwNlSCDLSilZ9AzWDw4rAwxvEks', 1, NULL, 1, '26.9434758', '80.9405371', '3', NULL, 2, 1, 'i10', 'Hyundai', '2020', 5, 'cabuser@gmail.com', 46, 10),
+(58, 0.00, 3000.00, 1, 0, 1, 1, 1, 0, 2, 'Bike', '7607336673', 'DriverDocuments/1767691341062.jpg', 'Nitesh ', 'Sharma ', '2001-01-01', NULL, NULL, 'DriverDocuments/1767691427852.jpg', 'DriverDocuments/1767691430978.jpg', 'Nitesh ', '2026-01-06', NULL, 'DriverDocuments/1767691580589.jpg', 'DriverDocuments/1767691582365.jpg', '496137593369', 'DriverDocuments/1767691582876.jpg', 'DriverDocuments/1767691583354.jpg', 'abddho', NULL, 'DriverDocuments/1767691644267.jpg', 'DriverDocuments/1767691648345.jpg', 'DriverDocuments/1767691649582.jpg', 'DriverDocuments/1767691650631.jpg', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-01-06 09:22:21', '2026-01-07 04:46:05', 'edfrgtyujy', 'dqefwtrhy', 1, NULL, 1, '26.9435053', '80.9405569', '3', NULL, NULL, NULL, NULL, NULL, NULL, 4.5, 'cabuser@gmail.com', 0, 0),
+(59, 0.00, 0.00, 2, 2, 2, 2, 2, 2, 2, 'Car', '9856325641', 'DriverDocuments/1767694239880.jpg', 'Kumar', 'dog', '2000-01-14', NULL, NULL, 'DriverDocuments/1767694840895.jpg', 'DriverDocuments/1767694841352.jpg', 'gjfjrhfh', '2022-01-06', NULL, 'DriverDocuments/1767695719404.jpg', 'DriverDocuments/1767695720281.jpg', '989894545121', 'DriverDocuments/1767695720836.jpg', 'DriverDocuments/1767695721856.jpg', 'XDDDD33636', NULL, 'DriverDocuments/1767695833514.jpg', 'DriverDocuments/1767695833822.jpg', 'DriverDocuments/1767695834201.jpg', 'DriverDocuments/1767695834521.jpg', NULL, 'DriverDocuments/1767696399567.jpg', 'Beige', 'GF08QW1234', NULL, 'DriverDocuments/1767696680051.jpg', 'DriverDocuments/1767696680412.pdf', 'DriverDocuments/1767696683607.jpg', NULL, '2026-01-06 10:10:40', '2026-01-06 10:54:39', 'edfrgtyujy', 'dqefwtrhy', 1, NULL, 1, '28.6139', '77.2090', '2', NULL, 6, 3, 'WagonR', 'Maruti Suzuki', '2025', 4.5, 'cabuser@gmail.com', 0, 0),
+(67, 0.00, 0.00, 1, 0, 0, 0, 0, 0, 2, 'Bike', '9632584946', 'DriverDocuments/1768215136010.jpg', 'Aryan ', 'lalala', '2000-01-07', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-01-12 10:52:16', NULL, 'edfrgtyujy', 'dqefwtrhy', 0, NULL, 1, NULL, NULL, '3', NULL, NULL, NULL, NULL, NULL, NULL, 4.5, 'cabuser@gmail.com', 0, 0),
+(68, 0.00, 0.00, 1, 0, 0, 0, 0, 0, 2, 'Bike', '9632584946', 'DriverDocuments/1768215197856.jpg', 'Aryan ', 'lalala', '2000-01-07', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-01-12 10:53:18', NULL, 'edfrgtyujy', 'dqefwtrhy', 0, NULL, 1, NULL, NULL, '3', NULL, NULL, NULL, NULL, NULL, NULL, 4.5, 'cabuser@gmail.com', 0, 0),
+(69, 0.00, 0.00, 1, 0, 0, 0, 0, 0, 2, 'abc', '8423953286', 'DriverDocuments/1768215259522.png', 'ramu sharma', 'aaaaaaaaa', '2001-08-30', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-01-12 10:54:19', NULL, 'sdzfxcghjklhgfxchjk', 'szdxfghjkhgcfxd', 0, NULL, 1, NULL, NULL, '1', NULL, NULL, NULL, NULL, NULL, NULL, 4.5, 'cabuser@gmail.com', 0, 0),
+(70, 0.00, 0.00, 1, 0, 0, 0, 0, 0, 2, 'Bike', '9633589494', 'DriverDocuments/1768215314257.jpg', 'dbdjsh', 'dbdjdj', '2000-01-28', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-01-12 10:55:14', '2026-01-12 11:11:44', 'edfrgtyujy', 'dqefwtrhy', 0, NULL, 1, '26.9434821', '80.9405241', '3', NULL, NULL, NULL, NULL, NULL, NULL, 4.5, 'cabuser@gmail.com', 0, 0),
+(73, 0.00, 0.00, 1, 0, 1, 1, 1, 0, 2, 'Bike', '9793168164', 'DriverDocuments/1768216010821.jpg', 'Aryan', 'Lala', '2000-01-08', NULL, NULL, 'DriverDocuments/1768216071972.jpg', 'DriverDocuments/1768216072375.jpg', 'ehsuhdheyedgvzhs', '2026-01-12', NULL, 'DriverDocuments/1768216113457.jpg', 'DriverDocuments/1768216114775.jpg', '545519596431', 'DriverDocuments/1768216115844.jpg', 'DriverDocuments/1768216116039.jpg', 'DHYDUSHSBS', NULL, 'DriverDocuments/1768216197913.jpg', 'DriverDocuments/1768216199390.jpg', 'DriverDocuments/1768216200705.jpg', 'DriverDocuments/1768216200856.jpg', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-01-12 11:06:50', '2026-01-12 11:14:36', 'edfrgtyujy', 'dqefwtrhy', 0, NULL, 1, '26.9434823', '80.9405388', '3', NULL, NULL, NULL, NULL, NULL, NULL, 4.5, 'cabuser@gmail.com', 0, 0),
+(74, 0.00, 0.00, 1, 0, 1, 1, 1, 0, 2, 'Bike', '9855663256', 'DriverDocuments/1768216525146.jpg', 'vg', 'vh', '2000-01-14', NULL, NULL, 'DriverDocuments/1768216540253.jpg', 'DriverDocuments/1768216540253.jpg', 'vhhhhh', '2026-01-12', NULL, 'DriverDocuments/1768216566284.jpg', 'DriverDocuments/1768216566284.jpg', '996658996328', 'DriverDocuments/1768216566412.jpg', 'DriverDocuments/1768216566450.jpg', 'VHHGVHUUGB', NULL, 'DriverDocuments/1768216585740.jpg', 'DriverDocuments/1768216585755.jpg', 'DriverDocuments/1768216585807.jpg', 'DriverDocuments/1768216585853.jpg', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-01-12 11:15:25', '2026-01-12 11:16:26', 'edfrgtyujy', 'dqefwtrhy', 0, NULL, 1, '26.9434962', '80.9405396', '3', NULL, NULL, NULL, NULL, NULL, NULL, 4.5, 'cabuser@gmail.com', 0, 0),
+(75, 0.00, 0.00, 3, 3, 3, 3, 3, 3, 2, 'Bike', '6666666589', 'DriverDocuments/1768217207731.jpg', 'new', 'newa', '2000-01-01', 'fir se upload kre', NULL, 'DriverDocuments/1768217231635.jpg', 'DriverDocuments/1768217231760.jpg', 'dhdhdhs', '2026-01-29', NULL, 'DriverDocuments/1768217268081.jpg', 'DriverDocuments/1768217268193.jpg', '956962386454', 'DriverDocuments/1768217268543.jpg', 'DriverDocuments/1768217268596.jpg', 'SHSHHS', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-01-12 11:26:49', '2026-01-12 11:33:13', 'fvgbhnj', 'dwGr5ERfQjupaw6vVsD4uh:APA91bHir1WTK2RDZTJuP7uEMBPE1pw7lk7BaCjcVmSAhED9tN2KtO3oyl39WP53NdEV7OdkXQqU6YpJ_MW2aZmQVtTa47ryVaHc68igdHPPzxeyPnOdL-8', 0, NULL, 1, '26.94348', '80.9405314', '3', NULL, NULL, NULL, NULL, NULL, NULL, 4.5, 'cabuser@gmail.com', 0, 0),
+(76, 0.00, 0.00, 1, 1, 1, 1, 1, 1, 2, 'Car', '9044704604', 'DriverDocuments/1768303480649.heif', 'Bharat ', 'Kumar ', '1992-07-08', NULL, NULL, 'DriverDocuments/1768303569452.jpg', 'DriverDocuments/1768303571760.jpg', 'UP4320220009854', '2032-01-13', NULL, 'DriverDocuments/1768303658426.jpg', 'DriverDocuments/1768303658633.jpg', '211736024554', 'DriverDocuments/1768303658833.jpg', 'DriverDocuments/1768303659009.jpg', 'CIPK5294P', NULL, 'DriverDocuments/1768303754722.jpg', 'DriverDocuments/1768303756979.jpg', 'DriverDocuments/1768303759264.jpg', 'DriverDocuments/1768303761754.jpg', NULL, 'DriverDocuments/1768303826368.jpg', 'Beige', 'UP43AX7818', NULL, 'DriverDocuments/1768303913112.jpg', 'DriverDocuments/1768303915895.jpg', 'DriverDocuments/1768303918675.jpg', 'DriverDocuments/1768303921305.jpg', '2026-01-13 11:24:41', '2026-01-16 08:26:01', 'edfrgtyujy', 'dqefwtrhy', 0, NULL, 1, '26.7998725', '82.2208159', '2', NULL, 6, 3, 'WagonR', 'Maruti Suzuki', '2026', 4.5, 'cabuser@gmail.com', 0, 0),
+(77, 185.00, 12.95, 2, 2, 2, 2, 2, 2, 2, 'Bike', '9895542454', 'DriverDocuments/1768629251684.jpg', 'gullu', 'pandey', '2000-01-01', NULL, NULL, 'DriverDocuments/1768629283413.jpg', 'DriverDocuments/1768629283586.jpg', 'bhhuyh', '2026-01-17', NULL, 'DriverDocuments/1768629326120.jpg', 'DriverDocuments/1768629326337.jpg', '966985214785', 'DriverDocuments/1768629326487.jpg', 'DriverDocuments/1768629326547.jpg', 'BHHGFRSRTG', NULL, 'DriverDocuments/1768629355479.jpg', 'DriverDocuments/1768629355521.jpg', 'DriverDocuments/1768629355658.jpg', 'DriverDocuments/1768629355658.jpg', NULL, 'DriverDocuments/1768630157779.jpg', 'Bronze', 'UP04AS1234', NULL, 'DriverDocuments/1768630183021.jpg', 'DriverDocuments/1768630183163.jpg', 'DriverDocuments/1768630183522.jpg', NULL, '2026-01-17 05:54:11', '2026-01-20 04:46:37', 'edfrgtyujy', 'dqefwtrhy', 1, NULL, 1, '26.9435185', '80.9405498', '3', NULL, 12, 6, 'Platina', 'Bajaj', '2020', 4.5, 'cabuser@gmail.com', 0, 0),
+(78, 3031.00, 212.17, 2, 2, 2, 2, 2, 2, 2, 'Car', '7705827321', 'DriverDocuments/1768651954610.jpg', 'aman', 'mishra', '2000-01-05', NULL, NULL, 'DriverDocuments/1768652008318.png', 'DriverDocuments/1768652008875.jpg', 'up4418828282992', '2029-01-17', NULL, 'DriverDocuments/1768652086593.jpg', 'DriverDocuments/1768652086802.jpg', '648836330721', 'DriverDocuments/1768652086805.jpg', 'DriverDocuments/1768652086889.png', 'CMQPP9939E', NULL, 'DriverDocuments/1768652109680.jpg', 'DriverDocuments/1768652110251.png', 'DriverDocuments/1768652110256.jpg', 'DriverDocuments/1768652110311.png', NULL, 'DriverDocuments/1768652183431.jpg', 'Beige', 'UP42HH7270', NULL, 'DriverDocuments/1768652265737.jpg', 'DriverDocuments/1768652266523.png', 'DriverDocuments/1768652266661.jpg', 'DriverDocuments/1768652266707.jpg', '2026-01-17 12:12:34', '2026-01-21 12:13:57', 'fvgbhnj', 'dUUQf9USQNmPRlkwld4NxE:APA91bEEjSfW1CYURLFWuG4gVO3nuxKhkuIs95INmz4WXhs6pAZlQkc3od85Wk_HRyrHuj4gKE0pGpjntqiQ88OyU6J9K1TSqv1lXieMs4fmjkfKhHeW5Mo', 1, NULL, 1, '26.9809266', '80.9317377', '2', NULL, 6, 3, 'WagonR', 'Maruti Suzuki', '2017', 4.5, 'cabuser@gmail.com', 0, 0),
+(79, 0.00, 0.00, 1, 1, 1, 1, 1, 0, 2, 'Bike', '9895656465', 'DriverDocuments/1768979025076.jpg', 'kunsh', 'fhdhd', '2000-01-01', NULL, NULL, 'DriverDocuments/1768979097028.jpg', 'DriverDocuments/1768979097166.jpg', 'bffhd', '2026-01-21', NULL, 'DriverDocuments/1768979180987.jpg', 'DriverDocuments/1768979181144.jpg', '845445454659', 'DriverDocuments/1768979181193.jpg', 'DriverDocuments/1768979181238.jpg', 'DHDDDHDEEV', NULL, 'DriverDocuments/1768979282679.jpg', 'DriverDocuments/1768979282804.jpg', 'DriverDocuments/1768979282959.jpg', 'DriverDocuments/1768979283021.jpg', NULL, 'DriverDocuments/1768979377852.jpg', 'Black', 'AS09AS1234', NULL, NULL, NULL, NULL, NULL, '2026-01-21 07:03:45', '2026-01-21 07:09:41', 'edfrgtyujy', 'e7pFnQnoRL-8syy9tPXfRz:APA91bGcjR2FZ9R9zAHWwrPszfJqESQfCuFGaJ3_NddDaoh334ixzurBaD2TSXlCUuoIWr_8uCTdmWZaE1b4ar1cpjI1ZQWOvhbu5qD5iJhZTHArvp9OjKw', 0, NULL, 1, '26.9434979', '80.9405477', '3', NULL, 12, 6, 'Platina', 'Bajaj', '2023', 4.5, 'cabuser@gmail.com', 0, 0),
+(80, 0.00, 0.00, 1, 0, 0, 0, 0, 0, 2, 'abc', '8888887777', 'DriverDocuments/1768990735568.png', 'ramu sharma', 'aaaaaaaaa', '2001-08-30', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-01-21 10:18:55', '2026-01-21 11:07:12', 'sdzfxcghjklhgfxchjk', 'szdxfghjkhgcfxd', 0, NULL, 1, '28.6139', '77.2090', '1', 3, NULL, NULL, NULL, NULL, NULL, 4.5, 'cabuser@gmail.com', 0, 0),
+(81, 0.00, 0.00, 1, 1, 1, 1, 1, 1, 2, 'Car', '5655655989', 'DriverDocuments/1768995810616.jpg', 'huhu', 'jiii', '2000-01-07', NULL, NULL, 'DriverDocuments/1768995854039.jpg', 'DriverDocuments/1768995854168.jpg', 'bfhdhdhddh', '2026-01-23', NULL, 'DriverDocuments/1768995879576.jpg', 'DriverDocuments/1768995879715.jpg', '655444215989', 'DriverDocuments/1768995879767.jpg', 'DriverDocuments/1768995879820.jpg', 'DHDDDHSHSH', NULL, 'DriverDocuments/1768995967383.jpg', 'DriverDocuments/1768995967521.jpg', 'DriverDocuments/1768995967572.jpg', 'DriverDocuments/1768995967616.jpg', NULL, 'DriverDocuments/1768995993160.jpg', 'Bronze', 'DH12GS1234', NULL, 'DriverDocuments/1768996011979.jpg', 'DriverDocuments/1768996012129.jpg', 'DriverDocuments/1768996012183.jpg', NULL, '2026-01-21 11:43:30', '2026-01-21 11:47:07', 'edfrgtyujy', 'eTSDd_5PQjyvC6h0NgfF5s:APA91bFb6hHRC2Arm48CqYpjbu2cQWCTfZL6OmzMi30nopt4eKrVpOh9nB7JlVabtUZHRt9EPpuzhvy5kn4XNQ9omq1_MmeFT_UgzgQKKjxk5TGbZGTE_8s', 0, NULL, 1, '26.9435052', '80.9405786', '2', 4, 6, 3, 'WagonR', 'Maruti Suzuki', '2020', 4.5, 'cabuser@gmail.com', 0, 0),
+(82, 0.00, 0.00, 1, 1, 1, 1, 1, 0, 2, 'Bike', '6652232265', 'DriverDocuments/1768996380300.jpg', 'tinku', 'jiaa', '2000-01-13', NULL, NULL, 'DriverDocuments/1768996404026.jpg', 'DriverDocuments/1768996404157.jpg', 'bhyvghytgk', '2026-01-22', NULL, 'DriverDocuments/1768996439865.jpg', 'DriverDocuments/1768996439994.jpg', '939282841829', 'DriverDocuments/1768996440053.jpg', 'DriverDocuments/1768996440102.jpg', 'BUBUBYVYVT', NULL, 'DriverDocuments/1768996602599.jpg', 'DriverDocuments/1768996602723.jpg', 'DriverDocuments/1768996602770.jpg', NULL, NULL, 'DriverDocuments/1768996635257.jpg', 'Bronze', 'NB12SD1234', NULL, NULL, NULL, NULL, NULL, '2026-01-21 11:53:00', '2026-01-21 11:57:18', 'edfrgtyujy', 'eMQTI08XQ5e5wI80zdjPY-:APA91bFaIObvWaZPP-WAdYy881_y0oYGXGFqBxCk7eIZgDb0BkUv586Fd8p4Y8BhOTVyhH223GHMRTL_ynOxLcTlOZ3C9CBVYmyQQvcGVl7kDYRIE9AkBkY', 0, NULL, 1, '26.943497', '80.940539', '3', 2, 12, 6, 'Platina', 'Bajaj', '2020', 4.5, 'cabuser@gmail.com', 0, 0);
 
 -- --------------------------------------------------------
 
@@ -777,7 +764,33 @@ INSERT INTO `otp_logs` (`id`, `mobile`, `otp`, `is_used`, `expires_at`, `created
 (25, '8423953286', '1111', 1, '2026-01-08 16:51:40', '2026-01-08 16:49:40'),
 (26, '8423953286', '6569', 0, '2026-01-08 16:52:02', '2026-01-08 16:50:02'),
 (27, '8423953286', '8945', 0, '2026-01-08 16:53:58', '2026-01-08 16:51:58'),
-(28, '8423953286', '1111', 1, '2026-01-08 16:54:08', '2026-01-08 16:52:08');
+(28, '8423953286', '1111', 1, '2026-01-08 16:54:08', '2026-01-08 16:52:08'),
+(29, '8423953286', '1111', 0, '2026-01-17 16:13:30', '2026-01-17 16:11:30'),
+(30, '8423959819', '1111', 0, '2026-01-17 16:14:59', '2026-01-17 16:12:59'),
+(31, '8423953286', '7320', 1, '2026-01-17 16:16:03', '2026-01-17 16:14:03'),
+(32, '7705827321', '1972', 1, '2026-01-17 16:54:18', '2026-01-17 16:52:18'),
+(33, '9651511938', '5692', 1, '2026-01-17 17:04:02', '2026-01-17 17:02:02'),
+(34, '7705827321', '8969', 1, '2026-01-17 17:19:40', '2026-01-17 17:17:40'),
+(35, '9559960255', '7543', 1, '2026-01-17 17:22:27', '2026-01-17 17:20:27'),
+(36, '7705017444', '8335', 1, '2026-01-17 17:29:24', '2026-01-17 17:27:24'),
+(37, '7705017444', '5729', 1, '2026-01-17 17:31:19', '2026-01-17 17:29:19'),
+(38, '7705827321', '1515', 1, '2026-01-17 17:43:35', '2026-01-17 17:41:35'),
+(39, '9559960255', '5356', 1, '2026-01-17 18:06:26', '2026-01-17 18:04:26'),
+(40, '7705827321', '5018', 1, '2026-01-17 18:35:33', '2026-01-17 18:33:33'),
+(41, '7705827321', '8132', 1, '2026-01-17 18:35:58', '2026-01-17 18:33:58'),
+(42, '8303204543', '3238', 1, '2026-01-17 19:25:45', '2026-01-17 19:23:45'),
+(43, '7705827321', '8147', 1, '2026-01-17 21:03:26', '2026-01-17 21:01:26'),
+(44, '7800019135', '9080', 1, '2026-01-18 11:59:10', '2026-01-18 11:57:10'),
+(45, '9236639289', '5988', 1, '2026-01-18 15:35:04', '2026-01-18 15:33:04'),
+(46, '6665852214', '7544', 1, '2026-01-21 09:42:33', '2026-01-21 09:40:33'),
+(47, '9632580099', '2365', 1, '2026-01-21 10:22:00', '2026-01-21 10:20:00'),
+(48, '9884544689', '7290', 1, '2026-01-21 10:35:12', '2026-01-21 10:33:12'),
+(49, '9808559632', '1083', 1, '2026-01-21 11:17:24', '2026-01-21 11:15:24'),
+(50, '9895656465', '2840', 1, '2026-01-21 12:07:41', '2026-01-21 12:05:41'),
+(51, '9808559632', '7494', 1, '2026-01-21 12:57:00', '2026-01-21 12:55:00'),
+(52, '9808559632', '2237', 1, '2026-01-21 12:58:15', '2026-01-21 12:56:15'),
+(53, '5655655989', '8817', 1, '2026-01-21 17:13:27', '2026-01-21 17:11:27'),
+(54, '6652232265', '1202', 1, '2026-01-21 17:24:28', '2026-01-21 17:22:28');
 
 -- --------------------------------------------------------
 
@@ -806,23 +819,24 @@ CREATE TABLE `paying` (
 --
 
 INSERT INTO `paying` (`id`, `service_order_id`, `user_id`, `amount`, `platform_fee`, `final_amount`, `payment_type`, `gateway_type`, `transaction_id`, `status`, `module_type`, `created_at`, `updated_at`) VALUES
-(1, NULL, 13, 100.00, '0% - ₹0.00', 100.00, 4, '1', 'ORD1767698579124', 1, 1, '2026-01-06 16:52:59', '2026-01-06 11:23:41'),
-(2, 46, 13, 86.00, '6% - ₹5.16', 80.84, 1, '1', 'ORD1767698944793', 0, 2, '2026-01-06 16:59:04', '2026-01-06 16:59:04'),
-(3, 46, NULL, 186.00, '5% - ₹9.30', 186.00, 2, NULL, NULL, 1, 2, '2026-01-06 16:59:52', '2026-01-06 16:59:52'),
-(4, 50, 13, 187.00, '6% - ₹11.22', 175.78, 1, '1', 'ORD1767700115566', 1, 2, '2026-01-06 17:18:35', '2026-01-06 11:49:10'),
-(5, 51, NULL, 185.00, '5% - ₹9.25', 185.00, 2, NULL, NULL, 1, 2, '2026-01-06 17:32:09', '2026-01-06 17:32:09'),
-(6, 1, NULL, 185.00, '7% - ₹12.95', 185.00, 2, NULL, NULL, 1, 2, '2026-01-08 18:10:04', '2026-01-08 18:10:04'),
-(7, 2, 13, 191.00, '6% - ₹11.46', 179.54, 1, '1', 'ORD1767932866702', 0, 2, '2026-01-09 09:57:46', '2026-01-09 09:57:46'),
-(8, 4, 3, 161.00, '6% - ₹9.66', 151.34, 1, '1', 'ORD1768018832473', 1, 2, '2026-01-10 09:50:32', '2026-01-10 04:21:12'),
-(9, 9, NULL, 185.00, '7% - ₹12.95', 185.00, 2, NULL, NULL, 1, 2, '2026-01-10 11:27:18', '2026-01-10 11:27:18'),
-(10, 12, NULL, 128.00, '7% - ₹8.96', 128.00, 2, NULL, NULL, 1, 2, '2026-01-10 11:46:07', '2026-01-10 11:46:07'),
-(11, 13, NULL, 185.00, '7% - ₹12.95', 185.00, 2, NULL, NULL, 1, 2, '2026-01-10 11:54:49', '2026-01-10 11:54:49'),
-(12, 14, NULL, 149.00, '7% - ₹10.43', 149.00, 2, NULL, NULL, 1, 2, '2026-01-10 12:04:04', '2026-01-10 12:04:04'),
-(13, 15, 3, 150.00, '6% - ₹9.00', 141.00, 1, '1', 'ORD1768027272212', 1, 2, '2026-01-10 12:11:12', '2026-01-10 06:41:48'),
-(14, 17, NULL, 185.00, '7% - ₹12.95', 185.00, 2, NULL, NULL, 1, 2, '2026-01-10 12:17:00', '2026-01-10 12:17:00'),
-(15, 13, NULL, 185.00, '7% - ₹12.95', 185.00, 2, NULL, NULL, 1, 2, '2026-01-10 13:27:53', '2026-01-10 13:27:53'),
-(16, 23, NULL, 185.00, '7% - ₹12.95', 185.00, 2, NULL, NULL, 1, 2, '2026-01-10 16:11:35', '2026-01-10 16:11:35'),
-(17, 2, NULL, 149.00, '7% - ₹10.43', 149.00, 2, NULL, NULL, 1, 2, '2026-01-10 17:45:25', '2026-01-10 17:45:25');
+(1, 1, 18, 269.00, '7% - ₹18.83', 269.00, 2, NULL, NULL, 1, 2, '2026-01-17 17:55:02', '2026-01-17 17:55:02'),
+(2, 4, 18, 299.00, '6% - ₹17.94', 281.06, 1, '1', 'ORD1768655602616', 0, 2, '2026-01-17 18:43:22', '2026-01-17 18:43:22'),
+(3, 4, 18, 299.00, '7% - ₹20.93', 299.00, 2, NULL, NULL, 1, 2, '2026-01-17 19:44:20', '2026-01-17 19:44:20'),
+(4, 9, 20, 207.00, '6% - ₹12.42', 194.58, 1, '1', 'ORD1768659337361', 0, 2, '2026-01-17 19:45:37', '2026-01-17 19:45:37'),
+(5, 9, 20, 207.00, '6% - ₹12.42', 194.58, 1, '1', 'ORD1768669594491', 0, 2, '2026-01-17 22:36:34', '2026-01-17 22:36:34'),
+(6, 9, 20, 207.00, '6% - ₹12.42', 194.58, 1, '1', 'ORD1768669648342', 0, 2, '2026-01-17 22:37:28', '2026-01-17 22:37:28'),
+(7, 9, 20, 207.00, '6% - ₹12.42', 194.58, 1, '1', 'ORD1768669724731', 0, 2, '2026-01-17 22:38:44', '2026-01-17 22:38:44'),
+(8, 9, 20, 207.00, '7% - ₹14.49', 207.00, 2, NULL, NULL, 1, 2, '2026-01-17 22:40:51', '2026-01-17 22:40:51'),
+(9, 20, 20, 304.00, '7% - ₹21.28', 304.00, 2, NULL, NULL, 1, 2, '2026-01-17 22:45:26', '2026-01-17 22:45:26'),
+(10, 21, 20, 175.00, '7% - ₹12.25', 175.00, 2, NULL, NULL, 1, 2, '2026-01-17 22:51:50', '2026-01-17 22:51:50'),
+(11, 22, 20, 429.00, '7% - ₹30.03', 429.00, 2, NULL, NULL, 1, 2, '2026-01-17 22:53:38', '2026-01-17 22:53:38'),
+(12, 23, 20, 431.00, '7% - ₹30.17', 431.00, 2, NULL, NULL, 1, 2, '2026-01-17 22:56:39', '2026-01-17 22:56:39'),
+(13, 24, 20, 264.00, '7% - ₹18.48', 264.00, 2, NULL, NULL, 1, 2, '2026-01-18 07:54:36', '2026-01-18 07:54:36'),
+(14, 25, 20, 264.00, '7% - ₹18.48', 264.00, 2, NULL, NULL, 1, 2, '2026-01-18 07:57:54', '2026-01-18 07:57:54'),
+(15, 26, 21, 207.00, '7% - ₹14.49', 207.00, 2, NULL, NULL, 1, 2, '2026-01-18 12:01:24', '2026-01-18 12:01:24'),
+(16, 28, 21, 182.00, '7% - ₹12.74', 182.00, 2, NULL, NULL, 1, 2, '2026-01-18 12:03:09', '2026-01-18 12:03:09'),
+(17, 24, 4, 200.00, '7.5% - ₹15.00', 185.00, 1, '1', 'ORD1768988541211', 0, 1, '2026-01-21 15:12:21', '2026-01-21 15:12:21'),
+(18, 24, 4, 200.00, '7.5% - ₹15.00', 185.00, 1, '1', 'ORD1768988726859', 1, 1, '2026-01-21 15:15:26', '2026-01-21 09:46:04');
 
 -- --------------------------------------------------------
 
@@ -882,7 +896,12 @@ CREATE TABLE `saved_address` (
 
 INSERT INTO `saved_address` (`id`, `user_id`, `type`, `address`, `flat_house_building_name`, `floor`, `nearby_landmark`, `created_at`, `service_latitude`, `service_longitude`) VALUES
 (5, 12, 1, '4/5, Gomti Nagar, Lucknow, Uttar Pradesh', 'Shiv Apartment', '2nd Floor', 'Near City Mall', '2025-12-19 08:14:08', '26.216515', '80.555446'),
-(10, 3, 1, '1/798, Sector H Road, Sector H, Jankipuram, Lucknow, Uttar Pradesh, India', 'vhhhf', '4', 'vhjjj', '2025-12-19 10:48:09', '26.919232342863356', '80.95782212913036');
+(10, 3, 1, '1/798, Sector H Road, Sector H, Jankipuram, Lucknow, Uttar Pradesh, India', 'vhhhf', '4', 'vhjjj', '2025-12-19 10:48:09', '26.919232342863356', '80.95782212913036'),
+(11, 15, 1, '617, Lakhimpur, Uttar Pradesh, 262701', '1#', NULL, NULL, '2026-01-14 16:57:04', '27.957634738256843', '80.7850955799222'),
+(12, 18, 1, 'Jankipuram Police Station, Sultanpur Village, Jankipuram Extension, Balamau, Uttar Pradesh, India', '121', '2', 'police station', '2026-01-17 12:03:10', '26.92610643092992', '80.93939166516066'),
+(13, 13, 1, 'WWXR+C6X, Lucknow, Uttar Pradesh, 226031', 'gjh', 'ghn', 'hhjjj', '2026-01-20 04:49:54', '26.948085156401604', '80.94074416905642'),
+(14, 4, 1, 'Vistar Yojna, Lucknow, Uttar Pradesh, 226031', 'bjbjb', 'hvh', 'vhvhhv', '2026-01-21 09:17:01', '26.943490817583424', '80.94053294509649'),
+(15, 4, 1, 'Gorakhpur, Uttar Pradesh, India', '2/45', '2', 'Gorakhnath temple', '2026-01-21 09:37:08', '26.760554553796823', '83.37316744029522');
 
 -- --------------------------------------------------------
 
@@ -952,9 +971,14 @@ INSERT INTO `scheduled_api_hits` (`id`, `hit_datetime`, `is_done`, `order_id`, `
 (46, '2026-01-09 15:15:00', 1, 90, '2026-01-08 07:31:06', 0),
 (47, '2026-01-10 17:00:00', 1, 2, '2026-01-10 11:28:40', 1),
 (48, '2025-01-10 17:21:37', 0, 3, '2026-01-10 11:49:33', 0),
-(49, '2026-01-11 17:25:00', 0, 4, '2026-01-10 11:53:32', 0),
+(49, '2026-01-11 17:25:00', 1, 4, '2026-01-10 11:53:32', 0),
 (50, '2026-01-10 17:30:00', 1, 5, '2026-01-10 11:58:09', 1),
-(51, '2026-01-10 17:42:00', 1, 1, '2026-01-10 12:09:52', 1);
+(51, '2026-01-10 17:42:00', 1, 1, '2026-01-10 12:09:52', 1),
+(52, '2026-01-10 18:13:00', 1, 3, '2026-01-10 12:40:52', 1),
+(53, '2026-01-10 21:15:00', 1, 2, '2026-01-10 15:42:21', 1),
+(54, '2026-01-10 21:25:00', 1, 1, '2026-01-10 15:52:23', 1),
+(55, '2026-01-10 21:31:00', 1, 2, '2026-01-10 15:59:33', 1),
+(56, '2026-01-23 12:12:00', 0, 7, '2026-01-17 06:42:19', 0);
 
 -- --------------------------------------------------------
 
@@ -964,18 +988,18 @@ INSERT INTO `scheduled_api_hits` (`id`, `hit_datetime`, `is_done`, `order_id`, `
 
 CREATE TABLE `serviceman` (
   `id` int(11) NOT NULL,
+  `service_category` json DEFAULT NULL,
   `wallet` double(10,2) DEFAULT '0.00',
   `mobile` bigint(12) DEFAULT NULL,
   `due_wallet` double(10,2) DEFAULT '0.00',
   `first_name` varchar(255) DEFAULT NULL,
   `reject_reasion` varchar(255) DEFAULT NULL,
-  `online_status` tinyint(4) NOT NULL DEFAULT '1',
+  `online_status` tinyint(4) NOT NULL DEFAULT '0',
   `last_name` varchar(255) DEFAULT NULL,
   `form_status` tinyint(4) NOT NULL DEFAULT '0',
   `fcm_token` varchar(255) DEFAULT NULL,
   `email` varchar(100) DEFAULT NULL,
   `address` varchar(255) DEFAULT NULL,
-  `service_category` int(5) DEFAULT NULL,
   `aadhaar_front` varchar(150) DEFAULT NULL,
   `aadhaar_back` varchar(150) DEFAULT NULL,
   `skill_status` tinyint(4) NOT NULL,
@@ -987,30 +1011,34 @@ CREATE TABLE `serviceman` (
   `current_latitude` varchar(100) DEFAULT NULL,
   `current_longitude` varchar(100) DEFAULT NULL,
   `profile_photo` varchar(150) DEFAULT NULL,
-  `gender` varchar(30) DEFAULT NULL
+  `gender` varchar(30) DEFAULT NULL,
+  `city` varchar(140) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 --
 -- Dumping data for table `serviceman`
 --
 
-INSERT INTO `serviceman` (`id`, `wallet`, `mobile`, `due_wallet`, `first_name`, `reject_reasion`, `online_status`, `last_name`, `form_status`, `fcm_token`, `email`, `address`, `service_category`, `aadhaar_front`, `aadhaar_back`, `skill_status`, `experience_certificate`, `device_id`, `login_status`, `created_at`, `updated_at`, `current_latitude`, `current_longitude`, `profile_photo`, `gender`) VALUES
-(1, 19294.35, 9876543211, 400.54, 'ramu', 'qAEWTGHJI', 1, 'sharmaa', 1, 'd-avi56-Qqe7j4-YPuJ8LB:APA91bF3wjrCUD_Tl4aF8bM-PJLI1sRXmU9aTa9wSH8vpj4dMikSYedrXFGEP5MO0k-fgocSsTeZ3dT0dI905xNAAYMcgtftwueTzRIGZVtNQlx0lU4eeyA', 'ramu@gmail.com', 'lucknow', 2, 'ServicemanFiles/1765258792177.jpeg', 'ServicemanFiles/1765258792254.jpeg', 1, NULL, 'fvgbhnj', 1, '2025-12-09 05:39:52', '2026-01-08 06:35:31', '26.9435041', '80.9405417', 'ServicemanFiles/1765451127949.jpg', NULL),
-(2, 300.00, 8423953287, 50.00, 'ramu', 'AsdZFCGNK', 1, 'sharma', 0, 'abc_fcm', 'ramus@gmail.com', 'lucknow', 1, 'ServicemanFiles/1765258880379.jpeg', 'ServicemanFiles/1765258880475.jpeg', 1, NULL, 'asdfcghjkl', 0, '2025-12-09 05:41:20', '2025-12-09 05:41:20', NULL, NULL, NULL, NULL),
-(3, 0.00, 8423953288, 0.00, 'ramu', NULL, 1, 'sharma', 1, 'abc_fcm', 'ramus@gmail.com', 'lucknow', 1, 'ServicemanFiles/1765259068213.jpeg', 'ServicemanFiles/1765259068301.jpeg', 1, NULL, 'asdfcghjkl', 0, '2025-12-09 05:44:28', '2025-12-09 05:44:28', NULL, NULL, NULL, NULL),
-(4, 1132.80, 8888888888, 56.64, 'ramu', NULL, 1, 'sharma', 1, 'd1uVSDquQKCh6RhAb66BlV:APA91bEn0inBi4IFGG15w2-6-ZGgdcALmuzPJ49oDcgLJNFADMjsmBayJa5pRsQtDlVpzIjIcCP_hi3V57BuQ9S2NqMNxxqiJXp6GtvMyMYA8agkmt2FiWY', 'ramus@gmail.com', 'lucknow', 2, 'ServicemanFiles/1765259072891.jpeg', 'ServicemanFiles/1765259072991.jpeg', 1, NULL, 'fvgbhnj', 1, '2025-12-09 05:44:32', '2025-12-24 11:39:03', '26.9435', '80.9404747', NULL, NULL),
-(5, 0.00, 8423953210, 0.00, 'ramu', NULL, 0, 'sharma', 0, 'abc_fcm', 'ramus@gmail.com', 'lucknow', 1, 'ServicemanFiles/1765259075800.jpeg', 'ServicemanFiles/1765259075897.jpeg', 1, NULL, 'asdfcghjkl', 0, '2025-12-09 05:44:35', '2025-12-12 06:05:43', NULL, NULL, NULL, NULL),
-(20, 0.00, 9565545464, 0.00, 'Tanisha ', NULL, 1, 'sharma ', 0, 'fcm_123', 'vhvy@gmail.com', 'Lucknow Uttar Pradesh India ', 1, 'ServicemanFiles/1765533195480.jpg', 'ServicemanFiles/1765533195683.jpg', 1, NULL, 'device_123', 0, '2025-12-12 15:23:16', '2025-12-12 15:23:16', '26.90', '80.94', 'ServicemanFiles/1765533195791.heic', 'Female'),
-(21, 0.00, 9646486446, 0.00, 'Ramu', NULL, 1, 'jiii', 0, 'fcm_123', 'ratgggmu@gmail.com', 'Lucknow to nh ', 1, 'ServicemanFiles/1765533707453.jpg', 'ServicemanFiles/1765533707649.heic', 1, NULL, 'device_123', 0, '2025-12-12 15:31:48', '2025-12-12 15:31:48', '26.90', '80.94', 'ServicemanFiles/1765533708351.jpg', 'Female'),
-(22, 0.00, 9856565656, 0.00, 'pjsh', NULL, 1, 'dhhdus', 0, 'fcm_123', 'xndh@gmail.com', 'luckn ', 1, 'ServicemanFiles/1765533998633.jpg', 'ServicemanFiles/1765533998828.jpg', 1, NULL, 'device_123', 0, '2025-12-12 15:36:38', '2025-12-12 15:36:38', '26.90', '80.94', 'ServicemanFiles/1765533998929.jpg', 'Female'),
-(23, 0.00, 9598199932, 0.00, 'Abhishek ', NULL, 1, 'sharma ', 0, 'dgxbz8bnQJyaUHLFpo3fKE:APA91bEuunKDnYEAJsScxce-qCfct33StIBetF-uY3Las9T-dWOc-6WhNw5aKxMs824WNgMyNjhz9w7k_SkH96iParkWCmPqt2rV_2MV0BqhV8hvtE_wCZE', 'niranjan7sharma@gmail.com', 'Vistar Yojna, Jankipuram, Lucknow, Uttar Pradesh, 226031', 2, 'ServicemanFiles/1765859372599.jpg', 'ServicemanFiles/1765859376686.jpg', 1, NULL, 'RKQ1.201004.002', 0, '2025-12-16 09:59:51', '2025-12-16 04:35:39', '26.9125', '75.7875', 'ServicemanFiles/1765859383442.jpg', 'Male'),
-(24, 559.38, 7570006440, 206.08, 'vishal', NULL, 1, 'mishra ', 0, 'eHsIrpdbQJ6hUzF85KOZUF:APA91bFg-sF0cqU1ivMALFY4MrYsv3cpj7BpopfiywovdjFnREwzIBLPO_nXh5hXxAeI7RhfsF_t5TfEBpX6zu5G5VK6T_dLf3fggfWCHGv6e0nZPrESnfU', 'vishal@gmail.com', 'Vistar Yojna, Jankipuram, Lucknow, Uttar Pradesh, 226031', 2, 'ServicemanFiles/1766053441691.jpg', 'ServicemanFiles/1766053442454.jpg', 1, NULL, 'RKQ1.201004.002', 0, '2025-12-18 15:54:03', '2025-12-18 12:19:41', '26.9435853', '80.9405951', 'ServicemanFiles/1766053442893.jpg', 'Male'),
-(25, 0.00, 7235947667, 0.00, 'Tanisha ', NULL, 1, 'Sharma', 0, 'cSwMsPyQQF2rI8hYOD9aBp:APA91bEyOpATUFbjQuOYQygdFQ7-xkcqWBUpv1N2LoGQ2y1xSQzbes9j5eJ26MdUuIrlvHqNH9oUTCKUdiSxHMaf4RQ2jG6SlgziWyVedF5W0BgyrgmuWB0', 'tanu@gmail.com', '1/613, Jankipuram Extension, Mirzapur, Uttar Pradesh, 226031', 2, 'ServicemanFiles/1766075786961.jpg', 'ServicemanFiles/1766075787255.jpg', 1, NULL, 'RP1A.200720.011', 0, '2025-12-18 22:06:28', '2025-12-19 10:24:41', '26.9435808', '80.9405654', 'ServicemanFiles/1766075787685.jpg', 'Female'),
-(26, 0.00, 9695782867, 0.00, 'Akansha ', NULL, 1, 'Singh ', 0, 'egYNYbdsSsyVTXaY1i8OBZ:APA91bEMk2mLEHw1FtygOMK9le0HBjQuO-EHEloSWWPBHfQnLh-kddu3cYH7cAAwdvbv8YD5ohGT6dWp1I9ZuuVnA6qPPVwlpIIrh3PaLsnoUvqZUo47tIM', 'akansha@gmail.com', 'Vistar Yojna, Jankipuram, Lucknow, Uttar Pradesh, 226031', 2, 'ServicemanFiles/1766488379151.jpg', 'ServicemanFiles/1766488380476.jpg', 1, NULL, 'RP1A.200720.011', 0, '2025-12-23 16:43:01', '2025-12-23 16:43:01', '26.9435622', '80.940582', 'ServicemanFiles/1766488380832.jpg', 'Male'),
-(27, 0.00, 8741257875, 0.00, 'Kritika ', NULL, 1, 'Sharma', 0, 'fJrITCx4SY2IEFBJdsRcCE:APA91bHGOOAjrJWoZA4Qc6D28o39eFzVZbvdhXmdsIeXgHwJODTrF1P0KMAnRcgibQVkoLywNebibfZ32HLWUE5lTU4cn6CqHpevx4Cf_D0ctsOPM-gxXxM', 'kriti@gmail.com', 'Vistar Yojna, Jankipuram, Lucknow, Uttar Pradesh, 226031', 2, 'ServicemanFiles/1766488819052.jpg', 'ServicemanFiles/1766488819576.jpg', 1, NULL, 'RP1A.200720.011', 0, '2025-12-23 16:50:20', '2025-12-23 16:50:20', '26.943577', '80.9405525', 'ServicemanFiles/1766488819932.jpg', 'Male'),
-(28, 0.00, 9662565956, 0.00, 'helo', NULL, 1, 'hol', 0, 'ca4wpfOJSJiWKO6p5IkVXV:APA91bFX3NbxguhSO6ie5wcPwqlCEmnhXk8nqc78JH-XaOGt2p7GJjqJVvzDGbu-KQbxmvkQ8kEr5H4FCHX_-8PRLFiMqMeWL5_eJul_z6d-NWTr4o9flvg', 'helo@gmail.com', 'Vistar Yojna, Jankipuram, Lucknow, Uttar Pradesh, 226031', 2, 'ServicemanFiles/1766489792038.jpg', 'ServicemanFiles/1766489792663.jpg', 1, NULL, 'RP1A.200720.011', 1, '2025-12-23 17:06:33', '2025-12-23 11:36:36', '26.9435686', '80.9405798', 'ServicemanFiles/1766489793091.jpg', 'Male'),
-(29, 0.00, 8454512252, 0.00, 'girsl', NULL, 1, 'hukil', 0, 'ca4wpfOJSJiWKO6p5IkVXV:APA91bFX3NbxguhSO6ie5wcPwqlCEmnhXk8nqc78JH-XaOGt2p7GJjqJVvzDGbu-KQbxmvkQ8kEr5H4FCHX_-8PRLFiMqMeWL5_eJul_z6d-NWTr4o9flvg', 'girl@gmail.com', 'Vistar Yojna, Jankipuram, Lucknow, Uttar Pradesh, 226031', 2, 'ServicemanFiles/1766490041661.jpg', 'ServicemanFiles/1766490042386.jpg', 1, NULL, 'RP1A.200720.011', 1, '2025-12-23 17:10:43', '2025-12-23 17:10:43', '26.9435692', '80.9405641', 'ServicemanFiles/1766490042787.jpg', 'Male'),
-(30, 0.00, 9632655421, 0.00, 'Kunal', NULL, 1, 'Singh ', 0, 'ca4wpfOJSJiWKO6p5IkVXV:APA91bFX3NbxguhSO6ie5wcPwqlCEmnhXk8nqc78JH-XaOGt2p7GJjqJVvzDGbu-KQbxmvkQ8kEr5H4FCHX_-8PRLFiMqMeWL5_eJul_z6d-NWTr4o9flvg', 'kunal@gmail.com', 'Vistar Yojna, Jankipuram, Lucknow, Uttar Pradesh, 226031', 1, 'ServicemanFiles/1766490405119.jpg', 'ServicemanFiles/1766490405596.jpg', 1, NULL, 'RP1A.200720.011', 1, '2025-12-23 17:16:46', '2025-12-23 11:53:22', '26.9435688', '80.9405803', 'ServicemanFiles/1766490406123.jpg', 'Male');
+INSERT INTO `serviceman` (`id`, `service_category`, `wallet`, `mobile`, `due_wallet`, `first_name`, `reject_reasion`, `online_status`, `last_name`, `form_status`, `fcm_token`, `email`, `address`, `aadhaar_front`, `aadhaar_back`, `skill_status`, `experience_certificate`, `device_id`, `login_status`, `created_at`, `updated_at`, `current_latitude`, `current_longitude`, `profile_photo`, `gender`, `city`) VALUES
+(1, '2', 19294.35, 9876543211, 400.54, 'ramu', 'qAEWTGHJI', 1, 'sharmaa', 1, 'd-avi56-Qqe7j4-YPuJ8LB:APA91bF3wjrCUD_Tl4aF8bM-PJLI1sRXmU9aTa9wSH8vpj4dMikSYedrXFGEP5MO0k-fgocSsTeZ3dT0dI905xNAAYMcgtftwueTzRIGZVtNQlx0lU4eeyA', 'ramu@gmail.com', 'lucknow', 'ServicemanFiles/1765258792177.jpeg', 'ServicemanFiles/1765258792254.jpeg', 1, NULL, 'fvgbhnj', 1, '2025-12-09 05:39:52', '2026-01-21 04:39:26', '26.9125', '75.7875', 'ServicemanFiles/1765451127949.jpg', NULL, NULL),
+(2, '1', 300.00, 8423953287, 50.00, 'ramu', 'AsdZFCGNK', 1, 'sharma', 0, 'abc_fcm', 'ramus@gmail.com', 'lucknow', 'ServicemanFiles/1765258880379.jpeg', 'ServicemanFiles/1765258880475.jpeg', 1, NULL, 'asdfcghjkl', 0, '2025-12-09 05:41:20', '2025-12-09 05:41:20', NULL, NULL, NULL, NULL, NULL),
+(3, '1', 0.00, 8423953288, 0.00, 'ramu', NULL, 1, 'sharma', 1, 'abc_fcm', 'ramus@gmail.com', 'lucknow', 'ServicemanFiles/1765259068213.jpeg', 'ServicemanFiles/1765259068301.jpeg', 1, NULL, 'asdfcghjkl', 0, '2025-12-09 05:44:28', '2025-12-09 05:44:28', NULL, NULL, NULL, NULL, NULL),
+(4, '2', 1132.80, 8888888888, 56.64, 'ramu', NULL, 1, 'sharma', 1, 'd1uVSDquQKCh6RhAb66BlV:APA91bEn0inBi4IFGG15w2-6-ZGgdcALmuzPJ49oDcgLJNFADMjsmBayJa5pRsQtDlVpzIjIcCP_hi3V57BuQ9S2NqMNxxqiJXp6GtvMyMYA8agkmt2FiWY', 'ramus@gmail.com', 'lucknow', 'ServicemanFiles/1765259072891.jpeg', 'ServicemanFiles/1765259072991.jpeg', 1, NULL, 'fvgbhnj', 1, '2025-12-09 05:44:32', '2025-12-24 11:39:03', '26.9435', '80.9404747', NULL, NULL, NULL),
+(5, '1', 0.00, 8423953210, 0.00, 'ramu', NULL, 0, 'sharma', 0, 'abc_fcm', 'ramus@gmail.com', 'lucknow', 'ServicemanFiles/1765259075800.jpeg', 'ServicemanFiles/1765259075897.jpeg', 1, NULL, 'asdfcghjkl', 0, '2025-12-09 05:44:35', '2025-12-12 06:05:43', NULL, NULL, NULL, NULL, NULL),
+(20, '1', 0.00, 9565545464, 0.00, 'Tanisha ', NULL, 0, 'sharma ', 0, 'fcm_123', 'vhvy@gmail.com', 'Lucknow Uttar Pradesh India ', 'ServicemanFiles/1765533195480.jpg', 'ServicemanFiles/1765533195683.jpg', 1, NULL, 'device_123', 0, '2025-12-12 15:23:16', '2025-12-12 15:23:16', '26.90', '80.94', 'ServicemanFiles/1765533195791.heic', 'Female', NULL),
+(21, '1', 0.00, 9646486446, 0.00, 'Ramu', NULL, 1, 'jiii', 0, 'fcm_123', 'ratgggmu@gmail.com', 'Lucknow to nh ', 'ServicemanFiles/1765533707453.jpg', 'ServicemanFiles/1765533707649.heic', 1, NULL, 'device_123', 0, '2025-12-12 15:31:48', '2025-12-12 15:31:48', '26.90', '80.94', 'ServicemanFiles/1765533708351.jpg', 'Female', NULL),
+(22, '1', 0.00, 9856565656, 0.00, 'pjsh', NULL, 1, 'dhhdus', 0, 'fcm_123', 'xndh@gmail.com', 'luckn ', 'ServicemanFiles/1765533998633.jpg', 'ServicemanFiles/1765533998828.jpg', 1, NULL, 'device_123', 0, '2025-12-12 15:36:38', '2025-12-12 15:36:38', '26.90', '80.94', 'ServicemanFiles/1765533998929.jpg', 'Female', NULL),
+(23, '2', 0.00, 9598199932, 0.00, 'Abhishek ', NULL, 1, 'sharma ', 0, 'dgxbz8bnQJyaUHLFpo3fKE:APA91bEuunKDnYEAJsScxce-qCfct33StIBetF-uY3Las9T-dWOc-6WhNw5aKxMs824WNgMyNjhz9w7k_SkH96iParkWCmPqt2rV_2MV0BqhV8hvtE_wCZE', 'niranjan7sharma@gmail.com', 'Vistar Yojna, Jankipuram, Lucknow, Uttar Pradesh, 226031', 'ServicemanFiles/1765859372599.jpg', 'ServicemanFiles/1765859376686.jpg', 1, NULL, 'RKQ1.201004.002', 0, '2025-12-16 09:59:51', '2025-12-16 04:35:39', '26.9125', '75.7875', 'ServicemanFiles/1765859383442.jpg', 'Male', NULL),
+(24, '2', 559.38, 7570006440, 206.08, 'vishal', NULL, 1, 'mishra ', 0, 'eHsIrpdbQJ6hUzF85KOZUF:APA91bFg-sF0cqU1ivMALFY4MrYsv3cpj7BpopfiywovdjFnREwzIBLPO_nXh5hXxAeI7RhfsF_t5TfEBpX6zu5G5VK6T_dLf3fggfWCHGv6e0nZPrESnfU', 'vishal@gmail.com', 'Vistar Yojna, Jankipuram, Lucknow, Uttar Pradesh, 226031', 'ServicemanFiles/1766053441691.jpg', 'ServicemanFiles/1766053442454.jpg', 1, NULL, 'RKQ1.201004.002', 0, '2025-12-18 15:54:03', '2025-12-18 12:19:41', '26.9435853', '80.9405951', 'ServicemanFiles/1766053442893.jpg', 'Male', NULL),
+(25, '[1, 2, 3, 5]', 0.00, 7235947667, 0.00, 'Tanisha ', NULL, 1, 'Sharma', 0, 'e7pFnQnoRL-8syy9tPXfRz:APA91bGcjR2FZ9R9zAHWwrPszfJqESQfCuFGaJ3_NddDaoh334ixzurBaD2TSXlCUuoIWr_8uCTdmWZaE1b4ar1cpjI1ZQWOvhbu5qD5iJhZTHArvp9OjKw', 'tanu@gmail.com', '1/613, Jankipuram Extension, Mirzapur, Uttar Pradesh, 226031', 'ServicemanFiles/1766075786961.jpg', 'ServicemanFiles/1766075787255.jpg', 1, NULL, 'fvgbhnj', 1, '2025-12-18 22:06:28', '2026-01-21 04:07:00', '26.9435472', '80.9405682', 'ServicemanFiles/1766075787685.jpg', 'Female', NULL),
+(26, '2', 0.00, 9695782867, 0.00, 'Akansha ', NULL, 1, 'Singh ', 0, 'egYNYbdsSsyVTXaY1i8OBZ:APA91bEMk2mLEHw1FtygOMK9le0HBjQuO-EHEloSWWPBHfQnLh-kddu3cYH7cAAwdvbv8YD5ohGT6dWp1I9ZuuVnA6qPPVwlpIIrh3PaLsnoUvqZUo47tIM', 'akansha@gmail.com', 'Vistar Yojna, Jankipuram, Lucknow, Uttar Pradesh, 226031', 'ServicemanFiles/1766488379151.jpg', 'ServicemanFiles/1766488380476.jpg', 1, NULL, 'RP1A.200720.011', 0, '2025-12-23 16:43:01', '2025-12-23 16:43:01', '26.9435622', '80.940582', 'ServicemanFiles/1766488380832.jpg', 'Male', NULL),
+(27, '2', 0.00, 8741257875, 0.00, 'Kritika ', NULL, 0, 'Sharma', 0, 'fJrITCx4SY2IEFBJdsRcCE:APA91bHGOOAjrJWoZA4Qc6D28o39eFzVZbvdhXmdsIeXgHwJODTrF1P0KMAnRcgibQVkoLywNebibfZ32HLWUE5lTU4cn6CqHpevx4Cf_D0ctsOPM-gxXxM', 'kriti@gmail.com', 'Vistar Yojna, Jankipuram, Lucknow, Uttar Pradesh, 226031', 'ServicemanFiles/1766488819052.jpg', 'ServicemanFiles/1766488819576.jpg', 1, NULL, 'RP1A.200720.011', 1, '2025-12-23 16:50:20', '2025-12-23 16:50:20', '26.943577', '80.9405525', 'ServicemanFiles/1766488819932.jpg', 'Male', NULL),
+(28, '2', 0.00, 9662565956, 0.00, 'helo', NULL, 1, 'hol', 0, 'ca4wpfOJSJiWKO6p5IkVXV:APA91bFX3NbxguhSO6ie5wcPwqlCEmnhXk8nqc78JH-XaOGt2p7GJjqJVvzDGbu-KQbxmvkQ8kEr5H4FCHX_-8PRLFiMqMeWL5_eJul_z6d-NWTr4o9flvg', 'helo@gmail.com', 'Vistar Yojna, Jankipuram, Lucknow, Uttar Pradesh, 226031', 'ServicemanFiles/1766489792038.jpg', 'ServicemanFiles/1766489792663.jpg', 1, NULL, 'RP1A.200720.011', 1, '2025-12-23 17:06:33', '2025-12-23 11:36:36', '26.9435686', '80.9405798', 'ServicemanFiles/1766489793091.jpg', 'Male', NULL),
+(29, '[1, 2, 3]', 0.00, 8454512252, 0.00, 'girsl', NULL, 0, 'hukil', 0, 'ca4wpfOJSJiWKO6p5IkVXV:APA91bFX3NbxguhSO6ie5wcPwqlCEmnhXk8nqc78JH-XaOGt2p7GJjqJVvzDGbu-KQbxmvkQ8kEr5H4FCHX_-8PRLFiMqMeWL5_eJul_z6d-NWTr4o9flvg', 'girl@gmail.com', 'Vistar Yojna, Jankipuram, Lucknow, Uttar Pradesh, 226031', 'ServicemanFiles/1766490041661.jpg', 'ServicemanFiles/1766490042386.jpg', 1, NULL, 'RP1A.200720.011', 1, '2025-12-23 17:10:43', '2025-12-23 17:10:43', '26.9435692', '80.9405641', 'ServicemanFiles/1766490042787.jpg', 'Male', NULL),
+(30, '1', 0.00, 9632655421, 0.00, 'Kunal', NULL, 0, 'Singh ', 0, 'ca4wpfOJSJiWKO6p5IkVXV:APA91bFX3NbxguhSO6ie5wcPwqlCEmnhXk8nqc78JH-XaOGt2p7GJjqJVvzDGbu-KQbxmvkQ8kEr5H4FCHX_-8PRLFiMqMeWL5_eJul_z6d-NWTr4o9flvg', 'kunal@gmail.com', 'Vistar Yojna, Jankipuram, Lucknow, Uttar Pradesh, 226031', 'ServicemanFiles/1766490405119.jpg', 'ServicemanFiles/1766490405596.jpg', 1, NULL, 'RP1A.200720.011', 1, '2025-12-23 17:16:46', '2025-12-23 11:53:22', '26.9435688', '80.9405803', 'ServicemanFiles/1766490406123.jpg', 'Male', NULL),
+(33, '[12, 13]', 0.00, 8423953286, 0.00, 'ramu', NULL, 1, 'sharma', 0, 'abc_fcm', '', 'lucknow', 'ServicemanFiles/1768969264946.png', 'ServicemanFiles/1768969265144.png', 1, NULL, 'asdfcghjkl', 0, '2026-01-21 09:51:05', '2026-01-21 07:26:40', '26.9125', '75.7875', 'ServicemanFiles/1768969265265.png', 'male', NULL),
+(35, '[12, 13]', 0.00, 9884544689, 0.00, 'dhdhd', NULL, 1, 'bx xxv', 0, 'e7pFnQnoRL-8syy9tPXfRz:APA91bGcjR2FZ9R9zAHWwrPszfJqESQfCuFGaJ3_NddDaoh334ixzurBaD2TSXlCUuoIWr_8uCTdmWZaE1b4ar1cpjI1ZQWOvhbu5qD5iJhZTHArvp9OjKw', '', 'jankipuram sector H Lucknow', 'ServicemanFiles/1768973023493.jpg', 'ServicemanFiles/1768973023678.jpg', 1, NULL, 'RKQ1.201004.002', 1, '2026-01-21 10:53:43', '2026-01-21 05:25:12', '26.9434883', '80.9405377', 'ServicemanFiles/1768973023722.jpg', 'Male', NULL),
+(36, '[1, 2, 3, 5]', 185.00, 9808559632, 0.00, 'kunal ', NULL, 1, 'verma', 0, 'eTSDd_5PQjyvC6h0NgfF5s:APA91bFb6hHRC2Arm48CqYpjbu2cQWCTfZL6OmzMi30nopt4eKrVpOh9nB7JlVabtUZHRt9EPpuzhvy5kn4XNQ9omq1_MmeFT_UgzgQKKjxk5TGbZGTE_8s', '', 'Vistar Yojna, Jankipuram, Lucknow, Uttar Pradesh, 226031', 'ServicemanFiles/1768974472766.jpg', 'ServicemanFiles/1768974473052.jpg', 1, NULL, 'fvgbhnj', 1, '2026-01-21 11:17:53', '2026-01-21 11:00:47', '26.9125', '75.7875', 'ServicemanFiles/1768974473152.jpg', 'Male', '2');
 
 -- --------------------------------------------------------
 
@@ -1066,7 +1094,9 @@ INSERT INTO `services` (`id`, `category_id`, `subcategory_id`, `title`, `descrip
 (1, 2, 4, 'AC Cooling Service', 'Complete AC servicing including cleaning, gas check and cooling optimization.', 'serviceImage/ac.jpg', 499.00, 4.7, '[\n  {\n    \"id\": 1,\n    \"question\": \"Is servicing required every year?\",\n    \"answer\": \"Yes, yearly service improves cooling and increases AC life.\"\n  },\n  {\n    \"id\": 2,\n    \"question\": \"How much time does it take?\",\n    \"answer\": \"Usually 45 minutes to 1 hour.\"\n  }\n]\n', 1, '2025-12-06 09:19:24', 1),
 (4, 5, 10, 'Furniture Repair', 'Repair of broken furniture, hinges, doors, and wooden fittings.', 'serviceImage/fur.jpg', 349.00, 4.7, '[\n  {\n    \"id\": 1,\n    \"question\": \"Is servicing required every year?\",\n    \"answer\": \"Yes, yearly service improves cooling and increases AC life.\"\n  },\n  {\n    \"id\": 2,\n    \"question\": \"How much time does it take?\",\n    \"answer\": \"Usually 45 minutes to 1 hour.\"\n  }\n]\n', 1, '2025-12-06 09:19:24', 1),
 (5, 2, 4, 'AC Deep Cleaning', 'Full AC deep cleaning with antibacterial treatment.', 'serviceImage/deep2.jpg', 599.00, 4.8, '[\n  {\n    \"id\": 1,\n    \"question\": \"Is servicing required every year?\",\n    \"answer\": \"Yes, yearly service improves cooling and increases AC life.\"\n  },\n  {\n    \"id\": 2,\n    \"question\": \"How much time does it take?\",\n    \"answer\": \"Usually 45 minutes to 1 hour.\"\n  }\n]\n', 1, '2025-12-06 09:54:39', 0),
-(6, 2, 4, 'AC Gas Refilling', 'Premium AC gas refill with leak check.', 'serviceImage/acgas.jpg', 1200.00, 4.6, '[\n  {\n    \"id\": 1,\n    \"question\": \"Is servicing required every year?\",\n    \"answer\": \"Yes, yearly service improves cooling and increases AC life.\"\n  },\n  {\n    \"id\": 2,\n    \"question\": \"How much time does it take?\",\n    \"answer\": \"Usually 45 minutes to 1 hour.\"\n  }\n]\n', 1, '2025-12-06 09:54:39', 0);
+(6, 2, 4, 'AC Gas Refillings', 'Premium AC gas refill with leak check.', 'serviceImage/acgas.jpg', 1100.00, 4.6, '[{\"id\":1,\"question\":\"How much time does it take?\",\"answer\":\"answer How much time does it take?\"}]', 1, '2025-12-06 09:54:39', 0),
+(7, 17, 48, 'Home sweet home, where dreams are designed.', 'Home decoration text includes short, inspiring phrases for social media (\"Cozy is my love language,\" \"My happy place, one pillow at a time\"), descriptive captions for different rooms (\"Creating calm in the hustle of deadlines\" for offices, \"Serenity soaks and style sparks\" for bathrooms), and longer quotes about design principles (\"Design is thinking made visual,\" \"A house is made of walls and beams; a home is built with love and dreams\"). These texts aim to evoke feelings of comfort, style', 'serviceImage/1768649693771.jpg', 700.00, 0, '[{\"id\":1,\"question\":\"Home sweet home, where dreams are designed.\",\"answer\":\"Home sweet home, where dreams are designed.\"},{\"id\":2,\"question\":\"Home sweet home, where dreams are designed.\",\"answer\":\"Home sweet home, where dreams are designed.\"}]', 1, '2026-01-17 11:34:53', 1),
+(8, 1, 2, 'Plant care man', 'Plant care man works  only 4 hours ll needs ', 'serviceImage/1768983951013.jpg', 200.00, 0, '[{\"id\":1,\"question\":\"Plant care man works  only 4 hours ll needs\",\"answer\":\"Plant care man works  only 4 hours ll needs\"}]', 1, '2026-01-21 08:25:51', 1);
 
 -- --------------------------------------------------------
 
@@ -1112,10 +1142,28 @@ CREATE TABLE `service_order` (
 --
 
 INSERT INTO `service_order` (`id`, `service_address`, `service_latitude`, `service_longitude`, `user_id`, `user_name`, `user_mobile`, `serviceman_id`, `serviceman_name`, `serviceman_mobile`, `amount`, `coupon_discount`, `gst_charges`, `final_amount`, `payment_status`, `service_status`, `service_id`, `service_name`, `pay_mode`, `coupon_id`, `available_service_man`, `service_datetime`, `updated_at`, `created_at`, `quantity`, `cancel_reason`, `orderOtp`, `description`, `rating`, `distance`) VALUES
-(1, '123 MG Road, Lucknow', '26.942676', '80.938179', 1, 'Tanisha Sharma ', '7235947667', 4, 'ramu sharma', '8888888888', 100.00, 50.00, 81.00, 100.00, 0, 6, 5, 'AC Deep Cleaning', 3, 3, '[4,1]', '2025-12-20 19:35:00', '2025-12-18 22:02:35', '2025-12-18 22:02:35', 1, 'hchfhf', '1248', 'new testing', NULL, 0.24),
-(2, '123 MG Road, Lucknow', '26.942676', '80.938179', 1, 'Tanisha Sharma ', '7235947667', 1, 'ramu sharmaa', '8423953286', 100.00, 50.00, 81.00, 100.00, 0, 1, 5, 'AC Deep Cleaning', 3, 3, '[4,1]', '2025-12-20 19:35:00', '2025-12-18 22:03:03', '2025-12-18 22:03:03', 1, NULL, '3144', 'new testing', NULL, 0.39),
-(3, '1/613, Jankipuram Extension, Mirzapur, 226031', '26.9474843', '80.9388218', 3, 'pankaj ji', '7258836052', 25, 'Tanisha  Sharma', '7235947667', 499.00, 0.00, 89.82, 588.82, 0, 6, 1, 'AC Cooling Service', 2, NULL, '[1,4]', '2025-12-19 22:31:00', '2025-12-18 22:32:07', '2025-12-18 22:32:07', 1, 'ggggh', '2237', '', NULL, 0.02),
-(4, '3/56 KWA, 1/798, Sector H Road, Sector H, Jankipuram, Lucknow, Uttar Pradesh, India, Near Near neem park, Floor: 2', '26.919232342863356', '80.95782212913036', 3, 'pankaj ji', '7258836052', NULL, NULL, NULL, 499.00, 0.00, 89.82, 588.82, 0, 0, 1, 'AC Cooling Service', 2, NULL, '[4,1]', '2025-12-20 15:15:00', '2025-12-19 13:58:08', '2025-12-19 13:58:08', 1, NULL, '2332', 'bcncngn', NULL, NULL);
+(1, '121, Jankipuram Police Station, Sultanpur Village, Jankipuram Extension, Balamau, Uttar Pradesh, India, Near police station, Floor: 2', '26.92610643092992', '80.93939166516066', 18, 'ANSAL', '9651511938', NULL, NULL, NULL, 499.00, 0.00, 89.82, 588.82, 0, 5, 1, 'AC Cooling Service', 2, NULL, '[4,1,28]', '2026-01-17 17:40:00', '2026-01-17 17:34:28', '2026-01-17 17:34:28', 1, 'abvsh', '3410', 'bhhgjh', NULL, NULL),
+(2, '121, Jankipuram Police Station, Sultanpur Village, Jankipuram Extension, Balamau, Uttar Pradesh, India, Near police station, Floor: 2', '26.92610643092992', '80.93939166516066', 18, 'ANSAL', '9651511938', NULL, NULL, NULL, 499.00, 0.00, 89.82, 588.82, 0, 0, 1, 'AC Cooling Service', 2, NULL, '[32,4,1,28]', '2026-01-17 17:44:00', '2026-01-17 17:38:07', '2026-01-17 17:38:07', 1, NULL, '5147', 'vbh', NULL, NULL),
+(5, '123 MG Road, Lucknow', '26.941430', '80.936786', 12, 'bvvv', '1111111111', NULL, NULL, NULL, 500.00, 50.00, 81.00, 531.00, 0, 0, 1, 'AC Cooling Service', 1, 3, '[35]', '2025-12-16 19:35:00', '2026-01-21 11:14:41', '2026-01-21 11:14:41', 1, NULL, '6885', 'hbgftgyuh hgfghj jhgfgh', NULL, NULL),
+(6, '123 MG Road, Lucknow', '26.941430', '80.936786', 12, 'bvvv', '1111111111', NULL, NULL, NULL, 500.00, 50.00, 81.00, 531.00, 0, 0, 1, 'AC Cooling Service', 1, 3, '[35]', '2025-12-16 19:35:00', '2026-01-21 11:16:00', '2026-01-21 11:16:00', 1, NULL, '1041', 'hbgftgyuh hgfghj jhgfgh', NULL, NULL),
+(7, '123 MG Road, Lucknow', '26.941430', '80.936786', 12, 'bvvv', '1111111111', NULL, NULL, NULL, 500.00, 50.00, 81.00, 531.00, 0, 0, 1, 'AC Cooling Service', 1, 3, '[25]', '2025-12-16 19:35:00', '2026-01-21 11:25:16', '2026-01-21 11:25:16', 1, NULL, '6073', 'hbgftgyuh hgfghj jhgfgh', NULL, NULL),
+(8, '123 MG Road, Lucknow', '26.941430', '80.936786', 12, 'bvvv', '1111111111', NULL, NULL, NULL, 500.00, 50.00, 81.00, 531.00, 0, 0, 1, 'AC Cooling Service', 1, 3, '[25]', '2026-01-28 19:35:00', '2026-01-21 11:25:56', '2026-01-21 11:25:56', 1, NULL, '3178', 'hbgftgyuh hgfghj jhgfgh', NULL, NULL),
+(9, '123 MG Road, Lucknow', '26.941430', '80.936786', 12, 'bvvv', '1111111111', NULL, NULL, NULL, 500.00, 50.00, 81.00, 531.00, 0, 0, 4, 'Furniture Repair', 1, 3, '[]', '2026-01-28 19:35:00', '2026-01-21 11:26:43', '2026-01-21 11:26:43', 1, NULL, '4093', 'hbgftgyuh hgfghj jhgfgh', NULL, NULL),
+(10, '123 MG Road, Lucknow', '26.941430', '80.936786', 12, 'bvvv', '1111111111', NULL, NULL, NULL, 500.00, 50.00, 81.00, 531.00, 0, 0, 4, 'Furniture Repair', 1, 3, '[]', '2026-01-28 19:35:00', '2026-01-21 11:27:09', '2026-01-21 11:27:09', 1, NULL, '7381', 'hbgftgyuh hgfghj jhgfgh', NULL, NULL),
+(11, '123 MG Road, Lucknow', '26.941430', '80.936786', 12, 'bvvv', '1111111111', NULL, NULL, NULL, 500.00, 50.00, 81.00, 531.00, 0, 0, 4, 'Furniture Repair', 1, 3, '[]', '2026-01-28 19:35:00', '2026-01-21 11:27:25', '2026-01-21 11:27:25', 1, NULL, '6013', 'hbgftgyuh hgfghj jhgfgh', NULL, NULL),
+(12, '123 MG Road, Lucknow', '26.941430', '80.936786', 12, 'bvvv', '1111111111', NULL, NULL, NULL, 500.00, 50.00, 81.00, 531.00, 0, 0, 4, 'Furniture Repair', 1, 3, '[25]', '2026-01-28 19:35:00', '2026-01-21 11:30:18', '2026-01-21 11:30:18', 1, NULL, '9723', 'hbgftgyuh hgfghj jhgfgh', NULL, NULL),
+(13, '123 MG Road, Lucknow', '26.941430', '80.936786', 12, 'bvvv', '1111111111', NULL, NULL, NULL, 500.00, 50.00, 81.00, 531.00, 0, 0, 4, 'Furniture Repair', 1, 3, '[36,25]', '2026-01-28 19:35:00', '2026-01-21 12:57:19', '2026-01-21 12:57:19', 1, NULL, '7900', 'hbgftgyuh hgfghj jhgfgh', NULL, NULL),
+(14, '123 MG Road, Lucknow', '26.941430', '80.936786', 12, 'bvvv', '1111111111', NULL, NULL, NULL, 500.00, 50.00, 81.00, 531.00, 0, 0, 4, 'Furniture Repair', 1, 3, '[36,25]', '2026-01-28 19:35:00', '2026-01-21 13:00:05', '2026-01-21 13:00:05', 1, NULL, '1978', 'hbgftgyuh hgfghj jhgfgh', NULL, NULL),
+(15, '123 MG Road, Lucknow', '26.941430', '80.936786', 12, 'bvvv', '1111111111', NULL, NULL, NULL, 500.00, 50.00, 81.00, 531.00, 0, 0, 4, 'Furniture Repair', 1, 3, '[36,25]', '2026-01-28 19:35:00', '2026-01-21 13:09:00', '2026-01-21 13:09:00', 1, NULL, '3416', 'hbgftgyuh hgfghj jhgfgh', NULL, NULL),
+(16, '123 MG Road, Lucknow', '26.941430', '80.936786', 12, 'bvvv', '1111111111', NULL, NULL, NULL, 500.00, 50.00, 81.00, 531.00, 0, 0, 4, 'Furniture Repair', 1, 3, '[36,25]', '2026-01-28 19:35:00', '2026-01-21 13:18:06', '2026-01-21 13:18:06', 1, NULL, '1362', 'hbgftgyuh hgfghj jhgfgh', NULL, NULL),
+(17, 'bjbjb, Vistar Yojna, Lucknow, Uttar Pradesh, 226031, Near vhvhhv, Floor: hvh', '26.943490817583424', '80.94053294509649', 4, 'Ramu  Sharma ', '8423953286', NULL, NULL, NULL, 200.00, 0.00, 36.00, 236.00, 0, 0, 8, 'Plant care man', 2, NULL, '[36,25]', '2026-01-21 15:05:00', '2026-01-21 14:47:57', '2026-01-21 14:47:57', 1, NULL, '8809', 'bbjbjb', NULL, NULL),
+(18, 'bjbjb, Vistar Yojna, Lucknow, Uttar Pradesh, 226031, Near vhvhhv, Floor: hvh', '26.943490817583424', '80.94053294509649', 4, 'Ramu  Sharma ', '8423953286', NULL, NULL, NULL, 200.00, 0.00, 36.00, 236.00, 0, 0, 8, 'Plant care man', 2, NULL, '[36,25]', '2026-01-22 12:05:00', '2026-01-21 14:49:56', '2026-01-21 14:49:56', 1, NULL, '7786', '', NULL, NULL),
+(19, 'bjbjb, Vistar Yojna, Lucknow, Uttar Pradesh, 226031, Near vhvhhv, Floor: hvh', '26.943490817583424', '80.94053294509649', 4, 'Ramu  Sharma ', '8423953286', NULL, NULL, NULL, 499.00, 0.00, 89.82, 588.82, 0, 0, 1, 'AC Cooling Service', 2, NULL, '[36,25]', '2026-01-22 15:15:00', '2026-01-21 14:52:22', '2026-01-21 14:52:22', 1, NULL, '8252', '', NULL, NULL),
+(20, '123 MG Road, Lucknow', '26.941430', '80.936786', 12, 'bvvv', '1111111111', NULL, NULL, NULL, 500.00, 50.00, 81.00, 531.00, 0, 0, 4, 'Furniture Repair', 1, 3, '[36,25]', '2026-01-28 19:35:00', '2026-01-21 14:53:26', '2026-01-21 14:53:26', 1, NULL, '8316', 'hbgftgyuh hgfghj jhgfgh', NULL, NULL),
+(21, '123 MG Road, Lucknow', '26.941430', '80.936786', 12, 'bvvv', '1111111111', NULL, NULL, NULL, 500.00, 50.00, 81.00, 531.00, 0, 0, 4, 'Furniture Repair', 1, 3, '[36,25]', '2026-01-28 19:35:00', '2026-01-21 14:53:35', '2026-01-21 14:53:35', 1, NULL, '1287', 'hbgftgyuh hgfghj jhgfgh', NULL, NULL),
+(22, '123 MG Road, Lucknow', '26.941430', '80.936786', 12, 'bvvv', '1111111111', NULL, NULL, NULL, 500.00, 50.00, 81.00, 531.00, 0, 0, 4, 'Furniture Repair', 1, 3, '[36,25]', '2026-01-28 19:35:00', '2026-01-21 14:53:38', '2026-01-21 14:53:38', 1, NULL, '8880', 'hbgftgyuh hgfghj jhgfgh', NULL, NULL),
+(23, '123 MG Road, Lucknow', '26.941430', '80.936786', 12, 'bvvv', '1111111111', NULL, NULL, NULL, 500.00, 50.00, 81.00, 531.00, 0, 0, 4, 'Furniture Repair', 1, 3, '[36,25]', '2026-01-28 19:35:00', '2026-01-21 14:53:41', '2026-01-21 14:53:41', 1, NULL, '1926', 'hbgftgyuh hgfghj jhgfgh', NULL, NULL),
+(24, 'bjbjb, Vistar Yojna, Lucknow, Uttar Pradesh, 226031, Near vhvhhv, Floor: hvh', '26.943490817583424', '80.94053294509649', 4, 'Ramu  Sharma ', '8423953286', 36, 'kunal  verma', '9808559632', 200.00, 0.00, 36.00, 236.00, 0, 4, 8, 'Plant care man', 1, NULL, '[36,25]', '2026-01-22 01:11:00', '2026-01-21 09:42:04', '2026-01-21 15:08:51', 1, NULL, '4911', '', NULL, 0.00);
 
 -- --------------------------------------------------------
 
@@ -1126,6 +1174,7 @@ INSERT INTO `service_order` (`id`, `service_address`, `service_latitude`, `servi
 CREATE TABLE `settings` (
   `id` int(11) NOT NULL,
   `name` varchar(100) NOT NULL,
+  `admin_label` varchar(100) NOT NULL,
   `value` varchar(255) NOT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -1135,12 +1184,12 @@ CREATE TABLE `settings` (
 -- Dumping data for table `settings`
 --
 
-INSERT INTO `settings` (`id`, `name`, `value`, `created_at`, `updated_at`) VALUES
-(1, 'service_radius_km', '1000', '2025-12-09 09:48:28', '2026-01-08 08:05:18'),
-(2, 'platform_fee', '7', '2025-12-09 09:48:28', '2026-01-08 09:19:17'),
-(3, 'due_limit', '100', '2025-12-09 09:48:28', '2025-12-17 11:53:39'),
-(4, 'cab_platform_fee', '6', '2025-12-09 09:48:28', '2026-01-02 09:41:44'),
-(5, 'driver_due_limit', '200', '2025-12-09 09:48:28', '2026-01-08 06:48:30');
+INSERT INTO `settings` (`id`, `name`, `admin_label`, `value`, `created_at`, `updated_at`) VALUES
+(1, 'service_radius_km', 'Service Radius (KM)', '1000', '2025-12-09 09:48:28', '2026-01-20 11:10:57'),
+(2, 'platform_fee', 'Service Platform Fee (%)', '7.5', '2025-12-09 09:48:28', '2026-01-20 11:32:11'),
+(3, 'due_limit', 'Service Provider Due Limit', '100', '2025-12-09 09:48:28', '2026-01-20 11:07:39'),
+(4, 'cab_platform_fee', 'Cab Platform Fee (%)', '6', '2025-12-09 09:48:28', '2026-01-20 11:07:39'),
+(5, 'driver_due_limit', 'Driver Due Limit', '200', '2025-12-09 09:48:28', '2026-01-20 11:07:39');
 
 -- --------------------------------------------------------
 
@@ -1204,7 +1253,8 @@ INSERT INTO `subcategories` (`id`, `category_id`, `name`, `image`, `status`, `cr
 (40, 16, 'Appliance Setup', 'categories/automatic-removebg-preview.png', 1, '2025-12-06 08:43:21'),
 (41, 16, 'CCTV Installation', 'categories/automatic-removebg-preview.png', 0, '2025-12-06 08:43:21'),
 (42, 16, 'WiFi Setup', 'categories/automatic-removebg-preview.png', 0, '2025-12-06 08:43:21'),
-(47, 9, 'antim sansakar', 'subcategories/1765197145704.png', 1, '2025-12-08 12:32:25');
+(47, 9, 'antim sansakar', 'subcategories/1765197145704.png', 1, '2025-12-08 12:32:25'),
+(48, 17, 'Home decoration', 'subcategories/1768648430535.jpg', 1, '2026-01-17 11:13:50');
 
 -- --------------------------------------------------------
 
@@ -1264,8 +1314,8 @@ CREATE TABLE `users` (
 INSERT INTO `users` (`id`, `wallet`, `name`, `last_name`, `email`, `phone`, `status`, `image`, `city`, `fcm_token`, `device_id`, `updated_at`, `created_at`, `reason`) VALUES
 (1, 600.00, 'Tanisha Sharma ', NULL, NULL, 7235947667, 1, 'ServicemanFiles/1765451127949.jpg', NULL, 'eoxUxobiQ-OJXTruVTTe2s:APA91bHguJPQKINGsjP6Oge4zOIofbcizdKEWvd9TgKKWql_VcyhPffoDqHSzhT96QXCu8pF0Lm5LUqEzCBUXnF1k97p74jjDaaFRg8SNJm1W-JJ29aA5N0', 'RKQ1.201004.002', '2025-12-26 11:04:11', '2025-12-16 07:15:55', NULL),
 (2, 300.00, 'harsh', NULL, NULL, 9793168164, 1, 'ServicemanFiles/1765451127949.jpg', NULL, 'eoxUxobiQ-OJXTruVTTe2s:APA91bHguJPQKINGsjP6Oge4zOIofbcizdKEWvd9TgKKWql_VcyhPffoDqHSzhT96QXCu8pF0Lm5LUqEzCBUXnF1k97p74jjDaaFRg8SNJm1W-JJ29aA5N0', 'RKQ1.201004.002', '2025-12-19 03:41:32', '2025-12-17 04:02:41', NULL),
-(3, 5000.00, 'pankaj ji', NULL, NULL, 9876543210, 1, NULL, NULL, 'fBnb0DgRSK67yy2vrKQtq1:APA91bFMQ9gC6xaSWy9cXFTHXJ6Z9w-QsdsaeOBp_OQYuLvdRrbhpyhe8PtP_ICF-2tm4wyHIHyOrgIr3DJWrROyZSp-gFTSiBLSIF15Da3pEcBI9ib7qo0', 'RP1A.200720.011', '2026-01-10 07:47:35', '2025-12-18 10:22:32', NULL),
-(4, 0.00, 'Ramu ', 'Sharma ', 'ramusharmagr@gmail.com', 8423953286, 1, 'UserprofileImage/1767160319646.jpg', 'Lucknow', 'eoxUxobiQ-OJXTruVTTe2s:APA91bHguJPQKINGsjP6Oge4zOIofbcizdKEWvd9TgKKWql_VcyhPffoDqHSzhT96QXCu8pF0Lm5LUqEzCBUXnF1k97p74jjDaaFRg8SNJm1W-JJ29aA5N0', 'RKQ1.201004.002', '2025-12-31 05:51:59', '2025-12-31 05:50:57', NULL),
+(3, 5000.00, 'pankaj ji', NULL, NULL, 9876543210, 1, NULL, NULL, 'eotJ3B8qSlyeUiLgwTJJu6:APA91bG6fVUCUwh091dfhjmT2TfaIfkQ1B8JuCsj7Ei45VPeJSdqlHZ5hagoQEyQAiuv1QDNwx-aXbYVN6uHZtu0OSmBKogjTO5HXdHADBm5FOnW_b67jDk', 'RP1A.200720.011', '2026-01-12 04:57:16', '2025-12-18 10:22:32', NULL),
+(4, 0.00, 'Ramu ', 'Sharma ', 'ramusharmagr@gmail.com', 8423953286, 1, 'UserprofileImage/1767160319646.jpg', 'Lucknow', 'eotJ3B8qSlyeUiLgwTJJu6:APA91bG6fVUCUwh091dfhjmT2TfaIfkQ1B8JuCsj7Ei45VPeJSdqlHZ5hagoQEyQAiuv1QDNwx-aXbYVN6uHZtu0OSmBKogjTO5HXdHADBm5FOnW_b67jDk', 'RP1A.200720.011', '2026-01-17 10:44:02', '2025-12-31 05:50:57', NULL),
 (5, 0.00, 'lulu', NULL, NULL, 8547855558, 1, NULL, NULL, 'dp6PMgjHTXCJqrjRq7_IYF:APA91bH8c90l8Immsbb2-UAyRitr1Jwmhq9eXnbuYRVKQy2ZfZCpVsGr_g7jet5ODRxu-qchECOhDEgJC8PQC6uv2c-qwteor5JX6s9MioIkDQ8D2TMesQ8', 'UKQ1.230924.001', '2026-01-05 16:53:15', '2026-01-05 16:53:15', NULL),
 (6, 0.00, 'gdgdgdh', NULL, NULL, 5989898595, 1, NULL, NULL, 'dp6PMgjHTXCJqrjRq7_IYF:APA91bH8c90l8Immsbb2-UAyRitr1Jwmhq9eXnbuYRVKQy2ZfZCpVsGr_g7jet5ODRxu-qchECOhDEgJC8PQC6uv2c-qwteor5JX6s9MioIkDQ8D2TMesQ8', 'UKQ1.230924.001', '2026-01-05 16:53:48', '2026-01-05 16:53:48', NULL),
 (7, 0.00, 'fhrhdh', NULL, NULL, 6955885558, 1, NULL, NULL, 'dp6PMgjHTXCJqrjRq7_IYF:APA91bH8c90l8Immsbb2-UAyRitr1Jwmhq9eXnbuYRVKQy2ZfZCpVsGr_g7jet5ODRxu-qchECOhDEgJC8PQC6uv2c-qwteor5JX6s9MioIkDQ8D2TMesQ8', 'UKQ1.230924.001', '2026-01-05 16:54:41', '2026-01-05 16:54:41', NULL),
@@ -1274,7 +1324,16 @@ INSERT INTO `users` (`id`, `wallet`, `name`, `last_name`, `email`, `phone`, `sta
 (10, 0.00, 'fhfhd', NULL, NULL, 9565655656, 1, NULL, NULL, 'dp6PMgjHTXCJqrjRq7_IYF:APA91bH8c90l8Immsbb2-UAyRitr1Jwmhq9eXnbuYRVKQy2ZfZCpVsGr_g7jet5ODRxu-qchECOhDEgJC8PQC6uv2c-qwteor5JX6s9MioIkDQ8D2TMesQ8', 'UKQ1.230924.001', '2026-01-05 16:57:34', '2026-01-05 16:57:34', NULL),
 (11, 0.00, 'fjfjfj', NULL, NULL, 9895653232, 1, NULL, NULL, 'dp6PMgjHTXCJqrjRq7_IYF:APA91bH8c90l8Immsbb2-UAyRitr1Jwmhq9eXnbuYRVKQy2ZfZCpVsGr_g7jet5ODRxu-qchECOhDEgJC8PQC6uv2c-qwteor5JX6s9MioIkDQ8D2TMesQ8', 'UKQ1.230924.001', '2026-01-05 16:58:22', '2026-01-05 16:58:22', NULL),
 (12, 0.00, 'bvvv', NULL, NULL, 1111111111, 1, NULL, NULL, 'dp6PMgjHTXCJqrjRq7_IYF:APA91bH8c90l8Immsbb2-UAyRitr1Jwmhq9eXnbuYRVKQy2ZfZCpVsGr_g7jet5ODRxu-qchECOhDEgJC8PQC6uv2c-qwteor5JX6s9MioIkDQ8D2TMesQ8', 'UKQ1.230924.001', '2026-01-05 17:01:31', '2026-01-05 17:01:31', NULL),
-(13, 0.00, 'dhdhdhhd', NULL, NULL, 8454664645, 1, NULL, NULL, 'eoxUxobiQ-OJXTruVTTe2s:APA91bHguJPQKINGsjP6Oge4zOIofbcizdKEWvd9TgKKWql_VcyhPffoDqHSzhT96QXCu8pF0Lm5LUqEzCBUXnF1k97p74jjDaaFRg8SNJm1W-JJ29aA5N0', 'RKQ1.201004.002', '2026-01-06 09:17:57', '2026-01-06 09:17:57', NULL);
+(13, 0.00, 'dhdhdhhd', NULL, NULL, 8454664645, 1, NULL, NULL, 'eoxUxobiQ-OJXTruVTTe2s:APA91bHguJPQKINGsjP6Oge4zOIofbcizdKEWvd9TgKKWql_VcyhPffoDqHSzhT96QXCu8pF0Lm5LUqEzCBUXnF1k97p74jjDaaFRg8SNJm1W-JJ29aA5N0', 'RKQ1.201004.002', '2026-01-06 09:17:57', '2026-01-06 09:17:57', NULL),
+(14, 0.00, 'harsh', NULL, NULL, 8887652143, 1, NULL, NULL, 'esBSSynzTfi8zqTDY7aAq_:APA91bGroKndaHZYDy21d8qiKXmsy75VvQ4gGvsArODZlP2Eyes6jERWmosbCqXnfrkrk6avLeO8ql1Zwhy-sutOPKe1urToX_yrBX2yrXI0LWjVIGRO2JI', 'AP3A.240617.008', '2026-01-12 10:49:06', '2026-01-12 10:49:06', NULL),
+(15, 0.00, 'amar', NULL, NULL, 9759999888, 1, NULL, NULL, 'eqc3bkPCTYiy5j3PGQZWqw:APA91bGYGxzrDAPoqjEPMRPvIc39af2AOs1BCQ0qbqPDltb8tjlmT_c1KXqwJERbRHpsSW8L2ZFgxFtRFFB1YfO36iqNRQAm6OcnRGY9fS9w5zhRWKQU9HA', 'BP2A.250605.031.A3', '2026-01-14 16:53:27', '2026-01-14 16:53:27', NULL),
+(16, 0.00, 'gugu', NULL, NULL, 8423959819, 1, NULL, NULL, 'eotJ3B8qSlyeUiLgwTJJu6:APA91bG6fVUCUwh091dfhjmT2TfaIfkQ1B8JuCsj7Ei45VPeJSdqlHZ5hagoQEyQAiuv1QDNwx-aXbYVN6uHZtu0OSmBKogjTO5HXdHADBm5FOnW_b67jDk', 'RP1A.200720.011', '2026-01-17 10:42:59', '2026-01-17 10:42:59', NULL),
+(17, 0.00, 'aman', NULL, NULL, 7705827321, 1, NULL, NULL, 'c5KM5KoWS5Gc9uwX4f5U1-:APA91bHfkAD5Uedd3cgpDzicyvd85B_ub22ZjavrPGcMaVs2_JRLT-r1kSKv1pmxe5q-8RpLVfNJoyl0tEcChLhtWMbgJLC7HcA5Io_9z1UiMxdcrWPQYo4', 'V1UOS35H.74-16-4-12', '2026-01-17 11:15:03', '2026-01-17 11:15:03', NULL),
+(18, 0.00, 'ANSAL', NULL, NULL, 9651511938, 1, NULL, NULL, 'fqwDnrmzR4qqqJM26OFY6_:APA91bFf-vBRPbVIkz4TCVWrfCj8Qo4dMxeDcxwZl1GIVCpeu3cXy6zytv2iYu5SoI3ihDp_JZ2i2AEGcMUJXjHy729WOKqXBuimIZZiq1Lq46U0Rz1urPQ', 'SP1A.210812.016', '2026-01-17 11:32:01', '2026-01-17 11:32:01', NULL),
+(19, 0.00, 'aman', NULL, NULL, 9559960255, 1, NULL, NULL, 'ckW28o43QJO56yVf6Yqizt:APA91bFMRWkf-QrWfGxwlPcSsTZnzeakxh1xug70z0a4eVyAj81zGNBRYg-PqU9lYxO3bhyxPe1TCDs-8vY2lOe3tNcXd9RCKZdMOH2wwhmVcVhSYbV4PZA', 'V1UOS35H.74-16-4-12', '2026-01-17 12:34:26', '2026-01-17 12:34:26', NULL),
+(20, 0.00, 'aman', NULL, NULL, 8303204543, 1, NULL, NULL, 'dcP9eHDwT-STu5sm69zlVW:APA91bGAtw7kkzWpF3Vnx7gpIambPldETJA27hIiDyDTR2MO8NTOd5fKa6HnjD7jD2G4LbXjJJ6ab2MWLRVg1mgGRYly8YqrY5QX3M16oVx7MoLy8pD0nFw', 'UP1A.231005.007', '2026-01-17 13:53:44', '2026-01-17 13:53:44', NULL),
+(21, 0.00, 'Ankit ', NULL, NULL, 7800019135, 1, NULL, NULL, 'eeV4Qv7OSHGcMUfHG89uqv:APA91bGS3IlncyWw7BJirt-C-4-rZpOdumgm9hpdaumzwqK1aGYXKzyg3NzY3dg568ObLb98hMO5gReY1gkyzaqP_7zAySzyffPdVsMqB4KyV5Lukj9_4pM', 'AP3A.240617.008', '2026-01-18 06:27:10', '2026-01-18 06:27:10', NULL),
+(22, 0.00, 'abhay singh', NULL, NULL, 9236639289, 1, NULL, NULL, 'dRDtwYz1QdaezoBhu6AznI:APA91bHLzKA30hpAEb51r6NroYmAaSPBBKmqK6ogTeqci0jKPWTkb5jNb3CrQpCdHxxkUL2Bc_1yHY8QNV4xCAua845HqLZSv1vDaKPokeuE_oWOatgakHY', 'AP3A.240905.015.A2', '2026-01-18 10:03:03', '2026-01-18 10:03:03', NULL);
 
 -- --------------------------------------------------------
 
@@ -1328,6 +1387,7 @@ INSERT INTO `user_notification` (`id`, `title`, `text`, `type`, `created_at`) VA
 
 CREATE TABLE `vehicle` (
   `id` int(10) UNSIGNED NOT NULL,
+  `vehicle_category` tinyint(4) NOT NULL DEFAULT '2',
   `name` varchar(150) NOT NULL,
   `max_passenger` int(11) NOT NULL DEFAULT '1',
   `image` varchar(255) DEFAULT NULL,
@@ -1343,10 +1403,10 @@ CREATE TABLE `vehicle` (
 -- Dumping data for table `vehicle`
 --
 
-INSERT INTO `vehicle` (`id`, `name`, `max_passenger`, `image`, `register_status`, `visible_status`, `created_at`, `discount`, `driver_can_discount`, `user_increase`) VALUES
-(1, 'Auto', 3, 'cabbooking/vehicle_image/auto.png', 1, 1, '2025-12-30 04:32:52', 10, 5, 15),
-(2, 'Car', 4, 'cabbooking/vehicle_image/black_car.png', 1, 1, '2025-12-30 04:32:52', 10, 5, 15),
-(3, 'Bike', 1, 'cabbooking/vehicle_image/1767075817934.png', 1, 1, '2025-12-30 04:32:52', 5, 5, 5);
+INSERT INTO `vehicle` (`id`, `vehicle_category`, `name`, `max_passenger`, `image`, `register_status`, `visible_status`, `created_at`, `discount`, `driver_can_discount`, `user_increase`) VALUES
+(1, 3, 'Auto', 3, 'cabbooking/vehicle_image/auto.png', 1, 1, '2025-12-30 04:32:52', 10, 5, 15),
+(2, 4, 'Car', 4, 'cabbooking/vehicle_image/black_car.png', 1, 1, '2025-12-30 04:32:52', 10, 5, 15),
+(3, 2, 'Bike', 1, 'cabbooking/vehicle_image/1767075817934.png', 1, 1, '2025-12-30 04:32:52', 5, 5, 5);
 
 -- --------------------------------------------------------
 
@@ -1468,15 +1528,18 @@ CREATE TABLE `zones` (
   `id` int(11) NOT NULL,
   `zone_name` varchar(255) NOT NULL,
   `coordinates` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
-  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `type` tinyint(4) DEFAULT NULL COMMENT '1 for service , 2 ride booking',
+  `city_name` json DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 --
 -- Dumping data for table `zones`
 --
 
-INSERT INTO `zones` (`id`, `zone_name`, `coordinates`, `created_at`) VALUES
-(10, 'Lucknow', '[{\"lat\":27.135227308507975,\"lng\":80.86403140692859},{\"lat\":27.010499970861403,\"lng\":80.67177066474109},{\"lat\":26.841530753080114,\"lng\":80.63881168036609},{\"lat\":26.704210612140216,\"lng\":80.70198306708484},{\"lat\":26.64285342571791,\"lng\":80.82008609442859},{\"lat\":26.645308346790785,\"lng\":81.05629214911609},{\"lat\":26.809667667475395,\"lng\":81.18812808661609},{\"lat\":26.90033135425287,\"lng\":81.25953921942859},{\"lat\":27.04230638955457,\"lng\":81.23756656317859},{\"lat\":27.118116090093206,\"lng\":81.11671695380359},{\"lat\":27.152335908328087,\"lng\":80.91896304755359}]', '2025-12-21 09:46:37');
+INSERT INTO `zones` (`id`, `zone_name`, `coordinates`, `created_at`, `type`, `city_name`) VALUES
+(10, 'Lucknow', '[{\"lat\":27.135227308507975,\"lng\":80.86403140692859},{\"lat\":27.010499970861403,\"lng\":80.67177066474109},{\"lat\":26.841530753080114,\"lng\":80.63881168036609},{\"lat\":26.704210612140216,\"lng\":80.70198306708484},{\"lat\":26.640398451872898,\"lng\":80.82283267645984},{\"lat\":26.645308346790785,\"lng\":81.05629214911609},{\"lat\":26.74591463241563,\"lng\":81.23756656317859},{\"lat\":26.90033135425287,\"lng\":81.25953921942859},{\"lat\":27.04230638955457,\"lng\":81.23756656317859},{\"lat\":27.118116090093206,\"lng\":81.11671695380359},{\"lat\":27.152335908328087,\"lng\":80.91896304755359}]', '2025-12-21 09:46:37', 1, '[{\"id\": 1, \"name\": \"Lucknow\"}, {\"id\": 2, \"name\": \"Barabanki\"}, {\"id\": 3, \"name\": \"Unnao\"}, {\"id\": 4, \"name\": \"Raebareli\"}, {\"id\": 5, \"name\": \"Sitapur\"}, {\"id\": 6, \"name\": \"Hardoi\"}]'),
+(11, 'sitapur', '[{\"lat\":28.097594489856878,\"lng\":79.72132777526625},{\"lat\":28.207779227236532,\"lng\":79.84698390319593},{\"lat\":28.153306441527807,\"lng\":80.05778407409437},{\"lat\":27.916937735534507,\"lng\":80.07899415814063},{\"lat\":27.902375026625666,\"lng\":79.748031023375}]', '2026-01-21 06:45:04', NULL, NULL);
 
 --
 -- Indexes for dumped tables
@@ -1767,13 +1830,13 @@ ALTER TABLE `cab_cancel_reasons`
 -- AUTO_INCREMENT for table `cab_orders`
 --
 ALTER TABLE `cab_orders`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=36;
 
 --
 -- AUTO_INCREMENT for table `categories`
 --
 ALTER TABLE `categories`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT for table `cities`
@@ -1797,25 +1860,25 @@ ALTER TABLE `coupons`
 -- AUTO_INCREMENT for table `coupons_used`
 --
 ALTER TABLE `coupons_used`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `driver_offer`
 --
 ALTER TABLE `driver_offer`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=65;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT for table `driver_online_logs`
 --
 ALTER TABLE `driver_online_logs`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `driver_registration`
 --
 ALTER TABLE `driver_registration`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=60;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=83;
 
 --
 -- AUTO_INCREMENT for table `job_request`
@@ -1839,7 +1902,7 @@ ALTER TABLE `login_policy`
 -- AUTO_INCREMENT for table `model`
 --
 ALTER TABLE `model`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `otp_counter`
@@ -1851,13 +1914,13 @@ ALTER TABLE `otp_counter`
 -- AUTO_INCREMENT for table `otp_logs`
 --
 ALTER TABLE `otp_logs`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=55;
 
 --
 -- AUTO_INCREMENT for table `paying`
 --
 ALTER TABLE `paying`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- AUTO_INCREMENT for table `rating_history`
@@ -1869,19 +1932,19 @@ ALTER TABLE `rating_history`
 -- AUTO_INCREMENT for table `saved_address`
 --
 ALTER TABLE `saved_address`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT for table `scheduled_api_hits`
 --
 ALTER TABLE `scheduled_api_hits`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=52;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=57;
 
 --
 -- AUTO_INCREMENT for table `serviceman`
 --
 ALTER TABLE `serviceman`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=37;
 
 --
 -- AUTO_INCREMENT for table `serviceman_ratings`
@@ -1893,25 +1956,25 @@ ALTER TABLE `serviceman_ratings`
 -- AUTO_INCREMENT for table `services`
 --
 ALTER TABLE `services`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=49;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `service_order`
 --
 ALTER TABLE `service_order`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
 
 --
 -- AUTO_INCREMENT for table `settings`
 --
 ALTER TABLE `settings`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `subcategories`
 --
 ALTER TABLE `subcategories`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=48;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=49;
 
 --
 -- AUTO_INCREMENT for table `top_service`
@@ -1923,7 +1986,7 @@ ALTER TABLE `top_service`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(55) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `id` int(55) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
 
 --
 -- AUTO_INCREMENT for table `user_app_banner`
@@ -1941,7 +2004,7 @@ ALTER TABLE `user_notification`
 -- AUTO_INCREMENT for table `vehicle`
 --
 ALTER TABLE `vehicle`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `vehicle_charges`
@@ -1965,7 +2028,7 @@ ALTER TABLE `withdraw_service`
 -- AUTO_INCREMENT for table `zones`
 --
 ALTER TABLE `zones`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- Constraints for dumped tables

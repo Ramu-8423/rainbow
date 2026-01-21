@@ -41,7 +41,9 @@ allServicePayments
 import { 
 createZone,
 insertZone,
-deleteZone
+deleteZone,
+editZonePage,
+updateZone
 } from "../controllers/ZoneController.js";
 
 
@@ -234,7 +236,8 @@ router.get("/coupon-status-update/:id", updateCouponStatus);
 router.get("/create_zone", createZone);
 router.post("/zones/create", insertZone);
 router.post("/zones/delete/:id", deleteZone);
-
+router.get("/zones/edit/:id", editZonePage);
+router.post("/zones/update/:id", updateZone);
 
 
 router.get("/all_payments", allPayments);

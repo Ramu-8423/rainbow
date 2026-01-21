@@ -3,6 +3,7 @@ import db from "../../config/database.js";
 /* =========================================================
    HELPER: BUILD UPDATE OBJECT (PARTIAL UPDATE SAFE)
 ========================================================= */
+
 function buildUpdateObject(data, files, folder) {
   const update = {};
 
@@ -21,6 +22,7 @@ function buildUpdateObject(data, files, folder) {
   // 🔹 Personal Information
   setIfExists("platform_type", data.platform_type);
   setIfExists("vehicle_type", data.vehicle_type);
+  setIfExists("vehicle_category", data.vehicle_category); // ✅ NEW
   setIfExists("vehicle_name", data.vehicle_name);
   setIfExists("first_name", data.first_name);
   setIfExists("last_name", data.last_name);
@@ -52,7 +54,7 @@ function buildUpdateObject(data, files, folder) {
   setFileIfExists("fitness_certificate");
   setFileIfExists("pollution_certificate");
   setFileIfExists("insurance_certificate");
-  setFileIfExists("police_certificate");
+  
 
   // 🔹 Vehicle Info
   setIfExists("vehicle_info_status", data.vehicle_info_status);
@@ -120,7 +122,21 @@ export const driverRegister = async (req, res) => {
         });
       }
 
-      /* 🔥 DUPLICATE MOBILE FIX (LOGIC SAME) */
+      /* 🔥 FETCH vehicle_category FROM vehicle TABLE */
+      const [[vehicleRow]] = await db.query(
+        "SELECT vehicle_category FROM vehicle WHERE id = ? LIMIT 1",
+        [data.vehicle_type]
+      );
+
+      if (!vehicleRow) {
+        return res.status(400).json({
+          message: "Invalid vehicle_type"
+        });
+      }
+
+      data.vehicle_category = vehicleRow.vehicle_category;
+
+      /* 🔥 DUPLICATE MOBILE FIX (SAME LOGIC) */
       if (!id) {
         const [[existing]] = await db.query(
           "SELECT id FROM driver_registration WHERE mobile = ? LIMIT 1",
@@ -136,7 +152,8 @@ export const driverRegister = async (req, res) => {
           return res.status(200).json({
             message: "Personal information saved successfully",
             platform_type: 2,
-            id: existing.id
+            id: existing.id,
+            vehicle_category: data.vehicle_category
           });
         }
 
@@ -145,6 +162,7 @@ export const driverRegister = async (req, res) => {
            (
              platform_type,
              vehicle_type,
+             vehicle_category,
              vehicle_name,
              date_of_birth,
              first_name,
@@ -156,10 +174,11 @@ export const driverRegister = async (req, res) => {
              personal_information_status,
              created_at
            )
-           VALUES (?,?,?,?,?,?,?,?,?,?,1,NOW())`,
+           VALUES (?,?,?,?,?,?,?,?,?,?,?,1,NOW())`,
           [
             data.platform_type,
             data.vehicle_type,
+            data.vehicle_category,
             data.vehicle_name,
             data.date_of_birth,
             data.first_name,
@@ -174,93 +193,35 @@ export const driverRegister = async (req, res) => {
         return res.status(200).json({
           message: "Personal information saved successfully",
           platform_type: 2,
-          id: result.insertId
-        });
-      }
-    }
-
-    /* ================= DRIVER LICENCE ================= */
-    if (driver_licence_status == 1) {
-      const missing = [];
-      if (!data.driver_licence_number) missing.push("driver_licence_number");
-      if (!data.licence_validity_date) missing.push("licence_validity_date");
-      if (!getFile("driver_licence_front")) missing.push("driver_licence_front");
-      if (!getFile("driver_licence_back")) missing.push("driver_licence_back");
-
-      if (missing.length) {
-        return res.status(400).json({
-          message: "Driver licence fields are required",
-          missing_fields: missing
-        });
-      }
-    }
-
-    /* ================= AADHAAR + PAN ================= */
-    if (aadhaar_pan_status == 1) {
-      const missing = [];
-      if (!data.aadhaar_number) missing.push("aadhaar_number");
-      if (!data.pan_card_number) missing.push("pan_card_number");
-      if (!getFile("aadhaar_front")) missing.push("aadhaar_front");
-      if (!getFile("aadhaar_back")) missing.push("aadhaar_back");
-      if (!getFile("pan_card_front")) missing.push("pan_card_front");
-      if (!getFile("pan_card_back")) missing.push("pan_card_back");
-
-      if (missing.length) {
-        return res.status(400).json({
-          message: "Aadhaar & PAN fields are required",
-          missing_fields: missing
-        });
-      }
-    }
-
-    /* ================= CERTIFICATES ================= */
-    if (required_certificates_status == 1) {
-      const missing = [];
-      if (!getFile("fitness_certificate")) missing.push("fitness_certificate");
-      if (!getFile("pollution_certificate")) missing.push("pollution_certificate");
-      if (!getFile("insurance_certificate")) missing.push("insurance_certificate");
-      if (!getFile("police_certificate")) missing.push("police_certificate");
-
-      if (missing.length) {
-        return res.status(400).json({
-          message: "Certificate fields are required",
-          missing_fields: missing
-        });
-      }
-    }
-
-    /* ================= VEHICLE INFO ================= */
-    if (vehicle_info_status == 1) {
-      const missing = [];
-      if (!data.brand_id) missing.push("brand_id");
-      if (!data.brand_name) missing.push("brand_name");
-      if (!data.model_id) missing.push("model_id");
-      if (!data.model_name) missing.push("model_name");
-      if (!data.vehicle_plate_number) missing.push("vehicle_plate_number");
-      if (!data.vehicle_production_year) missing.push("vehicle_production_year");
-      if (!getFile("vehicle_photo")) missing.push("vehicle_photo");
-
-      if (missing.length) {
-        return res.status(400).json({
-          message: "Vehicle information fields are required",
-          missing_fields: missing
+          id: result.insertId,
+          vehicle_category: data.vehicle_category
         });
       }
     }
 
     /* ================= VEHICLE DOCUMENTS ================= */
     if (vehicle_documents_status == 1) {
-      const missing = [];
-      if (!getFile("vehicle_permit_part_a")) missing.push("vehicle_permit_part_a");
-      if (!getFile("vehicle_permit_part_b")) missing.push("vehicle_permit_part_b");
-      if (!getFile("vehicle_registration_front"))
-        missing.push("vehicle_registration_front");
 
-      if (missing.length) {
-        return res.status(400).json({
-          message: "Vehicle documents fields are required",
-          missing_fields: missing
-        });
+      // 🔥 vehicle_category read
+      const [[driverRow]] = await db.query(
+        "SELECT vehicle_category FROM driver_registration WHERE id = ? LIMIT 1",
+        [id]
+      );
+
+      // ✅ Only required if NOT two wheeler
+      if (driverRow?.vehicle_category != 2) {
+        const missing = [];
+        if (!getFile("vehicle_permit_part_a")) missing.push("vehicle_permit_part_a");
+        if (!getFile("vehicle_permit_part_b")) missing.push("vehicle_permit_part_b");
+        if (!getFile("vehicle_registration_front"))
+          missing.push("vehicle_registration_front");
+
+        if (missing.length) {
+          return res.status(400).json({
+            message: "Vehicle documents fields are required",
+            missing_fields: missing
+          });
+        }
       }
     }
 
@@ -272,6 +233,11 @@ export const driverRegister = async (req, res) => {
     await db.query(
       "UPDATE driver_registration SET ? WHERE id = ?",
       [buildUpdateObject(data, files, folder), id]
+    );
+
+    const [[finalRow]] = await db.query(
+      "SELECT vehicle_category FROM driver_registration WHERE id = ?",
+      [id]
     );
 
     let message = "Step submitted successfully";
@@ -286,7 +252,11 @@ export const driverRegister = async (req, res) => {
     else if (vehicle_documents_status == 1)
       message = "Vehicle documents submitted successfully";
 
-    return res.status(200).json({ message, id });
+    return res.status(200).json({
+      message,
+      id,
+      vehicle_category: finalRow?.vehicle_category
+    });
 
   } catch (error) {
     console.log("driverRegister Error:", error);
@@ -347,6 +317,7 @@ export const getDriverProfile = async (req, res) => {
         device_id,
         fcm_token,
         online_status,
+        vehicle_category,
 
         personal_information_status,
         personal_information_reject_reason,

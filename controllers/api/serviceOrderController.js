@@ -17,6 +17,27 @@ export async function generateUniqueOTP(db) {
 }
 
 
+function isPointInPolygon(point, polygon) {
+  const x = point.lng;
+  const y = point.lat;
+
+  let inside = false;
+
+  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+    const xi = polygon[i].lng, yi = polygon[i].lat;
+    const xj = polygon[j].lng, yj = polygon[j].lat;
+
+    const intersect =
+      ((yi > y) !== (yj > y)) &&
+      (x < ((xj - xi) * (y - yi)) / (yj - yi) + xi);
+
+    if (intersect) inside = !inside;
+  }
+
+  return inside;
+}
+
+
 
 export const serviceOrder = [
   body("service_address").notEmpty().withMessage("service_address is required"),
@@ -45,6 +66,7 @@ export const serviceOrder = [
     }
 
     try {
+
       const {
         service_address,
         service_latitude,
@@ -52,7 +74,7 @@ export const serviceOrder = [
         service_datetime,
         user_id,
         serviceman_id,
-        service_id,
+        service_id,          
         amount,
         coupon_discount,
         gst_charges,
@@ -66,20 +88,70 @@ export const serviceOrder = [
       const createdAt = nowIST();
       const otp = await generateUniqueOTP(db);
 
-      // 🔹 USER FETCH (wallet added only for check)
+
+   // ===========ZONE CONCEPT START ==============
+    // 🔹 LOCATION SERVICE CHECK
+    const userLat = Number(service_latitude);
+    const userLng = Number(service_longitude);
+    
+    // Fetch all zones
+    const [zones] = await db.query(
+      "SELECT id, zone_name, coordinates FROM zones"
+    );
+    
+    let serviceAvailable = false;
+    let matchedZone = null;
+    
+    for (const zone of zones) {
+      let polygon;
+    
+      try {
+        polygon = JSON.parse(zone.coordinates);
+      } catch (err) {
+        continue; // skip invalid JSON
+      }
+    
+      if (!Array.isArray(polygon) || polygon.length < 3) continue;
+    
+      const isInside = isPointInPolygon(
+        { lat: userLat, lng: userLng },
+        polygon
+      );
+    
+      if (isInside) {
+        serviceAvailable = true;
+        matchedZone = zone.zone_name;
+        break;
+      }
+    }
+    
+    if (!serviceAvailable) {
+      return res.status(400).json({
+        success: false,
+        message: "Service not available for this location"
+      });
+    }
+    
+    
+    // =========ZONE CONCEPT END ===============
+
+
+      // 🔹 USER FETCH
       const [user] = await db.query(
         "SELECT name, last_name, phone, wallet FROM users WHERE id = ? LIMIT 1",
         [user_id]
       );
 
       if (!user.length) {
-        return res.status(404).json({ success: false, message: "User not found" });
+        return res.status(404).json({
+          success: false,
+          message: "User not found"
+        });
       }
 
-      // 🔹 WALLET CHECK (ONLY pay_mode == 3)
+      // 🔹 WALLET CHECK
       if (Number(pay_mode) === 3) {
         const walletBalance = Number(user[0].wallet || 0);
-
         if (walletBalance < Number(final_amount)) {
           return res.status(400).json({
             success: false,
@@ -90,16 +162,20 @@ export const serviceOrder = [
 
       const first = user[0].name || "";
       const last = user[0].last_name || "";
-      const user_name = last.trim() !== "" ? `${first} ${last}` : first;
+      const user_name = last.trim() ? `${first} ${last}` : first;
       const user_mobile = user[0].phone;
 
+      // 🔹 SERVICE FETCH (SINGLE)
       const [service] = await db.query(
         "SELECT title, category_id, status FROM services WHERE id = ? LIMIT 1",
         [service_id]
       );
 
       if (!service.length) {
-        return res.status(404).json({ success: false, message: "Service not found" });
+        return res.status(404).json({
+          success: false,
+          message: "Service not found"
+        });
       }
 
       if (service[0].status === 0) {
@@ -112,13 +188,14 @@ export const serviceOrder = [
       const service_name = service[0].title;
       const category_id = service[0].category_id;
 
+      // 🔹 SERVICE RADIUS
       const [setting] = await db.query(
         "SELECT value FROM settings WHERE name = 'service_radius_km' LIMIT 1"
       );
 
-      const radius_km = setting.length > 0 ? Number(setting[0].value) : 5;
-      console.log("Radius from setting:", radius_km, "KM");
+      const radius_km = setting.length ? Number(setting[0].value) : 5;
 
+      // 🔥 MAIN CHANGE: JSON ARRAY MATCH
       const [allServicemenDistance] = await db.query(
         `
         SELECT 
@@ -134,28 +211,26 @@ export const serviceOrder = [
           ) AS distance
         FROM serviceman
         WHERE 
-          service_category = ? 
+          JSON_CONTAINS(service_category, JSON_ARRAY(?))
           AND login_status = 1
           AND online_status = 1
         ORDER BY distance ASC
-      `,
+        `,
         [
           service_latitude,
           service_longitude,
           service_latitude,
-          category_id
+          Number(category_id)
         ]
       );
 
-      console.log("\n🔍 DRIVER DISTANCE TABLE:");
-      const cleanDistanceTable = allServicemenDistance.map((row, index) => ({
-        index,
-        id: row.id,
-        distance: row.distance
-      }));
-      console.table(cleanDistanceTable);
-      const servicemen = allServicemenDistance.filter(s => s.distance <= radius_km);
+      const servicemen = allServicemenDistance.filter(
+        s => s.distance <= radius_km
+      );
+
       const available_service_man = servicemen.map(s => s.id);
+
+      // 🔹 INSERT ORDER
       const sql = `
         INSERT INTO service_order 
         (
@@ -199,45 +274,47 @@ export const serviceOrder = [
         otp,
         description
       ]);
-      // 🔹 PAYING TABLE INSERT (ONLY pay_mode == 3)
+
+      // 🔹 PAYING TABLE
       if (Number(pay_mode) === 3) {
         const [setting] = await db.query(
-                "SELECT value FROM settings WHERE name = 'platform_fee' LIMIT 1"
-              );
-          const percent = setting.length ? Number(setting[0].value) : 0;
-          const fee = (Number(final_amount) * percent) / 100;
-          const final_amount_after_due = Number(final_amount) - fee;
-          const platformFeeFormatted = `${percent}% - ₹${fee.toFixed(2)}`;
-            await db.query(
-              `INSERT INTO paying 
-               (service_order_id, user_id, amount, final_amount, payment_type, status, platform_fee) 
-               VALUES (?, ?, ?, ?, 3, 0, ?)`,
-              [
-                result.insertId,
-                user_id,
-                final_amount,
-                final_amount_after_due,
-                platformFeeFormatted
-              ]
-            );
+          "SELECT value FROM settings WHERE name = 'platform_fee' LIMIT 1"
+        );
+
+        const percent = setting.length ? Number(setting[0].value) : 0;
+        const fee = (Number(final_amount) * percent) / 100;
+        const final_amount_after_due = Number(final_amount) - fee;
+
+        await db.query(
+          `INSERT INTO paying 
+           (service_order_id, user_id, amount, final_amount, payment_type, status, platform_fee) 
+           VALUES (?, ?, ?, ?, 3, 0, ?)`,
+          [
+            result.insertId,
+            user_id,
+            final_amount,
+            final_amount_after_due,
+            `${percent}% - ₹${fee.toFixed(2)}`
+          ]
+        );
       }
 
-  sendOrderToServicemen(servicemen, {
-  order_id: result.insertId,
-  service_name,
-  customer_name: user_name,
-  customer_mobile: user_mobile,
-  amount,
-  final_amount,
-  service_address,
-  service_latitude,
-  service_longitude,
-  quantity,
-  time: service_datetime
-});
+      // 🔹 SEND TO SERVICEMEN
+      sendOrderToServicemen(servicemen, {
+        order_id: result.insertId,
+        service_name,
+        customer_name: user_name,
+        customer_mobile: user_mobile,
+        amount,
+        final_amount,
+        service_address,
+        service_latitude,
+        service_longitude,
+        quantity,
+        time: service_datetime
+      });
 
-
-      // FCM Notification
+      // 🔹 FCM NOTIFICATION
       if (available_service_man.length > 0) {
         const [tokens] = await db.query(
           "SELECT id, fcm_token FROM serviceman WHERE id IN (?)",

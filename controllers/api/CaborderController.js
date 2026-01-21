@@ -91,6 +91,10 @@ function validateCabOrder(body) {
 /* =========================================================
    CAB ORDER API (FASTEST POSSIBLE)
 ========================================================= */
+
+
+
+
 export const cabOrder = async (req, res) => {
 
   const validationError = validateCabOrder(req.body);
@@ -148,6 +152,12 @@ export const cabOrder = async (req, res) => {
       ) / 100;
 
     const createdAt = nowIST();
+
+
+
+
+
+
 
     /* =========================
        ORDER OTP
@@ -643,6 +653,8 @@ function calculateDistanceInKm(lat1, lon1, lat2, lon2) {
 
 
 
+
+
 async function getNearbyOnlineDrivers({
   pickup_latitude,
   pickup_longitude,
@@ -712,6 +724,28 @@ async function getNearbyOnlineDrivers({
 }
 
 
+
+function isPointInPolygon(point, polygon) {
+  const x = point.lng;
+  const y = point.lat;
+
+  let inside = false;
+
+  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+    const xi = polygon[i].lng, yi = polygon[i].lat;
+    const xj = polygon[j].lng, yj = polygon[j].lat;
+
+    const intersect =
+      ((yi > y) !== (yj > y)) &&
+      (x < ((xj - xi) * (y - yi)) / (yj - yi) + xi);
+
+    if (intersect) inside = !inside;
+  }
+
+  return inside;
+}
+
+
 export async function getVehicleAmountList(req, res) {
   try {
     const {
@@ -736,6 +770,77 @@ export async function getVehicleAmountList(req, res) {
         errors: null
       });
     }
+
+
+
+
+/* =========== ZONE CONCEPT START (GET VEHICLE AMOUNT) ============== */
+
+const pickupLat = Number(pickup_latitude);
+const pickupLng = Number(pickup_longitude);
+
+const dropLat = Number(drop_latitude);
+const dropLng = Number(drop_longitude);
+
+// Fetch all zones (Lucknow, Sitapur, future sab)
+const [zones] = await db.query(
+  "SELECT id, zone_name, coordinates FROM zones"
+);
+
+let pickupAvailable = false;
+let dropAvailable = false;
+
+for (const zone of zones) {
+  let polygon;
+
+  try {
+    polygon = JSON.parse(zone.coordinates);
+  } catch (err) {
+    continue; // invalid JSON skip
+  }
+
+  if (!Array.isArray(polygon) || polygon.length < 3) continue;
+
+  // 🔹 Pickup check
+  if (!pickupAvailable) {
+    pickupAvailable = isPointInPolygon(
+      { lat: pickupLat, lng: pickupLng },
+      polygon
+    );
+  }
+
+  // 🔹 Drop check
+  if (!dropAvailable) {
+    dropAvailable = isPointInPolygon(
+      { lat: dropLat, lng: dropLng },
+      polygon
+    );
+  }
+
+  if (pickupAvailable && dropAvailable) break;
+}
+
+// ❌ Pickup zone fail
+if (!pickupAvailable) {
+  return res.status(400).json({
+    success: false,
+    message: "Cab or Ride service not available for pickup location",
+    errors: null
+  });
+}
+
+// ❌ Drop zone fail
+if (!dropAvailable) {
+  return res.status(400).json({
+    success: false,
+    message: "Cab or Ride service not available for drop location",
+    errors: null
+  });
+}
+
+/* =========== ZONE CONCEPT END (GET VEHICLE AMOUNT) ============== */
+
+
 
     /* =========================
        DISTANCE
@@ -879,6 +984,8 @@ export async function getVehicleAmountList(req, res) {
     });
   }
 }
+
+
 
 
 

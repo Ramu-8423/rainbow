@@ -933,6 +933,7 @@ export async function servicemanEarnings(req, res) {
         so.serviceman_id = ?
         AND p.payment_type IN (1,2,3)
         AND p.status = 1
+        AND p.module_type = 1
       `,
       [serviceman_id]
     );
@@ -951,6 +952,7 @@ export async function servicemanEarnings(req, res) {
         AND DATE(so.service_datetime) = CURDATE()
         AND p.payment_type IN (1,2,3)
         AND p.status = 1
+        AND p.module_type = 1
       `,
       [serviceman_id]
     );
@@ -969,6 +971,7 @@ export async function servicemanEarnings(req, res) {
         AND so.service_datetime >= DATE_SUB(NOW(), INTERVAL 7 DAY)
         AND p.payment_type IN (1,2,3)
         AND p.status = 1
+        AND p.module_type = 1
       `,
       [serviceman_id]
     );
@@ -988,6 +991,7 @@ export async function servicemanEarnings(req, res) {
         AND YEAR(so.service_datetime) = YEAR(CURDATE())
         AND p.payment_type IN (1,2,3)
         AND p.status = 1
+        AND p.module_type = 1
       `,
       [serviceman_id]
     );
@@ -1008,6 +1012,7 @@ export async function servicemanEarnings(req, res) {
         so.serviceman_id = ?
         AND p.payment_type IN (1,2,3)
         AND p.status = 1
+        AND p.module_type = 1
       ORDER BY p.id DESC
       LIMIT 10
       `,
@@ -1044,7 +1049,6 @@ export async function servicemanEarnings(req, res) {
   }
 }
 
-
 export async function servicemanServiceInfo(req, res) {
   try {
     const { serviceman_id } = req.body || {};
@@ -1065,31 +1069,30 @@ export async function servicemanServiceInfo(req, res) {
       SELECT COUNT(*) AS total
       FROM service_order
       WHERE serviceman_id = ?
-      AND service_status IN (1,2,3)
+        AND service_status IN (1,2,3)
       `,
       [serviceman_id]
     );
 
     /* --------------------------------
        2️⃣ Completed bookings count
-       service_status = 4
+       service_status = 4,5,6
     ----------------------------------*/
-   const [completedRows] = await db.query(
+    const [completedRows] = await db.query(
       `
       SELECT COUNT(*) AS total
       FROM service_order
       WHERE serviceman_id = ?
-      AND service_status IN (4,5,6)
+        AND service_status IN (4,5,6)
       `,
       [serviceman_id]
     );
-
 
     /* --------------------------------
        3️⃣ Total earnings
        paying.status = 1
        payment_type = 1,2,3
-       JOIN via service_order_id
+       module_type = 1  ✅
     ----------------------------------*/
     const [earningRows] = await db.query(
       `
@@ -1102,6 +1105,7 @@ export async function servicemanServiceInfo(req, res) {
         so.serviceman_id = ?
         AND p.status = 1
         AND p.payment_type IN (1,2,3)
+        AND p.module_type = 1
       `,
       [serviceman_id]
     );

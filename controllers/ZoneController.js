@@ -9,11 +9,13 @@ export const createZone = async (req, res) => {
       "SELECT * FROM zones ORDER BY id DESC"
     );
 
-    return res.render("ride_order/createZone", {
-      pageTitle: "Zone Management",
-      zones,
-      activeTab: req.query.tab || "list"
-    });
+return res.render("ride_order/createZone", {
+  pageTitle: "Zone Management",
+  zones,
+  activeTab: req.query.tab || "list",
+  editZone: null   // ✅ FIX
+});
+
 
   } catch (error) {
     console.error("Create Zone Page Error:", error);
@@ -86,3 +88,69 @@ export const deleteZone = async (req, res) => {
     return res.redirect("/create_zone?tab=list");
   }
 };
+
+
+
+    export const editZonePage = async (req, res) => {
+      try {
+        const { id } = req.params;
+    
+        const [[zone]] = await db.query(
+          "SELECT * FROM zones WHERE id = ?",
+          [id]
+        );
+    
+        if (!zone) {
+          req.session.error = "Zone not found!";
+          return res.redirect("/create_zone?tab=list");
+        }
+    
+        const [zones] = await db.query(
+          "SELECT * FROM zones ORDER BY id DESC"
+        );
+    
+        return res.render("ride_order/editZone", {
+          pageTitle: "Edit Zone",
+          zones,
+          activeTab: "create",
+          editZone: zone   // 👈 important
+        });
+    
+      } catch (error) {
+        console.error("Edit Zone Page Error:", error);
+        req.session.error = "Something went wrong!";
+        return res.redirect("/create_zone?tab=list");
+      }
+    };
+
+
+    export const updateZone = async (req, res) => {
+      try {
+        const { id } = req.params;
+        const { zone_name, zone_coordinates } = req.body;
+    
+        if (!zone_coordinates || zone_coordinates.trim() === "") {
+          req.session.error = "Please draw a zone on the map.";
+          return res.redirect(`/zones/edit/${id}`);
+        }
+    
+        await db.query(
+          `
+          UPDATE zones
+          SET zone_name = ?, coordinates = ?
+          WHERE id = ?
+          `,
+          [zone_name, zone_coordinates, id]
+        );
+    
+        req.session.success = "Zone updated successfully!";
+        return res.redirect("/create_zone?tab=list");
+    
+      } catch (error) {
+        console.error("Update Zone Error:", error);
+        req.session.error = "Something went wrong!";
+        return res.redirect(`/zones/edit/${id}`);
+      }
+    };
+
+

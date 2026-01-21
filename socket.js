@@ -78,39 +78,42 @@ export function initSocket(server) {
       console.log("zsdxfcgvhbjnk", currentTime);
 
       const [orders] = await db.query(
-        `
-        SELECT 
-          id AS order_id,
-          service_name,
-          user_name AS customer_name,
-          user_mobile AS customer_mobile,
-          final_amount,
-          service_address,
-          service_latitude,
-          service_longitude,
-          quantity,
-          service_datetime AS time,
-          (
-            6371 * ACOS(
-              COS(RADIANS(?)) * COS(RADIANS(service_latitude)) *
-              COS(RADIANS(service_longitude) - RADIANS(?)) +
-              SIN(RADIANS(?)) * SIN(RADIANS(service_latitude))
-            )
-          ) AS distance
-        FROM service_order
-        WHERE service_status = 0
-          AND service_datetime >= ?
-          AND JSON_CONTAINS(available_service_man, JSON_ARRAY(?))
-        ORDER BY id DESC
-        `,
-        [lat, lng, lat, currentTime, id]
-      );
+  `
+  SELECT 
+    so.id AS order_id,
+    so.service_name,
+    so.user_name AS customer_name,
+    so.user_mobile AS customer_mobile,
+    so.final_amount,
+    so.service_address,
+    so.service_latitude,
+    so.service_longitude,
+    so.quantity,
+    so.service_datetime AS time,
+    (
+      6371 * ACOS(
+        COS(RADIANS(?)) * COS(RADIANS(so.service_latitude)) *
+        COS(RADIANS(so.service_longitude) - RADIANS(?)) +
+        SIN(RADIANS(?)) * SIN(RADIANS(so.service_latitude))
+      )
+    ) AS distance
+  FROM service_order so
+  JOIN serviceman s ON s.id = ?
+  WHERE so.service_status = 0
+    AND so.service_datetime >= ?
+    AND JSON_CONTAINS(so.available_service_man, JSON_ARRAY(?))
+    AND s.login_status = 1
+    AND s.online_status = 1
+  ORDER BY so.id DESC
+  `,
+  [lat, lng, lat, id, currentTime, id]
+);
+
 
       const finalOrders = orders.map(o => ({
         ...o,
         formatted_date: formatServiceDate(o.time)
       }));
-
       socket.emit("pending_orders", finalOrders);
     });
   });

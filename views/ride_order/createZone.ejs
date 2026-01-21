@@ -5,23 +5,27 @@
 
   <!-- 🔹 Buttons / Tabs -->
   <div class="col-12 mb-3">
-    <button class="btn me-2" onclick="showTab('list')" style="background-color:blue; color:white">Zone List</button>
-    <button class="btn " onclick="showTab('create')"  style="background-color:blue; color:white;">Create Zone</button>
+    <button class="btn me-2 btn-primary" onclick="showTab('list')">
+      Zone List
+    </button>
+    <button class="btn btn-primary" onclick="showTab('create')">
+      <%= editZone ? 'Edit Zone' : 'Create Zone' %>
+    </button>
   </div>
 
   <!-- 🔹 Zone List -->
-  <div id="zoneList" class="col-12" style="display: <%= activeTab === 'list' ? 'block' : 'none' %>;">
+  <div id="zoneList" class="col-12"
+       style="display:<%= activeTab === 'list' ? 'block' : 'none' %>;">
     <div class="card p-3">
       <h4>Zone List</h4>
 
-  
       <table class="table table-bordered mt-2">
         <thead>
           <tr>
             <th>ID</th>
             <th>Zone Name</th>
             <th>Created Date</th>
-            <th>Actions</th>
+            <th width="120">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -32,9 +36,20 @@
                 <td><%= zone.zone_name %></td>
                 <td><%= new Date(zone.created_at).toLocaleString() %></td>
                 <td>
-                  <form id="deleteForm-<%= zone.id %>" action="/zones/delete/<%= zone.id %>" method="POST">
-                    <button type="button" class="btn btn-sm btn-danger" 
-                      onclick="confirmDelete(<%= zone.id %>)" title="Delete Zone">
+                  <!-- EDIT -->
+                  <a href="/zones/edit/<%= zone.id %>"
+                     class="btn btn-sm btn-warning">
+                    <i class="fa fa-edit"></i>
+                  </a>
+
+                  <!-- DELETE -->
+                  <form id="deleteForm-<%= zone.id %>"
+                        action="/zones/delete/<%= zone.id %>"
+                        method="POST"
+                        style="display:inline;">
+                    <button type="button"
+                            class="btn btn-sm btn-danger"
+                            onclick="confirmDelete(<%= zone.id %>)">
                       <i class="fa fa-trash"></i>
                     </button>
                   </form>
@@ -43,37 +58,63 @@
             <% }) %>
           <% } else { %>
             <tr>
-              <td colspan="4" class="text-center text-muted">No zones found.</td>
+              <td colspan="4" class="text-center text-muted">
+                No zones found.
+              </td>
             </tr>
           <% } %>
         </tbody>
       </table>
-
     </div>
   </div>
 
-  <!-- 🔹 Create Zone Form -->
-  <div id="createZone" class="col-12" style="display: <%= activeTab === 'create' ? 'block' : 'none' %>;">
+  <!-- 🔹 Create / Edit Zone -->
+  <div id="createZone" class="col-12"
+       style="display:<%= activeTab === 'create' ? 'block' : 'none' %>;">
     <div class="card p-3">
-      <h4>Create Zone</h4>
-      <form action="/zones/create" method="POST">
+      <h4><%= editZone ? 'Edit Zone' : 'Create Zone' %></h4>
+
+      <form method="POST"
+        action="<%= editZone ? '/zones/update/' + editZone.id : '/zones/create' %>">
+
         <div class="mb-3">
           <label class="fw-bold">Zone Name</label>
-          <input type="text" name="zone_name" class="form-control" required>
+          <input type="text"
+                 name="zone_name"
+                 class="form-control"
+                 required
+                 value="<%= editZone ? editZone.zone_name : '' %>">
         </div>
 
-        <div id="map" style="width:100%; height:400px; border-radius:10px; overflow:hidden;"></div>
-        <input type="hidden" id="coords" name="zone_coordinates">
-        <button type="submit" class="btn mt-3"  style="background-color:green;">Save Zone</button>
+        <div id="map"
+             style="width:100%; height:400px; border-radius:10px;"></div>
+
+        <input type="hidden"
+               id="coords"
+               name="zone_coordinates"
+               value='<%= editZone ? editZone.coordinates : "" %>'>
+
+        <button type="submit"
+                class="btn mt-3 btn-success">
+          <%= editZone ? 'Update Zone' : 'Save Zone' %>
+        </button>
+
+        <% if (editZone) { %>
+          <a href="/create_zone?tab=list"
+             class="btn btn-secondary mt-3 ms-2">
+            Cancel
+          </a>
+        <% } %>
       </form>
     </div>
   </div>
 
 </div>
 
-<!-- 🔹 JS: Map + Tab Switch + SweetAlert Delete -->
+<!-- 🔹 MAP SCRIPT -->
 <script>
 let polygon = null;
+let editCoords = <%- editZone ? editZone.coordinates : 'null' %>;
 
 function initMap() {
   const map = new google.maps.Map(document.getElementById("map"), {
@@ -82,7 +123,7 @@ function initMap() {
   });
 
   const drawingManager = new google.maps.drawing.DrawingManager({
-    drawingControl: true,
+    drawingControl: !editCoords,
     drawingControlOptions: {
       drawingModes: ["polygon"]
     }
@@ -90,50 +131,72 @@ function initMap() {
 
   drawingManager.setMap(map);
 
+  // 🔸 Edit case: load existing polygon
+  if (editCoords) {
+    polygon = new google.maps.Polygon({
+      paths: editCoords,
+      editable: true,
+      map: map
+    });
+
+    map.fitBounds(getBounds(editCoords));
+    bindPolygonEvents(polygon);
+  }
+
   google.maps.event.addListener(drawingManager, 'polygoncomplete', function (poly) {
     if (polygon) polygon.setMap(null);
     polygon = poly;
-
-    let coordinates = poly.getPath().getArray().map(point => ({
-      lat: point.lat(),
-      lng: point.lng()
-    }));
-
-    document.getElementById("coords").value = JSON.stringify(coordinates);
+    polygon.setEditable(true);
+    bindPolygonEvents(polygon);
   });
+
+  function bindPolygonEvents(poly) {
+    google.maps.event.addListener(poly.getPath(), 'set_at', () => saveCoords(poly));
+    google.maps.event.addListener(poly.getPath(), 'insert_at', () => saveCoords(poly));
+    saveCoords(poly);
+  }
+
+  function saveCoords(poly) {
+    let coordinates = poly.getPath().getArray().map(p => ({
+      lat: p.lat(),
+      lng: p.lng()
+    }));
+    document.getElementById("coords").value = JSON.stringify(coordinates);
+  }
+
+  function getBounds(coords) {
+    const bounds = new google.maps.LatLngBounds();
+    coords.forEach(c => bounds.extend(c));
+    return bounds;
+  }
 }
 
-// Tab Switch
+// Tabs
 function showTab(tab) {
-  document.getElementById("zoneList").style.display = tab === 'list' ? 'block' : 'none';
-  document.getElementById("createZone").style.display = tab === 'create' ? 'block' : 'none';
-
-  document.querySelectorAll(".btn").forEach(btn => btn.classList.remove("btn-primary"));
-  document.querySelectorAll(".btn").forEach(btn => btn.classList.add("btn-secondary"));
-
-  if(tab==='list') document.querySelector("button[onclick='showTab(\"list\")']").classList.add("btn-primary");
-  else document.querySelector("button[onclick='showTab(\"create\")']").classList.add("btn-primary");
+  document.getElementById("zoneList").style.display =
+    tab === 'list' ? 'block' : 'none';
+  document.getElementById("createZone").style.display =
+    tab === 'create' ? 'block' : 'none';
 }
 
 // SweetAlert Delete
 function confirmDelete(id) {
   Swal.fire({
     title: 'Are you sure?',
-    text: "You won't be able to revert this!",
     icon: 'warning',
     showCancelButton: true,
     confirmButtonColor: '#d33',
-    cancelButtonColor: '#3085d6',
-    confirmButtonText: 'Yes, delete it!',
-    reverseButtons: true
+    confirmButtonText: 'Yes, delete it!'
   }).then((result) => {
     if (result.isConfirmed) {
       document.getElementById('deleteForm-' + id).submit();
     }
-  })
+  });
 }
 </script>
 
+
+
 <script async
-  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB0mG3CGok9-9RZau5J_VThUP4OTbQ_SFM&libraries=drawing&callback=initMap">
+  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCm7ErTUTWLiTIT9KvG9bziUokOEt5wCBI&libraries=drawing&callback=initMap">
 </script>

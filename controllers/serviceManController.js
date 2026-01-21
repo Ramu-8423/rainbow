@@ -16,30 +16,42 @@ export const allServiceman = async (req, res) => {
 
     // DATE FILTER
     if (from && to) {
-      where += "AND DATE(created_at) BETWEEN ? AND ? ";
+      where += "AND DATE(s.created_at) BETWEEN ? AND ? ";
       values.push(from, to);
     }
 
     // STATUS FILTER (login_status)
     if (status === "1") {
-      where += "AND login_status = 1 ";
+      where += "AND s.login_status = 1 ";
     } else if (status === "0") {
-      where += "AND login_status = 0 ";
+      where += "AND s.login_status = 0 ";
     }
 
-    // COUNT
+    /* ================= COUNT ================= */
     const [[{ total }]] = await db.query(
-      `SELECT COUNT(*) AS total FROM serviceman ${where}`,
+      `
+      SELECT COUNT(DISTINCT s.id) AS total
+      FROM serviceman s
+      LEFT JOIN categories c
+        ON JSON_CONTAINS(s.service_category, CAST(c.id AS JSON))
+      ${where}
+      `,
       values
     );
 
-    // DATA
+    /* ================= DATA ================= */
     const [rows] = await db.query(
       `
-      SELECT *
-      FROM serviceman
+      SELECT 
+        s.*,
+        GROUP_CONCAT(DISTINCT c.name ORDER BY c.name SEPARATOR ', ') 
+          AS service_name
+      FROM serviceman s
+      LEFT JOIN categories c
+        ON JSON_CONTAINS(s.service_category, CAST(c.id AS JSON))
       ${where}
-      ORDER BY id DESC
+      GROUP BY s.id
+      ORDER BY s.id DESC
       LIMIT ? OFFSET ?
       `,
       [...values, perPage, offset]
