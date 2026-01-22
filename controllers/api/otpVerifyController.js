@@ -16,6 +16,12 @@ const DIGIDONAR_CONFIG = {
 };
 
 /* ==============================
+   BYPASS NUMBERS
+================================ */
+const BYPASS_NUMBERS = ["9876543210", "9876543211"];
+const BYPASS_OTP = "1111";
+
+/* ==============================
    HELPERS
 ================================ */
 function generateOTP(digit = 4) {
@@ -31,8 +37,7 @@ function addMinutes(dateTime, minutes) {
 }
 
 /* ==============================
-   SEND OTP (GET)
-   /send_otp.php?mode=test&digit=4&mobile=XXXXXXXXXX
+   SEND OTP
 ================================ */
 export const sendOtp = async (req, res) => {
   try {
@@ -45,32 +50,41 @@ export const sendOtp = async (req, res) => {
     const createdAt = nowIST();
     const expiresAt = addMinutes(createdAt, 2);
 
-    // 🔹 TEST MODE
-    let otp = "1111";
+    let otp = BYPASS_OTP;
+    const isBypass = BYPASS_NUMBERS.includes(mobile);
 
-    if (mode === "live") {
-      otp = generateOTP(Number(digit));
+    /* ==========================
+       NORMAL FLOW
+    ========================== */
+    if (!isBypass) {
+      if (mode === "live") {
+        otp = generateOTP(Number(digit));
 
-      const smsText =
-        `OTP for login your account ${otp} and valid till 2 minutes. ` +
-        `Do not share this OTP to anyone for security reasons. Via Rainbow Enterprises`;
+        const smsText =
+          `OTP for login your account ${otp} and valid till 2 minutes. ` +
+          `Do not share this OTP to anyone for security reasons. Via Rainbow Enterprises`;
 
-      const apiUrl =
-        `${DIGIDONAR_CONFIG.URL}` +
-        `?key=${DIGIDONAR_CONFIG.API_KEY}` +
-        `&campaign=${DIGIDONAR_CONFIG.CAMPAIGN}` +
-        `&routeid=${DIGIDONAR_CONFIG.ROUTE}` +
-        `&type=text` +
-        `&contacts=91${mobile}` +
-        `&senderid=${DIGIDONAR_CONFIG.SENDER}` +
-        `&msg=${encodeURIComponent(smsText)}` +
-        `&template_id=${DIGIDONAR_CONFIG.TEMPLATE_ID}` +
-        `&pe_id=${DIGIDONAR_CONFIG.PE_ID}`;
+        const apiUrl =
+          `${DIGIDONAR_CONFIG.URL}` +
+          `?key=${DIGIDONAR_CONFIG.API_KEY}` +
+          `&campaign=${DIGIDONAR_CONFIG.CAMPAIGN}` +
+          `&routeid=${DIGIDONAR_CONFIG.ROUTE}` +
+          `&type=text` +
+          `&contacts=91${mobile}` +
+          `&senderid=${DIGIDONAR_CONFIG.SENDER}` +
+          `&msg=${encodeURIComponent(smsText)}` +
+          `&template_id=${DIGIDONAR_CONFIG.TEMPLATE_ID}` +
+          `&pe_id=${DIGIDONAR_CONFIG.PE_ID}`;
 
-      await axios.get(apiUrl);
+        await axios.get(apiUrl);
+      } else {
+        otp = BYPASS_OTP; // test mode
+      }
     }
 
-    // 🔹 Save OTP (both test & live)
+    /* ==========================
+       SAVE OTP (SAME AS BEFORE)
+    ========================== */
     await db.query(
       `INSERT INTO otp_logs (mobile, otp, expires_at, created_at)
        VALUES (?, ?, ?, ?)`,
@@ -93,8 +107,7 @@ export const sendOtp = async (req, res) => {
 };
 
 /* ==============================
-   VERIFY OTP (GET)
-   /verifyotp.php?mobile=XXXXXXXXXX&otp=1111
+   VERIFY OTP
 ================================ */
 export const verifyOtp = async (req, res) => {
   try {
@@ -102,6 +115,16 @@ export const verifyOtp = async (req, res) => {
 
     if (!mobile || !otp) {
       return res.json({ msg: "mobile and otp required", error: "400" });
+    }
+
+    /* ==========================
+       BYPASS VERIFY
+    ========================== */
+    if (BYPASS_NUMBERS.includes(mobile) && otp === BYPASS_OTP) {
+      return res.json({
+        msg: "Otp Match Successfully",
+        error: "200"
+      });
     }
 
     const now = nowIST();
@@ -143,7 +166,3 @@ export const verifyOtp = async (req, res) => {
     });
   }
 };
-
-
-
-

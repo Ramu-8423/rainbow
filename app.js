@@ -86,7 +86,7 @@ app.use("/api", apiRoutes);
 app.use("/", autoAuth, webRoutes);
 
 // ---------------- START SERVER ----------------
-const PORT = process.env.PORT || 1218;
+const PORT = process.env.PORT || 1219;
 
 server.listen(PORT, () => {
   console.log(`🚀 Server + Socket running on port ${PORT}`);

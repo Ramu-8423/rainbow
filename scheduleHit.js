@@ -3,11 +3,9 @@
 import axios from "axios";
 import db from "./config/database.js";
 import { nowIST } from "./utils/dateParser.js";
-
 /* =======================
    SCHEDULE CONFIG
 ======================= */
-
 // 🔔 User ko pehle alert (ride reminder)
 const alert_schedule_hour = 0;
 const alert_schedule_minute = 1;
@@ -72,9 +70,7 @@ export async function scheduleApiHits() {
               `,
               [row.id]
             );
-
             console.log("🔔 User alert sent & marked:", row.order_id);
-
           } catch (err) {
             console.error("❌ User alert error:", err.message);
           }

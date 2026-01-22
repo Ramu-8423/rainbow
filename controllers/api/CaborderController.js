@@ -1824,12 +1824,12 @@ export async function changeCabOrderStatus(req, res) {
       });
     }
 
-    if ([6, 7].includes(Number(order_status)) && !cancel_reason) {
-      return res.status(400).json({
-        success: false,
-        message: "cancel_reason is required"
-      });
-    }
+    // if ([6, 7].includes(Number(order_status)) && !cancel_reason) {
+    //   return res.status(400).json({
+    //     success: false,
+    //     message: "cancel_reason is required"
+    //   });
+    // }
 
     const now = nowIST();
     const firestore = getFirestore();
@@ -2883,25 +2883,18 @@ export async function acceptLaterRide(req, res) {
     /* =========================
        USER FCM NOTIFICATION
     ========================= */
-   if (user_fcm_token) {
-  try {
-    await FCMHelper.sendNotification(
-      user_fcm_token,
-      "Ride Accepted",
-      `Your scheduled ride has been accepted by driver ${driver_name}.`,
-      {
-        hiddenData: {
-          type: "scheduled_ride_accepted",
-          redirect: "active_ride",
-          order: JSON.stringify({
-            order_id,
-            ride_type: "scheduled"
-          })
-        }
-      }
-    );
-  } catch (fcmErr) {
-    // silent fail or existing error handling
+    if (user_fcm_token) {
+      try {
+        await FCMHelper.sendNotification(
+          user_fcm_token,
+          "Ride Accepted",
+          `Your scheduled ride has been accepted by driver ${driver_name}.`,
+          {
+            type: "active_ride"
+          }
+        );
+      } catch (fcmErr) {
+        // silent fail or existing error handling
   }
 }
 
