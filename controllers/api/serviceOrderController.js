@@ -299,20 +299,20 @@ export const serviceOrder = [
         );
       }
 
-      // 🔹 SEND TO SERVICEMEN
       sendOrderToServicemen(servicemen, {
-        order_id: result.insertId,
-        service_name,
-        customer_name: user_name,
-        customer_mobile: user_mobile,
-        amount,
-        final_amount,
-        service_address,
-        service_latitude,
-        service_longitude,
-        quantity,
-        time: service_datetime
-      });
+          order_id: result.insertId,
+          service_name,
+          customer_name: user_name,
+          customer_mobile: user_mobile,
+          amount,
+          final_amount,
+          service_address,
+          service_latitude,
+          service_longitude,
+          quantity,
+          time: service_datetime
+        });
+
 
       // 🔹 FCM NOTIFICATION
       if (available_service_man.length > 0) {

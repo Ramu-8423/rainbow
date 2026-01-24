@@ -91,12 +91,106 @@ function validateCabOrder(body) {
 /* =========================================================
    CAB ORDER API (FASTEST POSSIBLE)
 ========================================================= */
+async function getMatchedDriversForCabOrder({
+  db,
+  firestore,
+  vehicle_id,
+  pickup_latitude,
+  pickup_longitude,
+  rideRadiusKm
+}) {
+  /* =========================
+     VEHICLE DETAILS (SAME vehicle_id)
+  ========================= */
+  const [[vehicle]] = await db.query(
+    `
+    SELECT id, vehicle_category, max_passenger
+    FROM vehicle
+    WHERE id = ?
+    LIMIT 1
+    `,
+    [vehicle_id]
+  );
+
+  if (!vehicle) {
+    return [];
+  }
+
+  let allowedVehicleIds = [Number(vehicle_id)];
+
+  /* =========================
+     VEHICLE CATEGORY = 4
+     (CAPACITY BASED FALLBACK)
+  ========================= */
+  if (Number(vehicle.vehicle_category) === 4) {
+    const [vehicles] = await db.query(
+      `
+      SELECT id
+      FROM vehicle
+      WHERE vehicle_category = 4
+        AND max_passenger >= ?
+      `,
+      [vehicle.max_passenger]
+    );
+
+    allowedVehicleIds = vehicles.map(v => Number(v.id));
+  }
+
+console.log("sdfghjk", allowedVehicleIds);
+  /* =========================
+     FIREBASE : DRIVER MATCH
+  ========================= */
+  const matched_driver_ids = [];
+
+  for (const vId of allowedVehicleIds) {
+    const snapshot = await firestore
+      .collection("driver")
+      .where("online_status", "==", 1)
+      .where("vehicle_type", "==", Number(vId))
+      .get();
+
+    for (const doc of snapshot.docs) {
+      const d = doc.data();
+      const driverId = Number(doc.id);
+
+      if (!d.current_latitude || !d.current_longitude) continue;
+
+      /* 🔥 ACTIVE RIDE CHECK (UNCHANGED) */
+      const [[activeRide]] = await db.query(
+        `
+        SELECT id
+        FROM cab_orders
+        WHERE driver_id = ?
+          AND order_status BETWEEN 0 AND 4
+        LIMIT 1
+        `,
+        [driverId]
+      );
+
+      if (activeRide) continue;
+
+      const dist = getDistanceInKm(
+        d.current_latitude,
+        d.current_longitude,
+        pickup_latitude,
+        pickup_longitude
+      );
+
+      if (dist <= rideRadiusKm) {
+        if (!matched_driver_ids.includes(driverId)) {
+          matched_driver_ids.push(driverId);
+        }
+      }
+    }
+  }
+
+  return matched_driver_ids;
+}
 
 
 
 
 export const cabOrder = async (req, res) => {
-
   const validationError = validateCabOrder(req.body);
   if (validationError) {
     return res.status(400).json({
@@ -152,12 +246,6 @@ export const cabOrder = async (req, res) => {
       ) / 100;
 
     const createdAt = nowIST();
-
-
-
-
-
-
 
     /* =========================
        ORDER OTP
@@ -279,49 +367,32 @@ export const cabOrder = async (req, res) => {
     );
 
     /* =========================
-       FIREBASE : DRIVER MATCH
+       SETTINGS : RIDE RADIUS
+    ========================= */
+    const [[rideRadiusSetting]] = await db.query(
+      `
+      SELECT value
+      FROM settings
+      WHERE id = 7 AND name = 'ride_radius_km'
+      LIMIT 1
+      `
+    );
+
+    const rideRadiusKm = Number(rideRadiusSetting?.value || 5);
+
+    /* =========================
+       FIREBASE + MATCHED DRIVERS
     ========================= */
     const firestore = getFirestore();
 
-    const snapshot = await firestore
-      .collection("driver")
-      .where("online_status", "==", 1)
-      .where("vehicle_type", "==", Number(vehicle_id))
-      .get();
-
-    const matched_driver_ids = [];
-
-    for (const doc of snapshot.docs) {
-      const d = doc.data();
-      const driverId = Number(doc.id);
-
-      if (!d.current_latitude || !d.current_longitude) continue;
-
-      /* 🔥 NEW CONDITION — ACTIVE RIDE CHECK */
-      const [[activeRide]] = await db.query(
-        `
-        SELECT id
-        FROM cab_orders
-        WHERE driver_id = ?
-          AND order_status BETWEEN 0 AND 4
-        LIMIT 1
-        `,
-        [driverId]
-      );
-
-      if (activeRide) continue;
-
-      const dist = getDistanceInKm(
-        d.current_latitude,
-        d.current_longitude,
-        pickup_latitude,
-        pickup_longitude
-      );
-
-      if (dist <= 5000) {
-        matched_driver_ids.push(driverId);
-      }
-    }
+    const matched_driver_ids = await getMatchedDriversForCabOrder({
+      db,
+      firestore,
+      vehicle_id,
+      pickup_latitude,
+      pickup_longitude,
+      rideRadiusKm
+    });
 
     await db.query(
       `UPDATE cab_orders SET matched_driver_id = ? WHERE id = ?`,
@@ -419,7 +490,7 @@ export const cabOrder = async (req, res) => {
     }
 
     /* =========================
-       FINAL RESPONSE
+       FINAL RESPONSE (UNCHANGED)
     ========================= */
     return res.status(201).json({
       success: true,
@@ -843,6 +914,24 @@ if (!dropAvailable) {
 
 
     /* =========================
+       SETTINGS : RIDE RADIUS (KM)
+       (ONLY ADDITION – NO EXISTING LOGIC TOUCHED)
+    ========================= */
+    const [[rideRadiusSetting]] = await db.query(
+      `
+      SELECT value
+      FROM settings
+      WHERE id = 5 AND name = 'ride_radius_km'
+      LIMIT 1
+      `
+    );
+
+    // fallback default (safe)
+    const rideRadiusKm = Number(rideRadiusSetting?.value || 5);
+
+
+
+    /* =========================
        DISTANCE
     ========================= */
     const distanceKm = calculateDistanceInKm(
@@ -919,10 +1008,13 @@ if (!dropAvailable) {
           pickup_longitude,
           vehicle_type: row.vehicle_id,
           brand_id: row.brand_id,   // sirf response/driver filter
-          model_id: row.model_id
+          model_id: row.model_id,
+
+          // 🔥 SETTINGS BASED RADIUS (NEW ADDITION)
+          ride_radius_km: rideRadiusKm
         });
 
-          vehicleMap[row.vehicle_id] = {
+        vehicleMap[row.vehicle_id] = {
           vehicle_id: row.vehicle_id,
           vehicle_name: row.vehicle_name,
 

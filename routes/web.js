@@ -23,7 +23,9 @@ driver_controller,
 driverView,
 updateDriverStatus,
 approveAllDocuments,
-driverLoginStatus
+driverLoginStatus,
+deleteDriver,
+liveTrackingPage
 } from "../controllers/driverController.js";
 
 
@@ -31,6 +33,12 @@ import {
 allServiceman,
 updateServicemanStatus
 } from "../controllers/serviceManController.js";
+
+
+
+import { 
+cabOrdersController
+} from "../controllers/cabOrdersController.js";
 
 
 import { 
@@ -123,7 +131,8 @@ router.get("/categories", allCategories);
 router.get("/category-status-update/:id", updateCategoryStatus);
 
 
-router.get("/subcategories", subcategoriesPage);     
+router.get("/subcategories", subcategoriesPage);
+router.get("/subcategories/:status", subcategoriesPage);     
 router.get("/subcategories-list", subcategoriesListAjax); 
 router.get("/subcategory-status-update/:id", subcategoryStatusUpdate);
 
@@ -177,6 +186,8 @@ router.get(
 
 
 router.get("/all-drivers", driver_controller);
+router.get("/all-drivers/:id", driver_controller);
+
 router.get("/driver-view/:id", driverView);
 router.get("/driver-status-update/:id", updateDriverStatus);
 router.post("/driver-approve-all", approveAllDocuments);
@@ -248,5 +259,13 @@ router.get("/service_payments", allServicePayments);
 router.get("/service_payments/:payment_type", allServicePayments);
 
 
+
+router.get("/driver-delete/:id", deleteDriver);
+router.get("/cabLiveOrdersRoutes", liveTrackingPage);
+
+
+router.get("/cab-orders", cabOrdersController);
+
+router.get("/cab-orders/:status", cabOrdersController);
 
 export default router;

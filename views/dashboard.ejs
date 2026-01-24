@@ -67,44 +67,83 @@
 
 <!-- ================= MAIN DASHBOARD ROW ================= -->
 
-<form method="GET" action="/dashboard" class="row g-2 align-items-end mb-3">
+<div class="row align-items-center mb-3">
 
-  <div class="col-sm-3">
-    <label class="form-label form-label-sm mb-1">From Date</label>
-    <input
-      type="date"
-      name="from"
-      class="form-control form-control-sm"
-      value="<%= from || '' %>"
-      required
-    >
+  <!-- LEFT : TEXT -->
+  <div class="col-sm-4">
+   <h5 class="fw-semibold">
+  Total Revenue :-  
+  <span style="color:#2563eb;">
+    <%= Number(service_revenue) + Number(cab_revenue) %>
+  </span>
+</h5>
+
+   
   </div>
 
-  <div class="col-sm-3">
-    <label class="form-label form-label-sm mb-1">To Date</label>
-    <input
-      type="date"
-      name="to"
-      class="form-control form-control-sm"
-      value="<%= to || '' %>"
-      required
-    >
+  <!-- RIGHT : FILTER FORM -->
+  <div class="col-sm-7">
+    <form method="GET"
+          action="/dashboard"
+          class="row g-2 justify-content-end align-items-end">
+
+      <div class="col-sm-4">
+        <label class="form-label form-label-sm mb-1">From Date</label>
+        <input
+          type="date"
+          name="from"
+          class="form-control form-control-sm"
+          value="<%= from || '' %>"
+          required
+        >
+      </div>
+
+      <div class="col-sm-4">
+        <label class="form-label form-label-sm mb-1">To Date</label>
+        <input
+          type="date"
+          name="to"
+          class="form-control form-control-sm"
+          value="<%= to || '' %>"
+          required
+        >
+      </div>
+
+      <div class="col-sm-4 d-flex gap-2">
+        <button type="submit" class="btn btn-sm btn-primary w-100">
+          Filter
+        </button>
+
+        <a href="/dashboard" class="btn btn-sm btn-secondary w-100">
+          Reset
+        </a>
+      </div>
+
+    </form>
   </div>
 
-  <div class="col-sm-6 d-flex gap-2">
-    <button type="submit" class="btn btn-sm btn-primary">
-      Filter
-    </button>
+</div>
 
-    <a href="/dashboard" class="btn btn-sm btn-secondary">
-      Reset
-    </a>
-  </div>
 
-</form>
+
 <div class="row">
 
+  <div class="col-12 mb-2">
+    <h4>Service Section</h4>
+  </div>
+  
+
   <!-- Total Serviceman -->
+  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='/dashboard'">
+    <div class="mini-card">
+      <div class="mini-card-title">Total Service Revenue </div>
+      <div class="mini-card-body">
+        <div class="mini-icon icon-green"><i class="bi bi-people-fill"></i></div>
+        <span class="mini-badge badge-green"><%= service_revenue  %></span>
+      </div>
+    </div>
+  </div>
+  
   <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='/serviceman'">
     <div class="mini-card">
       <div class="mini-card-title">Total Serviceman</div>
@@ -127,7 +166,7 @@
   </div>
 
   <!-- Online -->
-  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='/serviceman'">
+  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='/serviceman?status=4'">
     <div class="mini-card">
       <div class="mini-card-title">Online</div>
       <div class="mini-card-body">
@@ -138,7 +177,7 @@
   </div>
 
   <!-- Offline -->
-  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='/serviceman'">
+  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='/serviceman?status=3'">
     <div class="mini-card">
       <div class="mini-card-title">Offline</div>
       <div class="mini-card-body">
@@ -159,16 +198,20 @@
     </div>
   </div>
 
-  <!-- Inactive Category -->
-  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='/categories?status=inactive'">
-    <div class="mini-card">
-      <div class="mini-card-title">Inactive Category</div>
-      <div class="mini-card-body">
-        <div class="mini-icon icon-red"><i class="bi bi-grid-3x3-gap-fill"></i></div>
-        <span class="mini-badge badge-red"><%= inactive_category %></span>
+<!-- Inactive Category -->
+<div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3"
+     onclick="window.location.href='/categories/?status=0'">
+  <div class="mini-card">
+    <div class="mini-card-title">Inactive Category</div>
+    <div class="mini-card-body">
+      <div class="mini-icon icon-red">
+        <i class="bi bi-grid-3x3-gap-fill"></i>
       </div>
+      <span class="mini-badge badge-red"><%= inactive_category %></span>
     </div>
   </div>
+</div>
+
 
   <!-- Total Subcategory -->
   <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='/subcategories'">
@@ -203,7 +246,7 @@
     </div>
   </div>
 
-  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='/services/1?status=inactive'">
+  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='service/0'">
     <div class="mini-card">
       <div class="mini-card-title">Inactive Services</div>
       <div class="mini-card-body">
@@ -245,7 +288,7 @@
     </div>
   </div>
 
-  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='/all-users?status=inactive'">
+  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='/all-users?status=0'">
     <div class="mini-card">
       <div class="mini-card-title">Inactive Users</div>
       <div class="mini-card-body">
@@ -275,6 +318,10 @@
     </div>
   </div>
 
+
+
+
+
 </div>
 <!-- ================= END MAIN DASHBOARD ================= -->
 
@@ -286,67 +333,106 @@
     <h4>Cab and Ride Section</h4>
   </div>
 
-  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='/all-drivers'">
-    <div class="mini-card">
-      <div class="mini-card-title">Total Drivers</div>
-      <div class="mini-card-body">
-        <div class="mini-icon icon-purple"><i class="bi bi-truck"></i></div>
-        <span class="mini-badge badge-purple"><%= total_driver %></span>
-      </div>
+<div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3"
+     onclick="window.location.href='/all-drivers'">
+  <div class="mini-card">
+    <div class="mini-card-title">Total Ride Revenue  </div>
+    <div class="mini-card-body">
+      <div class="mini-icon icon-purple"><i class="bi bi-truck"></i></div>
+      <span class="mini-badge badge-purple"><%= cab_revenue  %></span>
     </div>
   </div>
+</div>
 
-  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='/all-drivers?status=active'">
-    <div class="mini-card">
-      <div class="mini-card-title">Active Drivers</div>
-      <div class="mini-card-body">
-        <div class="mini-icon icon-green"><i class="bi bi-check-circle-fill"></i></div>
-        <span class="mini-badge badge-green"><%= active_driver %></span>
+<div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3"
+     onclick="window.location.href='/cabLiveOrdersRoutes'"
+     style="cursor:pointer;">
+  <div class="mini-card">
+    <div class="mini-card-title">Active Rides</div>
+    <div class="mini-card-body">
+      <div class="mini-icon icon-blue">
+        <i class="bi bi-arrow-repeat"></i>
       </div>
+      <span class="mini-badge badge-blue" id="activeRideCount">
+        0
+      </span>
     </div>
   </div>
+</div>
 
-  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='/all-drivers?status=inactive'">
-    <div class="mini-card">
-      <div class="mini-card-title">Inactive Drivers</div>
-      <div class="mini-card-body">
-        <div class="mini-icon icon-red"><i class="bi bi-x-circle-fill"></i></div>
-        <span class="mini-badge badge-red"><%= inactive_driver %></span>
-      </div>
+
+<div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3"
+     onclick="window.location.href='/all-drivers'">
+  <div class="mini-card">
+    <div class="mini-card-title">Total Drivers</div>
+    <div class="mini-card-body">
+      <div class="mini-icon icon-purple"><i class="bi bi-truck"></i></div>
+      <span class="mini-badge badge-purple"><%= total_driver %></span>
     </div>
   </div>
+</div>
 
-  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='/all-drivers?status=online'">
-    <div class="mini-card">
-      <div class="mini-card-title">Online Drivers</div>
-      <div class="mini-card-body">
-        <div class="mini-icon icon-blue"><i class="bi bi-wifi"></i></div>
-        <span class="mini-badge badge-blue"><%= online_driver %></span>
-      </div>
+<div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3"
+     onclick="window.location.href='/all-drivers/2'">
+  <div class="mini-card">
+    <div class="mini-card-title">Active Drivers</div>
+    <div class="mini-card-body">
+      <div class="mini-icon icon-green"><i class="bi bi-check-circle-fill"></i></div>
+      <span class="mini-badge badge-green"><%= active_driver %></span>
     </div>
   </div>
+</div>
 
-  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='/all-drivers?status=offline'">
-    <div class="mini-card">
-      <div class="mini-card-title">Offline Drivers</div>
-      <div class="mini-card-body">
-        <div class="mini-icon icon-orange"><i class="bi bi-wifi-off"></i></div>
-        <span class="mini-badge badge-orange"><%= offline_driver %></span>
-      </div>
+
+<div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3"
+     onclick="window.location.href='/all-drivers/4'">
+  <div class="mini-card">
+    <div class="mini-card-title">Inactive Drivers</div>
+    <div class="mini-card-body">
+      <div class="mini-icon icon-red"><i class="bi bi-x-circle-fill"></i></div>
+      <span class="mini-badge badge-red"><%= inactive_driver %></span>
     </div>
   </div>
+</div>
 
-  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='#'">
-    <div class="mini-card">
-      <div class="mini-card-title">Drivers Pending Doc</div>
-      <div class="mini-card-body">
-        <div class="mini-icon icon-dark"><i class="bi bi-file-earmark-check-fill"></i></div>
-        <span class="mini-badge badge-dark"><%= total_register_pending_doc %></span>
-      </div>
+
+<div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3"
+     onclick="window.location.href='/all-drivers/1'">
+  <div class="mini-card">
+    <div class="mini-card-title">Online Drivers</div>
+    <div class="mini-card-body">
+      <div class="mini-icon icon-blue"><i class="bi bi-wifi"></i></div>
+      <span class="mini-badge badge-blue"><%= online_driver %></span>
     </div>
   </div>
+</div>
 
-<div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='/driver-withdraw-request/2'">
+
+<div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3"
+     onclick="window.location.href='/all-drivers/0'">
+  <div class="mini-card">
+    <div class="mini-card-title">Offline Drivers</div>
+    <div class="mini-card-body">
+      <div class="mini-icon icon-orange"><i class="bi bi-wifi-off"></i></div>
+      <span class="mini-badge badge-orange"><%= offline_driver %></span>
+    </div>
+  </div>
+</div>
+
+
+<div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3"
+     onclick="window.location.href='/all-drivers/6'">
+  <div class="mini-card">
+    <div class="mini-card-title">Drivers Pending Doc</div>
+    <div class="mini-card-body">
+      <div class="mini-icon icon-dark"><i class="bi bi-file-earmark-check-fill"></i></div>
+      <span class="mini-badge badge-dark"><%= total_register_pending_doc %></span>
+    </div>
+  </div>
+</div>
+
+
+<div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='driver-withdraw-request/1'">
   <div class="mini-card">
     <div class="mini-card-title">Pending Withdraw</div>
     <div class="mini-card-body">
@@ -358,11 +444,9 @@
   </div>
 </div>
 
-</div>
 
-<div class="row">
 <!-- TOTAL ORDERS -->
-<div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='#'">
+<div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='/cab-orders'">
   <div class="mini-card">
     <div class="mini-card-title">Total Orders</div>
     <div class="mini-card-body">
@@ -375,7 +459,7 @@
 </div>
 
 <!-- COMPLETED ORDERS -->
-<div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='#'">
+<div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='/cab-orders/5'">
   <div class="mini-card">
     <div class="mini-card-title">Completed Orders</div>
     <div class="mini-card-body">
@@ -388,7 +472,7 @@
 </div>
 
 <!-- CANCELLED BY USER -->
-<div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='#'">
+<div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='/cab-orders/6'">
   <div class="mini-card">
     <div class="mini-card-title">Cancelled by User</div>
     <div class="mini-card-body">
@@ -401,7 +485,7 @@
 </div>
 
 <!-- CANCELLED BY DRIVER -->
-<div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='#'">
+<div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='//cab-orders/7'">
   <div class="mini-card">
     <div class="mini-card-title">Cancelled by Driver</div>
     <div class="mini-card-body">
@@ -425,7 +509,10 @@
   </div>
 </div>
 
+
 </div>
+
+
 <!-- ================= END CAB & RIDE ================= -->
 
 </div>
@@ -463,3 +550,43 @@
 </script>
 
 
+
+
+
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+
+<script>
+/* =====================================================
+   🔥 Firebase Init (PUBLIC CONFIG ONLY)
+===================================================== */
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "rainbow-f0f87.firebaseapp.com",
+  projectId: "rainbow-f0f87",
+};
+
+if (!firebase.apps.length) {
+  firebase.initializeApp(firebaseConfig);
+}
+
+const db = firebase.firestore();
+const activeRideEl = document.getElementById("activeRideCount");
+
+/* =====================================================
+   🔥 LIVE ACTIVE RIDE COUNT
+   order_status BETWEEN 1 AND 4
+===================================================== */
+db.collection("cab_orders")
+  .where("order_status", ">", 0)
+  .where("order_status", "<", 5)
+  .onSnapshot(snapshot => {
+
+    activeRideEl.textContent = snapshot.size;
+
+  }, error => {
+    console.error("Active Ride Count Error:", error);
+  });
+</script>

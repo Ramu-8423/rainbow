@@ -9,22 +9,40 @@ export const allServiceman = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const offset = (page - 1) * perPage;
 
-    const { from, to, status } = req.query;
+    const { from, to } = req.query;
+
+    // 🔑 ROUTE PARAM KO HI status BANA DIYA
+    // so EJS same rahe
+    const status = req.params.status || req.query.status;
 
     let where = "WHERE 1 ";
     let values = [];
 
-    // DATE FILTER
+    /* ================= DATE FILTER ================= */
     if (from && to) {
       where += "AND DATE(s.created_at) BETWEEN ? AND ? ";
       values.push(from, to);
     }
 
-    // STATUS FILTER (login_status)
+    /* =================================================
+       STATUS LOGIC (SAME VARIABLE NAME)
+       -------------------------------------------------
+       1 -> login active
+       0 -> login inactive
+       3 -> online
+       4 -> offline
+    ================================================== */
     if (status === "1") {
       where += "AND s.login_status = 1 ";
-    } else if (status === "0") {
+    } 
+    else if (status === "0") {
       where += "AND s.login_status = 0 ";
+    } 
+    else if (status === "3") {
+      where += "AND s.online_status = 0 ";
+    } 
+    else if (status === "4") {
+      where += "AND s.online_status = 1 ";
     }
 
     /* ================= COUNT ================= */
@@ -66,12 +84,13 @@ export const allServiceman = async (req, res) => {
       totalPages: Math.ceil(total / perPage),
       from,
       to,
-      status,
-      isFiltered: Boolean(from && to),
+      status,                 // ✅ EJS ko mil gaya
+      isFiltered: Boolean(from || to || status),
     });
 
   } catch (err) {
     console.log("SERVICEMAN LIST ERROR:", err);
+
     return res.render("serviceman/allServiceman", {
       title: "Serviceman List",
       servicemen: [],
@@ -79,7 +98,8 @@ export const allServiceman = async (req, res) => {
       page: 1,
       perPage: 8,
       totalPages: 1,
-      error: "Something went wrong!"
+      status: null,           // ✅ safety
+      error: "Something went wrong!",
     });
   }
 };

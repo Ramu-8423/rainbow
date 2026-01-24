@@ -17,7 +17,6 @@ export const payment = async (req, res) => {
     } = req.body;
 
     const currentDate = nowIST();
-
     if (!user_id)
       return res.status(400).json({ status: false, message: "User ID is required" });
 

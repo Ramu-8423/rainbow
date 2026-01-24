@@ -246,20 +246,7 @@
         </div>
       <% } %>
       
-      <% if (driver.pan_card_back) { %>
-        <div class="doc-img-box">
-          <img src="<%= BASE_URL %>/<%= driver.pan_card_back %>" class="doc-img" onclick="openImageModal(this.src)">
-          <div>PAN Back</div>
-        </div>
-      <% } else { %>
-        <div class="doc-img-box">
-          <div class="doc-img-placeholder">
-            <div class="x-mark">X</div>
-            <div class="img-name">PAN Back</div>
-          </div>
-          <div>PAN Back</div>
-        </div>
-      <% } %>
+      
     </div>
 
     <div class="doc-actions-row">
@@ -286,9 +273,9 @@
         <div class="doc-img-box">
           <div class="doc-img-placeholder">
             <div class="x-mark">X</div>
-            <div class="img-name">Fitness Certificate</div>
+            <div class="img-name">Fitness Certificate (Optional)</div>
           </div>
-          <div>Fitness Certificate</div>
+          <div>Fitness Certificate (Optional)</div>
         </div>
       <% } %>
       
@@ -325,7 +312,7 @@
       <% if (driver.police_certificate) { %>
         <div class="doc-img-box">
           <img src="<%= BASE_URL %>/<%= driver.police_certificate %>" class="doc-img" onclick="openImageModal(this.src)">
-          <div>Police Certificate</div>
+          <div>Police Certificate (Optional)</div>
         </div>
       <% } else { %>
         <div class="doc-img-box">
@@ -333,7 +320,7 @@
             <div class="x-mark">X</div>
             <div class="img-name">Police Certificate</div>
           </div>
-          <div>Police Certificate</div>
+          <div>Police Certificate (Optional)</div>
         </div>
       <% } %>
     </div>
@@ -389,6 +376,7 @@
   <hr>
 
   <!-- ================= 6️⃣ VEHICLE DOCUMENTS ================= -->
+  <% if (driver.vehicle_category != 2) { %>
   <h5 class="text-success">Vehicle Documents</h5>
   <div class="doc-block">
     <div class="doc-images-row">
@@ -463,6 +451,7 @@
   <% } %>
 
   <hr>
+  <% } %>
 
   <div style="margin-top:15px; display:flex; justify-content:flex-end; align-items:center; gap:10px;">
     <a href="/all-drivers" class="btn btn-dark">Back</a>
@@ -478,6 +467,15 @@
     %>
 
     <% if (allSubmitted) { %>
+      <form method="POST" action="/driver-approve-all" style="margin:0;">
+        <input type="hidden" name="driver_id" value="<%= driver.id %>">
+        <button type="submit" class="btn btn-success">
+          Approve All Documents
+        </button>
+      </form>
+    <% } %>
+    
+    <% if (driver.vehicle_category == 2 && driver.vehicle_documents_status == 0) { %>
       <form method="POST" action="/driver-approve-all" style="margin:0;">
         <input type="hidden" name="driver_id" value="<%= driver.id %>">
         <button type="submit" class="btn btn-success">

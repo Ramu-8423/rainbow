@@ -1,6 +1,65 @@
 import db from "../config/database.js";
 import { FCMHelper } from "../middleware/fcmHelper.js";
 
+
+
+
+export const deleteDriver = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return res.redirect("/all-drivers");
+    }
+
+    /* ===============================
+       1️⃣ BANK DETAILS (type = 2)
+       table: bank_details
+       column: user_id (driver id)
+    ================================ */
+    await db.query(
+      "DELETE FROM bank_details WHERE user_id = ? AND type = 2",
+      [id]
+    );
+
+    /* ===============================
+       2️⃣ BANK DETAILS UPDATE REQUESTS (type = 2)
+       table: bank_details_update_requests
+       column: user_id (driver id)
+    ================================ */
+    await db.query(
+      "DELETE FROM bank_details_update_requests WHERE user_id = ? AND type = 2",
+      [id]
+    );
+
+    /* ===============================
+       3️⃣ CAB ORDERS
+       table: cab_orders
+       column: driver_id
+    ================================ */
+    await db.query(
+      "DELETE FROM cab_orders WHERE driver_id = ?",
+      [id]
+    );
+
+    /* ===============================
+       4️⃣ DRIVER MAIN TABLE
+       table: driver_registration
+    ================================ */
+    await db.query(
+      "DELETE FROM driver_registration WHERE id = ?",
+      [id]
+    );
+
+    return res.redirect("/all-drivers");
+
+  } catch (error) {
+    console.error("Delete Driver Error:", error);
+    return res.redirect("/all-drivers");
+  }
+};
+
+
 export const approveAllDocuments = async (req, res) => {
   try {
     const { driver_id } = req.body;
@@ -73,37 +132,99 @@ export const approveAllDocuments = async (req, res) => {
 };
 
 
+
+
 export const driver_controller = async (req, res) => {
   try {
     const perPage = parseInt(req.query.perPage) || 8;
     const page = parseInt(req.query.page) || 1;
     const offset = (page - 1) * perPage;
 
-    const { from, to, status } = req.query;
+    const { from, to } = req.query;
+    const filterCode = req.params.id; // 👈 route parameter
 
     let where = "WHERE 1 ";
     let values = [];
 
-    // DATE FILTER
+    /* ================= DATE FILTER ================= */
     if (from && to) {
       where += "AND DATE(created_at) BETWEEN ? AND ? ";
       values.push(from, to);
     }
 
-    // STATUS FILTER
-    if (status === "1") {
-      where += "AND status = 1 ";
-    } else if (status === "0") {
-      where += "AND status = 0 ";
+    /* =================================================
+       ROUTE PARAM FILTER LOGIC
+       =================================================
+
+       1 → online_status = 1
+       0 → online_status = 0
+       2 → login_status = 1 (Active)
+       4 → login_status = 0 (Inactive)
+       5 → ALL documents status = 1
+       6 → ANY document status = 0
+    ================================================== */
+
+    if (filterCode !== undefined) {
+
+      switch (parseInt(filterCode)) {
+
+        // ONLINE
+        case 1:
+          where += "AND online_status = 1 ";
+          break;
+
+        // OFFLINE
+        case 0:
+          where += "AND online_status = 0 ";
+          break;
+
+        // LOGIN ACTIVE
+        case 2:
+          where += "AND login_status = 1 ";
+          break;
+
+        // LOGIN INACTIVE
+        case 4:
+          where += "AND login_status = 0 ";
+          break;
+
+        // ALL DOCUMENTS VERIFIED (STATUS = 1)
+        case 5:
+          where += `
+            AND personal_information_status = 1
+            AND vehicle_info_status = 1
+            AND driver_licence_status = 1
+            AND aadhaar_pan_status = 1
+            AND required_certificates_status = 1
+          `;
+          break;
+
+        // ANY DOCUMENT NOT FILLED (STATUS = 0)
+        case 6:
+          where += `
+            AND (
+              personal_information_status = 0
+              OR vehicle_info_status = 0
+              OR driver_licence_status = 0
+              OR aadhaar_pan_status = 0
+              OR required_certificates_status = 0
+            )
+          `;
+          break;
+
+        default:
+          // kuch nahi → all drivers
+          break;
+      }
     }
 
-    // TOTAL COUNT
+    /* ================= TOTAL COUNT ================= */
     const [[{ total }]] = await db.query(
       `SELECT COUNT(*) AS total FROM driver_registration ${where}`,
       values
     );
 
-    // DATA FETCH
+    /* ================= DATA FETCH ================= */
     const [rows] = await db.query(
       `SELECT * FROM driver_registration
        ${where}
@@ -121,8 +242,7 @@ export const driver_controller = async (req, res) => {
       totalPages: Math.ceil(total / perPage),
       from,
       to,
-      status,
-      isFiltered: Boolean(from && to),
+      isFiltered: Boolean(from || to || filterCode),
     });
 
   } catch (err) {
@@ -135,7 +255,7 @@ export const driver_controller = async (req, res) => {
       page: 1,
       perPage: 8,
       totalPages: 1,
-      error: "Something went wrong!"
+      error: "Something went wrong!",
     });
   }
 };
@@ -383,6 +503,13 @@ export const driverLoginStatus = async (req, res) => {
     req.session.error = "Something went wrong while updating status.";
     return res.redirect("/all-drivers");
   }
+};
+
+
+export const liveTrackingPage = (req, res) => {
+  res.render("ride_order/live-tracking", {
+    pageTitle: "Live Cab Tracking"
+  });
 };
 
 

@@ -54,7 +54,7 @@ function buildUpdateObject(data, files, folder) {
   setFileIfExists("fitness_certificate");
   setFileIfExists("pollution_certificate");
   setFileIfExists("insurance_certificate");
-  
+  setFileIfExists("police_certificate"); 
 
   // 🔹 Vehicle Info
   setIfExists("vehicle_info_status", data.vehicle_info_status);
@@ -86,7 +86,7 @@ export const driverRegister = async (req, res) => {
     const data = req.body;
     const files = req.files || {};
     const folder = "DriverDocuments";
-
+    
     const {
       id,
       personal_information_status,

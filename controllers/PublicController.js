@@ -253,28 +253,67 @@ export const updateCategoryStatus = async (req, res) => {
 
 
 
-// 1) SUBCATEGORIES PAGE LOAD (EJS)
+// SUBCATEGORIES PAGE LOAD (EJS)
 export const subcategoriesPage = async (req, res) => {
   try {
-    // all categories for dropdown
+    const statusCode = req.params.status; // 👈 route param (0 / 1 / undefined)
+
+    let where = "WHERE 1 ";
+    let values = [];
+
+    /*
+      ROUTE STATUS MAP
+      ----------------
+      /subcategories     -> all
+      /subcategories/1   -> active
+      /subcategories/0   -> inactive
+    */
+    if (statusCode === "1") {
+      where += "AND status = 1 ";
+    } else if (statusCode === "0") {
+      where += "AND status = 0 ";
+    }
+
+    /* ===============================
+       SUBCATEGORIES LIST
+    =============================== */
+    const [subcategories] = await db.query(
+      `
+      SELECT *
+      FROM subcategories
+      ${where}
+      ORDER BY id DESC
+      `,
+      values
+    );
+
+    /* ===============================
+       ACTIVE CATEGORIES (DROPDOWN)
+       dropdown hamesha active hi rahega
+    =============================== */
     const [categories] = await db.query(
       "SELECT id, name FROM categories WHERE status = 1 ORDER BY name ASC"
     );
 
     return res.render("categories/subcategories", {
       title: "Subcategories",
-      categories
+      subcategories,
+      categories,
+      activeTab: statusCode ?? "all" // 👈 UI highlight ke liye
     });
 
   } catch (err) {
-    console.log("PAGE LOAD ERROR:", err);
+    console.log("SUBCATEGORY PAGE LOAD ERROR:", err);
+
     return res.render("categories/subcategories", {
       title: "Subcategories",
+      subcategories: [],
       categories: [],
       error: "Something went wrong!"
     });
   }
 };
+
 
 
 export const subcategoriesListAjax = async (req, res) => {

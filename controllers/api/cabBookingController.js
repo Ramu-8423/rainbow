@@ -12,10 +12,11 @@ export const vehicles = async (req, res) => {
          id,
          name,
          image,
+         vehicle_category,
          register_status
        FROM vehicle
        WHERE register_status = 1
-       ORDER BY id DESC`
+       ORDER BY vehicle_category ASC`
     );
 
     const data = rows.map(item => ({

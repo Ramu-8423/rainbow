@@ -159,6 +159,7 @@ export const updateProfile = async (req, res) => {
 };
 
 
+
 export const dashboard = async (req, res) => {
   try {
     /* ===============================
@@ -187,7 +188,7 @@ export const dashboard = async (req, res) => {
         SUM(CASE WHEN online_status = 0 THEN 1 ELSE 0 END) AS offline_serviceman
       FROM serviceman
       ${dateCondition}
-    `,
+      `,
       dateParams
     );
 
@@ -204,18 +205,19 @@ export const dashboard = async (req, res) => {
         SUM(CASE WHEN online_status = 0 THEN 1 ELSE 0 END) AS offline_driver,
         SUM(
           CASE
-            WHEN personal_information_status = 1
-             AND vehicle_info_status = 1
-             AND driver_licence_status = 1
-             AND aadhaar_pan_status = 1
-             AND required_certificates_status = 1
-             AND vehicle_documents_status = 1
+            WHEN
+              personal_information_status = 0
+              OR vehicle_info_status = 0
+              OR driver_licence_status = 0
+              OR aadhaar_pan_status = 0
+              OR required_certificates_status = 0
+              OR vehicle_documents_status = 0
             THEN 1 ELSE 0
           END
         ) AS total_register_pending_doc
       FROM driver_registration
       ${dateCondition}
-    `,
+      `,
       dateParams
     );
 
@@ -227,7 +229,7 @@ export const dashboard = async (req, res) => {
       SELECT COUNT(*) AS total_job_request
       FROM job_request
       ${dateCondition}
-    `,
+      `,
       dateParams
     );
 
@@ -241,7 +243,7 @@ export const dashboard = async (req, res) => {
         SUM(CASE WHEN status = 0 THEN 1 ELSE 0 END) AS inactive_category
       FROM categories
       ${dateCondition}
-    `,
+      `,
       dateParams
     );
 
@@ -252,7 +254,7 @@ export const dashboard = async (req, res) => {
         SUM(CASE WHEN status = 0 THEN 1 ELSE 0 END) AS inactive_subcategory
       FROM subcategories
       ${dateCondition}
-    `,
+      `,
       dateParams
     );
 
@@ -263,7 +265,7 @@ export const dashboard = async (req, res) => {
         SUM(CASE WHEN status = 0 THEN 1 ELSE 0 END) AS inactive_services
       FROM services
       ${dateCondition}
-    `,
+      `,
       dateParams
     );
 
@@ -277,7 +279,7 @@ export const dashboard = async (req, res) => {
         SUM(CASE WHEN service_status < 5 THEN 1 ELSE 0 END) AS ongoing_services
       FROM service_order
       ${dateCondition}
-    `,
+      `,
       dateParams
     );
 
@@ -291,7 +293,7 @@ export const dashboard = async (req, res) => {
         SUM(CASE WHEN status = 0 THEN 1 ELSE 0 END) AS inactive_users
       FROM users
       ${dateCondition}
-    `,
+      `,
       dateParams
     );
 
@@ -305,7 +307,7 @@ export const dashboard = async (req, res) => {
         SUM(CASE WHEN user_type = 3 AND status = 0 THEN 1 ELSE 0 END) AS pending_driver_withdraw
       FROM withdraw_service
       ${dateCondition}
-    `,
+      `,
       dateParams
     );
 
@@ -315,15 +317,49 @@ export const dashboard = async (req, res) => {
     const [[orderCounts]] = await db.query(
       `
       SELECT
-        SUM(CASE WHEN order_status BETWEEN 0 AND 7 THEN 1 ELSE 0 END) AS total_orders,
+        COUNT(*) AS total_orders,
         SUM(CASE WHEN order_status = 5 THEN 1 ELSE 0 END) AS completed_orders,
         SUM(CASE WHEN order_status = 6 THEN 1 ELSE 0 END) AS cancelled_by_user,
         SUM(CASE WHEN order_status = 7 THEN 1 ELSE 0 END) AS cancelled_by_driver,
         SUM(CASE WHEN order_status = 8 THEN 1 ELSE 0 END) AS cancelled_by_system
       FROM cab_orders
       ${dateCondition}
-    `,
+      `,
       dateParams
+    );
+
+    /* ===============================
+       🟢 CAB REVENUE (NEW)
+    =============================== */
+    const [[cabRevenueCounts]] = await db.query(
+      `
+      SELECT
+        COUNT(*) AS cab_payment_count,
+        SUM(amount - IFNULL(final_amount, 0)) AS cab_revenue
+      FROM paying
+      WHERE module_type = 2
+        AND payment_type IN (1,2,3)
+        AND status = 1
+        ${from && to ? "AND created_at BETWEEN ? AND ?" : ""}
+      `,
+      from && to ? [...dateParams] : []
+    );
+
+    /* ===============================
+       🟢 SERVICE REVENUE (NEW)
+    =============================== */
+    const [[serviceRevenueCounts]] = await db.query(
+      `
+      SELECT
+        COUNT(*) AS service_payment_count,
+        SUM(amount - IFNULL(final_amount, 0)) AS service_revenue
+      FROM paying
+      WHERE module_type = 1
+        AND payment_type IN (1,2,3)
+        AND status = 1
+        ${from && to ? "AND created_at BETWEEN ? AND ?" : ""}
+      `,
+      from && to ? [...dateParams] : []
     );
 
     /* ===============================
@@ -373,9 +409,18 @@ export const dashboard = async (req, res) => {
       completed_orders: orderCounts.completed_orders || 0,
       cancelled_by_user: orderCounts.cancelled_by_user || 0,
       cancelled_by_driver: orderCounts.cancelled_by_driver || 0,
-      cancelled_by_system: orderCounts.cancelled_by_system || 0
+      cancelled_by_system: orderCounts.cancelled_by_system || 0,
+
+      /* 🔥 NEW DASHBOARD VALUES */
+      cab_payment_count: cabRevenueCounts.cab_payment_count || 0,
+      cab_revenue: cabRevenueCounts.cab_revenue || 0,
+
+      service_payment_count: serviceRevenueCounts.service_payment_count || 0,
+      service_revenue: serviceRevenueCounts.service_revenue || 0
     });
-  } catch {
+
+  } catch (err) {
+    console.error("Dashboard Error:", err);
     return res.render("dashboard", { title: "Dashboard" });
   }
 };

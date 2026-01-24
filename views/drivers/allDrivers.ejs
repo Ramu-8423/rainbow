@@ -175,6 +175,7 @@
   <th>Online Status</th>
   <th>Login Status</th>
   <th>Date</th>
+  <th>Delete</th>
 </tr>
 </thead>
 
@@ -329,10 +330,20 @@
 
 
 </td>
-
-
   <td><%= d.created_at %></td>
+  
+  <td>
+  <a
+  href="/driver-delete/<%= d.id %>"
+  class="action-eye"
+  title="Delete"
+  style="border-color:#dc3545;color:#dc3545;margin-left:6px;"
+>
+  <i class="fa fa-trash"></i>
+</a></td>
 </tr>
+
+
 <% }) %>
 
 <% } else { %>

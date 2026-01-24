@@ -1,0 +1,141 @@
+<div class="main-content">
+
+
+  <style>
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+      font-family: Arial;
+    }
+    th, td {
+      padding: 10px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+    }
+    th {
+      background: #f2f2f2;
+    }
+    tr.active {
+      background: #eaffea;
+    }
+  </style>
+
+  <!-- 🔥 Firebase CDN -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+ 
+ 
+ 
+<h2>Live Active Rides</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Order ID</th>
+      <th>User ID</th>
+      <th>Driver ID</th>
+      <th>Vehicle</th>
+      <th>Pickup</th>
+      <th>Drop</th>
+      <th>Amount</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+
+  <tbody id="rideBody">
+    <tr>
+      <td colspan="8" align="center">Waiting for live rides...</td>
+    </tr>
+  </tbody>
+</table>
+
+
+
+
+
+
+
+</div>
+
+
+<script>
+/* =====================================================
+   🔥 Firebase Config (PUBLIC ONLY)
+===================================================== */
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "rainbow-f0f87.firebaseapp.com",
+  projectId: "rainbow-f0f87",
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+const rideBody = document.getElementById("rideBody");
+
+/* =====================================================
+   🔥 LIVE ACTIVE RIDE LISTENER
+   order_status BETWEEN 1 AND 4
+===================================================== */
+db.collection("cab_orders")
+  .where("order_status", ">", 0)
+  .where("order_status", "<", 5)
+  .onSnapshot(snapshot => {
+
+    rideBody.innerHTML = "";
+
+    if (snapshot.empty) {
+      rideBody.innerHTML =
+        `<tr><td colspan="8" align="center">No active ride</td></tr>`;
+      return;
+    }
+
+    snapshot.forEach(doc => {
+      const d = doc.data();
+
+      rideBody.innerHTML += `
+        <tr class="active">
+          <td>${d.order_id}</td>
+          <td>${d.user_id}</td>
+          <td>${d.driver_id ?? "-"}</td>
+          <td>${d.vehicle_name ?? "-"}</td>
+          <td>
+  <marquee behavior="scroll" direction="left" scrollamount="3">
+    ${d.pickup_location ?? "-"}
+  </marquee>
+</td>
+
+<td>
+  <marquee behavior="scroll" direction="left" scrollamount="3">
+    ${d.drop_location ?? "-"}
+  </marquee>
+</td>
+
+          <td>₹ ${d.estimated_amount ?? 0}</td>
+          <td>${rideStatusText(d.order_status)}</td>
+        </tr>
+      `;
+    });
+  }, error => {
+    console.error("Firestore Error:", error);
+  });
+
+/* =====================================================
+   🔹 STATUS TEXT
+===================================================== */
+function rideStatusText(status) {
+  switch (Number(status)) {
+    case 1: return "Accepted";
+    case 2: return "On the Way";
+    case 3: return "Arrived";
+    case 4: return "Started";
+    default: return status;
+  }
+}
+</script>
+
+
+
+

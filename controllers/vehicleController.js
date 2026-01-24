@@ -36,6 +36,7 @@ export const vehicleList = async (req, res) => {
         visible_status,
         created_at,
         discount,
+        vehicle_category,
         user_increase
       FROM vehicle
       ${where}
@@ -70,8 +71,12 @@ export const addVehicle = async (req, res) => {
       name,
       max_passenger,
       discount,
-      user_increase
+      user_increase,
+      vehicle_type   // 👈 NEW (from form)
     } = req.body;
+
+    // map vehicle_type → vehicle_category
+    const vehicle_category = vehicle_type;
 
     const folderName = "cabbooking/vehicle_image";
     let imagePath = null;
@@ -81,31 +86,43 @@ export const addVehicle = async (req, res) => {
       imagePath = `${folderName}/${req.file.filename}`;
     }
 
-    // basic validation
+    // basic validation (ONLY vehicle_category added)
     if (
       !name ||
       !max_passenger ||
       discount === undefined ||
       user_increase === undefined ||
-      !imagePath
+      !imagePath ||
+      !vehicle_category
     ) {
       req.session.error = "All fields are required!";
       return res.redirect("/vehicles");
     }
 
-    // DB insert
+    // DB insert (ONLY vehicle_category added)
     await db.query(
       `
       INSERT INTO vehicle 
-      (name, max_passenger, image, discount, user_increase, register_status, visible_status, created_at)
-      VALUES (?, ?, ?, ?, ?, 1, 1, NOW())
+      (
+        name,
+        max_passenger,
+        image,
+        discount,
+        user_increase,
+        vehicle_category,
+        register_status,
+        visible_status,
+        created_at
+      )
+      VALUES (?, ?, ?, ?, ?, ?, 1, 1, NOW())
       `,
       [
         name,
         max_passenger,
         imagePath,
         discount,
-        user_increase
+        user_increase,
+        vehicle_category
       ]
     );
 
@@ -114,6 +131,67 @@ export const addVehicle = async (req, res) => {
 
   } catch (err) {
     console.log("ADD VEHICLE ERROR:", err);
+    req.session.error = "Something went wrong!";
+    return res.redirect("/vehicle-list");
+  }
+};
+
+export const updateVehicle = async (req, res) => {
+  console.log("all data :", req.body);
+
+  try {
+    const {
+      id,
+      name,
+      max_passenger,
+      discount,
+      user_increase,
+      vehicle_type,   // 👈 NEW
+      old_image
+    } = req.body;
+
+    const vehicle_category = vehicle_type;
+
+    if (!id || !name || !max_passenger || !vehicle_category) {
+      req.session.error = "Invalid request!";
+      return res.redirect("/vehicle-list");
+    }
+
+    let imagePath = old_image;
+
+    // image update (same as add)
+    if (req.file) {
+      imagePath = "cabbooking/vehicle_image/" + req.file.filename;
+    }
+
+    await db.query(
+      `
+      UPDATE vehicle
+      SET
+        name = ?,
+        max_passenger = ?,
+        discount = ?,
+        user_increase = ?,
+        vehicle_category = ?,   -- ✅ ONLY THIS ADDED
+        image = ?
+      WHERE id = ?
+      `,
+      [
+        name.trim(),
+        max_passenger,
+        discount,
+        user_increase,
+        vehicle_category,
+        imagePath,
+        id
+      ]
+    );
+
+    req.session.success = "Vehicle updated successfully!";
+    return res.redirect("/vehicle-list");
+
+  } catch (err) {
+    console.log("UPDATE VEHICLE ERROR:", err);
     req.session.error = "Something went wrong!";
     return res.redirect("/vehicle-list");
   }
@@ -161,61 +239,6 @@ export const updateVehicleStatus = async (req, res) => {
 
 
 
-export const updateVehicle = async (req, res) => {
-  console.log("all data :", req.body);
-
-  try {
-    const {
-      id,
-      name,
-      max_passenger,
-      discount,
-      user_increase,
-      old_image
-    } = req.body;
-
-    if (!id || !name || !max_passenger) {
-      req.session.error = "Invalid request!";
-      return res.redirect("/vehicle-list");
-    }
-
-    let imagePath = old_image;
-
-    // image update (same as add)
-    if (req.file) {
-      imagePath = "cabbooking/vehicle_image/" + req.file.filename;
-    }
-
-    await db.query(
-      `
-      UPDATE vehicle
-      SET
-        name = ?,
-        max_passenger = ?,
-        discount = ?,
-        user_increase = ?,   -- ✅ ONLY THIS
-        image = ?
-      WHERE id = ?
-      `,
-      [
-        name.trim(),
-        max_passenger,
-        discount,
-        user_increase,
-        imagePath,
-        id
-      ]
-    );
-
-    req.session.success = "Vehicle updated successfully!";
-    return res.redirect("/vehicle-list");
-
-  } catch (err) {
-    console.log("UPDATE VEHICLE ERROR:", err);
-    req.session.error = "Something went wrong!";
-    return res.redirect("/vehicle-list");
-  }
-};
 
 
 

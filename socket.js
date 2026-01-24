@@ -2,6 +2,7 @@ import { Server } from "socket.io";
 import db from "./config/database.js";
 import { parseIST, nowIST } from "./utils/dateParser.js";
 
+const BASE_URL = process.env.BASE_URL;
 let io = null;
 
 // 🔹 Date formatter
@@ -57,13 +58,14 @@ export function initSocket(server) {
 
   io.on("connection", (socket) => {
     console.log("🔗 Serviceman Connected:", socket.id);
+    
 
     socket.on("register_serviceman", async (id) => {
       socket.join("serviceman_" + id);
-      console.log("📌 Serviceman Joined:", id);
+    
 
       const [sm] = await db.query(
-        "SELECT current_latitude, current_longitude FROM serviceman WHERE id = ?",
+        "SELECT id,current_latitude, current_longitude FROM serviceman WHERE id = ?",
         [id]
       );
 
@@ -71,17 +73,23 @@ export function initSocket(server) {
 
       const lat = sm[0].current_latitude;
       const lng = sm[0].current_longitude;
-
+       const servicemanId = sm[0].id;
+    //   console.log(lat,'get latitude');
+    //   console.log(lng,'get long');
+  console.log("🔗 Serviceman_id", servicemanId);
       // 🔥 CURRENT IST TIME
-      const currentTime = nowIST(); // moment / dayjs object
-
-      console.log("zsdxfcgvhbjnk", currentTime);
+      const currentTime = nowIST();
+    //   console.log(currentTime,'get currentTime');// moment / dayjs object
+ 
 
       const [orders] = await db.query(
   `
   SELECT 
     so.id AS order_id,
-    so.service_name,
+    so.service_id,
+    s.title AS service_name,
+    CONCAT(?, s.image) AS service_image,
+    so.description,
     so.user_name AS customer_name,
     so.user_mobile AS customer_mobile,
     so.final_amount,
@@ -98,22 +106,28 @@ export function initSocket(server) {
       )
     ) AS distance
   FROM service_order so
-  JOIN serviceman s ON s.id = ?
+  INNER JOIN services s 
+    ON s.id = so.service_id
   WHERE so.service_status = 0
     AND so.service_datetime >= ?
     AND JSON_CONTAINS(so.available_service_man, JSON_ARRAY(?))
-    AND s.login_status = 1
-    AND s.online_status = 1
   ORDER BY so.id DESC
   `,
-  [lat, lng, lat, id, currentTime, id]
+  [
+    BASE_URL + "/", 
+    lat,           
+    lng,          
+    lat,          
+    currentTime,   
+    servicemanId   
+  ]
 );
-
-
+           console.log(orders,'get final ');
       const finalOrders = orders.map(o => ({
         ...o,
         formatted_date: formatServiceDate(o.time)
       }));
+    
       socket.emit("pending_orders", finalOrders);
     });
   });
