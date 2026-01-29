@@ -120,8 +120,6 @@ button,
 
     <div class="card">
 
-      
-      
 <!-- HEADER (USERS STYLE – FINAL) -->
 <div class="card-header">
   <div class="row align-items-center g-1">
@@ -151,7 +149,7 @@ button,
 
           <li>
             <a class="dropdown-item <%= !activePaymetBy ? 'active' : '' %>"
-               href="/all_payments">
+               href="/service_payments">
               All Payment Types
             </a>
           </li>
@@ -160,35 +158,29 @@ button,
 
           <li>
             <a class="dropdown-item <%= activePaymetBy == 1 ? 'active' : '' %>"
-               href="/all_payments/1">
+               href="/service_payments/1">
               Online
             </a>
           </li>
 
           <li>
             <a class="dropdown-item <%= activePaymetBy == 2 ? 'active' : '' %>"
-               href="/all_payments/2">
+               href="/service_payments/2">
               Offline (Cash)
             </a>
           </li>
 
           <li>
             <a class="dropdown-item <%= activePaymetBy == 3 ? 'active' : '' %>"
-               href="/all_payments/3">
+               href="/service_payments/3">
               Wallet Payment
             </a>
           </li>
 
-          <li>
-            <a class="dropdown-item <%= activePaymetBy == 4 ? 'active' : '' %>"
-               href="/all_payments/4">
-              Self Wallet Add
-            </a>
-          </li>
 
           <li>
             <a class="dropdown-item <%= activePaymetBy == 5 ? 'active' : '' %>"
-               href="/all_payments/5">
+               href="/service_payments/5">
               Due Wallet
             </a>
           </li>
@@ -237,7 +229,7 @@ button,
       </button>
 
       <!-- RESET -->
-      <a href="/all_payments" class="btn btn-secondary btn-sm">
+      <a href="/service_payments" class="btn btn-secondary btn-sm">
         Reset
       </a>
 
@@ -256,65 +248,114 @@ button,
         <div class="table-responsive">
 
           <table class="table table-bordered table-striped">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>User Or Driver ID</th>
-                <th>Amount</th>
-                <th>Platform Fee</th>
-                <th>Final Amount</th>
-                <th>Payment Type</th>
-                <th>Transaction ID</th>
-                <th>Status</th>
-                <th>Created At</th>
-              </tr>
-            </thead>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>User / Serviceman ID</th>
+      <th>Serviceman</th>
+      <th>Mobile</th>
+      <th>Amount</th>
+      <th>Platform Fee</th>
+      <th>Final Amount</th>
+      <th>Payment Type</th>
+      <th>Transaction ID</th>
+      <th>Status</th>
+      <th>Created At</th>
+    </tr>
+  </thead>
 
-            <tbody>
-              <% if (transactions.length > 0) { %>
-                <% transactions.forEach(tx => { %>
-                  <tr>
-                    <td><%= tx.id %></td>
-                    <td><%= tx.user_id %></td>
-                    <td>₹<%= Number(tx.amount).toFixed(2) %></td>
-                      <td><%= tx.platform_fee || '-' %></td>
-                    <td>₹<%= Number(tx.final_amount).toFixed(2) %></td>
+  <tbody>
+    <% if (transactions.length > 0) { %>
+      <% transactions.forEach(tx => { %>
+        <tr>
+          <td><%= tx.id %></td>
 
-                    <td>
-                      <%= tx.payment_type == 1 ? 'Online' :
-                          tx.payment_type == 2 ? 'Offline (Cash)' :
-                          tx.payment_type == 3 ? 'Wallet Payment' :
-                          tx.payment_type == 4 ? 'Self Wallet Add' :
-                          tx.payment_type == 5 ? 'Due Wallet' :
-                          'Unknown' %>
-                    </td>
+          <td><%= tx.user_id %></td>
 
-                  
-                    <td><%= tx.transaction_id || 'N/A' %></td>
+<td>
+  <% if (tx.serviceman_profile_photo) { %>
+    <div
+      style="
+        width:40px;
+        height:40px;
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        overflow:hidden;
+        border-radius:6px;
+        background:#f1f1f1;
+        cursor:pointer;
+      "
+    >
+      <img
+        src="<%= BASE_URL + '/' + tx.serviceman_profile_photo %>"
+        onclick="openImageModal('<%= BASE_URL + '/' + tx.serviceman_profile_photo %>')"
+        alt="Serviceman"
+        style="
+          width:100%;
+          height:100%;
+          object-fit:cover;
+          display:block;
+        "
+      >
+    </div>
 
-                    <td>
-                      <span class="badge
-                        <%= tx.status == 1 ? 'bg-success' :
-                            tx.status == 0 ? 'bg-warning text-dark' :
-                            'bg-danger' %>">
-                        <%= tx.status == 1 ? 'Success' :
-                            tx.status == 0 ? 'Pending' :
-                            'Failed' %>
-                      </span>
-                    </td>
+    <div style="font-size:12px; margin-top:4px;">
+      <%= tx.serviceman_name || 'N/A' %>
+    </div>
+  <% } else { %>
+    —
+  <% } %>
+</td>
 
-                   
 
-                     <td><%= tx.created_at %></td>
-                  </tr>
-                <% }) %>
-              <% } else { %>
-                <tr>
-                  <td colspan="13" class="text-center">No data found</td>
-                </tr>
-              <% } %>
-            </tbody>
-          </table>
+          <!-- 📞 MOBILE -->
+          <td>
+            <%= tx.serviceman_mobile || '-' %>
+          </td>
+
+          <!-- 💰 AMOUNTS -->
+          <td>₹<%= Number(tx.amount || 0).toFixed(2) %></td>
+          <td><%= tx.platform_fee || '-' %></td>
+          <td>₹<%= Number(tx.final_amount || 0).toFixed(2) %></td>
+
+          <!-- 💳 PAYMENT TYPE -->
+          <td>
+            <%= tx.payment_type == 1 ? 'Online' :
+                tx.payment_type == 2 ? 'Offline (Cash)' :
+                tx.payment_type == 3 ? 'Wallet Payment' :
+                tx.payment_type == 4 ? 'Self Wallet Add' :
+                tx.payment_type == 5 ? 'Due Wallet' :
+                'Unknown' %>
+          </td>
+
+          <!-- 🧾 TRANSACTION -->
+          <td><%= tx.transaction_id || 'N/A' %></td>
+
+          <!-- 📌 STATUS -->
+          <td>
+            <span class="badge
+              <%= tx.status == 1 ? 'bg-success' :
+                  tx.status == 0 ? 'bg-warning text-dark' :
+                  'bg-danger' %>">
+              <%= tx.status == 1 ? 'Success' :
+                  tx.status == 0 ? 'Pending' :
+                  'Failed' %>
+            </span>
+          </td>
+
+          <!-- 🕒 DATE -->
+          <td><%= tx.created_at %></td>
+        </tr>
+      <% }) %>
+    <% } else { %>
+      <tr>
+        <td colspan="11" class="text-center">No data found</td>
+      </tr>
+    <% } %>
+  </tbody>
+</table>
+
         </div>
 
         <!-- 🔽 PAGINATION (SCREENSHOT TYPE) -->
@@ -369,4 +410,40 @@ function changePerPage(val){
   url.searchParams.set("page", 1);
   window.location.href = url.toString();
 }
+</script>
+
+
+
+
+
+
+
+
+
+<!-- IMAGE MODAL -->
+<div id="imageModal" style="
+  display:none; position:fixed;
+  top:0; left:0; width:100%; height:100%;
+  background:rgba(0,0,0,0.7);
+  justify-content:center; align-items:center;
+  z-index:9999;
+">
+  <span onclick="closeModal()"
+        style="position:absolute; top:20px; right:30px;
+               font-size:35px; color:white; cursor:pointer;">
+    &times;
+  </span>
+  <img id="modalImage" style="max-width:80%; max-height:80%; border-radius:10px;">
+</div>
+
+
+<script>
+function openImageModal(src){
+  document.getElementById("modalImage").src = src;
+  document.getElementById("imageModal").style.display = "flex";
+}
+function closeModal(){
+  document.getElementById("imageModal").style.display = "none";
+}
+
 </script>

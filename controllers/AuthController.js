@@ -169,6 +169,21 @@ export const dashboard = async (req, res) => {
 
     let dateCondition = "";
     let dateParams = [];
+    
+    
+    const todayStart = new Date();
+     todayStart.setHours(0, 0, 0, 0);
+
+
+    const todayEnd = new Date();
+    todayEnd.setHours(23, 59, 59, 999);
+    
+    console.log("aaj ka start date", todayStart);
+    console.log("aaj ka todayEnd date", todayEnd);
+    
+    const todayParams = [todayStart, todayEnd];
+
+
 
     if (from && to) {
       dateCondition = "WHERE created_at BETWEEN ? AND ?";
@@ -328,39 +343,116 @@ export const dashboard = async (req, res) => {
       dateParams
     );
 
-    /* ===============================
-       🟢 CAB REVENUE (NEW)
-    =============================== */
-    const [[cabRevenueCounts]] = await db.query(
-      `
-      SELECT
-        COUNT(*) AS cab_payment_count,
-        SUM(amount - IFNULL(final_amount, 0)) AS cab_revenue
-      FROM paying
-      WHERE module_type = 2
-        AND payment_type IN (1,2,3)
-        AND status = 1
-        ${from && to ? "AND created_at BETWEEN ? AND ?" : ""}
-      `,
-      from && to ? [...dateParams] : []
-    );
+const [[cabRevenueCounts]] = await db.query(
+  `
+  SELECT
+    COUNT(*) AS cab_payment_count,
+    SUM(
+      CASE
+        WHEN payment_type = 2 THEN
+          CAST(
+            REPLACE(
+              SUBSTRING_INDEX(platform_fee, '₹', -1),
+              ' ',
+              ''
+            ) AS DECIMAL(10,2)
+          )
+        ELSE
+          (amount - IFNULL(final_amount, 0))
+      END
+    ) AS cab_revenue
+  FROM paying
+  WHERE module_type = 2
+    AND payment_type IN (1,2,3)
+    AND status = 1
+    ${from && to ? "AND created_at BETWEEN ? AND ?" : ""}
+  `,
+  from && to ? [...dateParams] : []
+);
 
-    /* ===============================
-       🟢 SERVICE REVENUE (NEW)
-    =============================== */
-    const [[serviceRevenueCounts]] = await db.query(
-      `
-      SELECT
-        COUNT(*) AS service_payment_count,
-        SUM(amount - IFNULL(final_amount, 0)) AS service_revenue
-      FROM paying
-      WHERE module_type = 1
-        AND payment_type IN (1,2,3)
-        AND status = 1
-        ${from && to ? "AND created_at BETWEEN ? AND ?" : ""}
-      `,
-      from && to ? [...dateParams] : []
-    );
+
+const [[serviceRevenueCounts]] = await db.query(
+  `
+  SELECT
+    COUNT(*) AS service_payment_count,
+    SUM(
+      CASE
+        WHEN payment_type = 2 THEN
+          CAST(
+            REPLACE(
+              SUBSTRING_INDEX(platform_fee, '₹', -1),
+              ' ',
+              ''
+            ) AS DECIMAL(10,2)
+          )
+        ELSE
+          (amount - IFNULL(final_amount, 0))
+      END
+    ) AS service_revenue
+  FROM paying
+  WHERE module_type = 1
+    AND payment_type IN (1,2,3)
+    AND status = 1
+    ${from && to ? "AND created_at BETWEEN ? AND ?" : ""}
+  `,
+  from && to ? [...dateParams] : []
+);
+
+
+const [[todayCabRevenueCounts]] = await db.query(
+  `
+  SELECT
+    COUNT(*) AS today_cab_payment_count,
+    SUM(
+      CASE
+        WHEN payment_type = 2 THEN
+          CAST(
+            REPLACE(
+              SUBSTRING_INDEX(platform_fee, '₹', -1),
+              ' ',
+              ''
+            ) AS DECIMAL(10,2)
+          )
+        ELSE
+          (amount - IFNULL(final_amount, 0))
+      END
+    ) AS today_cab_revenue
+  FROM paying
+  WHERE module_type = 2
+    AND payment_type IN (1,2,3)
+    AND status = 1
+    AND created_at BETWEEN ? AND ?
+  `,
+  todayParams
+);
+
+
+const [[todayServiceRevenueCounts]] = await db.query(
+  `
+  SELECT
+    COUNT(*) AS today_service_payment_count,
+    SUM(
+      CASE
+        WHEN payment_type = 2 THEN
+          CAST(
+            REPLACE(
+              SUBSTRING_INDEX(platform_fee, '₹', -1),
+              ' ',
+              ''
+            ) AS DECIMAL(10,2)
+          )
+        ELSE
+          (amount - IFNULL(final_amount, 0))
+      END
+    ) AS today_service_revenue
+  FROM paying
+  WHERE module_type = 1
+    AND payment_type IN (1,2,3)
+    AND status = 1
+    AND created_at BETWEEN ? AND ?
+  `,
+  todayParams
+);
 
     /* ===============================
        FINAL RENDER
@@ -416,7 +508,15 @@ export const dashboard = async (req, res) => {
       cab_revenue: cabRevenueCounts.cab_revenue || 0,
 
       service_payment_count: serviceRevenueCounts.service_payment_count || 0,
-      service_revenue: serviceRevenueCounts.service_revenue || 0
+      service_revenue: serviceRevenueCounts.service_revenue || 0,
+      
+      /* 🔥 TODAY DASHBOARD VALUES */
+      today_cab_payment_count: todayCabRevenueCounts.today_cab_payment_count || 0,
+      today_cab_revenue: todayCabRevenueCounts.today_cab_revenue || 0,
+      
+      today_service_payment_count: todayServiceRevenueCounts.today_service_payment_count || 0,
+      today_service_revenue: todayServiceRevenueCounts.today_service_revenue || 0
+
     });
 
   } catch (err) {

@@ -59,6 +59,7 @@ function validateCabOrder(body) {
   if (!body.drop_location) return "drop_location is required";
   if (!body.drop_latitude) return "drop_latitude is required";
   if (!body.drop_longitude) return "drop_longitude is required";
+  if (!body.distance_km) return "distance_km is required";
   
 
   if (!body.estimated_amount) return "estimated_amount is required";
@@ -229,21 +230,9 @@ export const cabOrder = async (req, res) => {
       over_limit_passenger,
       user_comment,
 
-      estimated_amount
+      estimated_amount,
+      distance_km           
     } = req.body;
-
-    /* =========================
-       DISTANCE
-    ========================= */
-    const distance_km =
-      Math.round(
-        getDistanceInKm(
-          pickup_latitude,
-          pickup_longitude,
-          drop_latitude,
-          drop_longitude
-        ) * 100
-      ) / 100;
 
     const createdAt = nowIST();
 
@@ -304,7 +293,7 @@ export const cabOrder = async (req, res) => {
         drop_location,
         drop_latitude,
         drop_longitude,
-        distance_km,
+        distance_km,                       
         estimated_amount,
         order_type,
         Number(order_type) === 2 ? schedule_time : null,
@@ -423,7 +412,7 @@ export const cabOrder = async (req, res) => {
           drop_location,
           drop_latitude: Number(drop_latitude),
           drop_longitude: Number(drop_longitude),
-          distance_km: Number(distance_km),
+          distance_km: Number(distance_km),   // ✅ PAYLOAD VALUE
           estimated_amount: Number(estimated_amount),
           order_type: Number(order_type),
           schedule_time: Number(order_type) === 2 ? schedule_time : null,
@@ -443,34 +432,42 @@ export const cabOrder = async (req, res) => {
     /* =========================
        FCM : BACKGROUND NOTIFICATION
     ========================= */
-    if (order_type == 1) {
-      setImmediate(async () => {
-        try {
-          if (!matched_driver_ids.length) return;
+   if (order_type == 1) {
+  setImmediate(async () => {
+    try {
+      if (!matched_driver_ids.length) return;
 
-          const [drivers] = await db.query(
-            `SELECT fcm_token FROM driver_registration WHERE id IN (?)`,
-            [matched_driver_ids]
-          );
+      const [drivers] = await db.query(
+        `SELECT fcm_token FROM driver_registration WHERE id IN (?)`,
+        [matched_driver_ids]
+      );
 
-          for (const drv of drivers) {
-            if (!drv.fcm_token) continue;
+      for (const drv of drivers) {
+        if (!drv.fcm_token) continue;
 
-            await FCMHelper.sendNotification(
-              drv.fcm_token,
-              "New Cab Ride Request",
-              pickup_location,
-              {
-                order_id: String(order_id),
-                pickup_location
-              }
-            );
-          }
-        } catch (err) {
-          console.error("FCM Background Error:", err);
-        }
-      });
+        // ✅ DATA-ONLY FCM PAYLOAD (AS YOU ASKED)
+        const dataPayload = {
+          type: "NEW_RIDE",
+          order_id: String(order_id)
+        };
+
+        // 🔥 SEND DATA-ONLY (NO notification)
+        await FCMHelper.sendNotification(
+          drv.fcm_token,
+          null,              // title ❌
+          null,              // body ❌
+          dataPayload,       // ✅ data only
+          "high"             // ✅ priority
+        );
+      }
+    } catch (err) {
+      console.error("FCM Background Error:", err);
     }
+  });
+}
+
+
+
 
     /* =========================
        SCHEDULE API HIT
@@ -725,77 +722,6 @@ function calculateDistanceInKm(lat1, lon1, lat2, lon2) {
 
 
 
-
-async function getNearbyOnlineDrivers({
-  pickup_latitude,
-  pickup_longitude,
-  vehicle_type,
-  brand_id,
-  model_id
-}) {
-
-  const firestore = getFirestore();
-  let snapshot = await firestore
-    .collection("driver")
-    .where("online_status", "==", 1)
-    .where("vehicle_type", "==", vehicle_type)
-    .where("brand_id", "==", brand_id)
-    .where("model_id", "==", model_id)
-    .get();
-
-  // 🔁 Fallback: only vehicle_type
-  if (snapshot.empty) {
-    
-
-    snapshot = await firestore
-      .collection("driver")
-      .where("online_status", "==", 1)
-      .where("vehicle_type", "==", vehicle_type)
-      .get();
-  }
-
-  // 🔚 FINAL fallback: random ETA (15–25 min)
-  if (snapshot.empty) {
-    const randomETA = Math.floor(Math.random() * (25 - 15 + 1)) + 15;
-  
-
-    return {
-      distance_km: null,
-      arrive_time: randomETA
-    };
-  }
-
-  let nearest = null;
-  const driverIds = [];
-
-  snapshot.forEach((doc) => {
-    const d = doc.data();
-
-    if (d.current_latitude == null || d.current_longitude == null) return;
-
-    const distanceKm = calculateDistanceInKm(
-      Number(d.current_latitude),
-      Number(d.current_longitude),
-      Number(pickup_latitude),
-      Number(pickup_longitude)
-    );
-
-    const arriveMinutes = Math.max(1, Math.round(distanceKm / 0.5));
-
-    driverIds.push(doc.id);
-
-    if (!nearest || distanceKm < nearest.distance_km) {
-      nearest = {
-        distance_km: Number(distanceKm.toFixed(2)),
-        arrive_time: arriveMinutes
-      };
-    }
-  });
-  return nearest;
-}
-
-
-
 function isPointInPolygon(point, polygon) {
   const x = point.lng;
   const y = point.lat;
@@ -817,10 +743,92 @@ function isPointInPolygon(point, polygon) {
 }
 
 
+
+/* =========================
+   NEARBY DRIVER + ETA
+========================= */
+async function getNearbyOnlineDrivers({
+  pickup_latitude,
+  pickup_longitude,
+  vehicle_type,
+  brand_id,
+  model_id
+}) {
+
+  const firestore = getFirestore();
+
+  let snapshot = await firestore
+    .collection("driver")
+    .where("online_status", "==", 1)
+    .where("vehicle_type", "==", vehicle_type)
+    .get();
+
+  // 🔁 Fallback: only vehicle_type
+  if (snapshot.empty) {
+    snapshot = await firestore
+      .collection("driver")
+      .where("online_status", "==", 1)
+      .where("vehicle_type", "==", vehicle_type)
+      .get();
+  }
+
+  // 🔚 FINAL fallback: no driver → random ETA
+  if (snapshot.empty) {
+    const randomETA = Math.floor(Math.random() * (25 - 15 + 1)) + 15;
+    return {
+      distance_km: null,
+      arrive_time: randomETA
+    };
+  }
+
+  let nearest = null;
+
+  snapshot.forEach((doc) => {
+    const d = doc.data();
+
+    if (d.current_latitude == null || d.current_longitude == null) return;
+
+    const distanceKm = calculateDistanceInKm(
+      Number(d.current_latitude),
+      Number(d.current_longitude),
+      Number(pickup_latitude),
+      Number(pickup_longitude)
+    );
+
+    if (!nearest || distanceKm < nearest.distance_km) {
+      nearest = {
+        distance_km: Number(distanceKm.toFixed(2))
+      };
+    }
+  });
+
+  // 🧠 MAIN LOGIC
+  if (!nearest || nearest.distance_km > 5) {
+    const randomETA = Math.floor(Math.random() * (25 - 15 + 1)) + 15;
+    return {
+      distance_km: nearest ? nearest.distance_km : null,
+      arrive_time: randomETA
+    };
+  }
+
+  // ✅ REAL ETA (≤ 5 km)
+  const arriveMinutes = Math.max(1, Math.round(nearest.distance_km / 0.5));
+
+  return {
+    distance_km: nearest.distance_km,
+    arrive_time: arriveMinutes
+  };
+}
+
+
+/* =========================
+   VEHICLE AMOUNT LIST
+========================= */
 export async function getVehicleAmountList(req, res) {
   try {
     const {
       vehicle_id,
+      distance_km,
       pickup_latitude,
       pickup_longitude,
       drop_latitude,
@@ -829,6 +837,7 @@ export async function getVehicleAmountList(req, res) {
 
     if (
       !vehicle_id ||
+      !distance_km ||
       !pickup_latitude ||
       !pickup_longitude ||
       !drop_latitude ||
@@ -837,85 +846,72 @@ export async function getVehicleAmountList(req, res) {
       return res.status(400).json({
         success: false,
         message:
-          "vehicle_id, pickup_latitude, pickup_longitude, drop_latitude, drop_longitude are required",
+          "vehicle_id, distance_km, pickup_latitude, pickup_longitude, drop_latitude, drop_longitude are required",
         errors: null
       });
     }
 
+    /* =========== ZONE CHECK START ============== */
+
+    const pickupLat = Number(pickup_latitude);
+    const pickupLng = Number(pickup_longitude);
+    const dropLat = Number(drop_latitude);
+    const dropLng = Number(drop_longitude);
+    const [zones] = await db.query(
+   "SELECT id, zone_name, coordinates FROM zones WHERE zone_type = 2"
+ );
 
 
+    let pickupAvailable = false;
+    let dropAvailable = false;
 
-/* =========== ZONE CONCEPT START (GET VEHICLE AMOUNT) ============== */
+    for (const zone of zones) {
+      let polygon;
+      try {
+        polygon = JSON.parse(zone.coordinates);
+      } catch (e) {
+        continue;
+      }
 
-const pickupLat = Number(pickup_latitude);
-const pickupLng = Number(pickup_longitude);
+      if (!Array.isArray(polygon) || polygon.length < 3) continue;
 
-const dropLat = Number(drop_latitude);
-const dropLng = Number(drop_longitude);
+      if (!pickupAvailable) {
+        pickupAvailable = isPointInPolygon(
+          { lat: pickupLat, lng: pickupLng },
+          polygon
+        );
+      }
 
-// Fetch all zones (Lucknow, Sitapur, future sab)
-const [zones] = await db.query(
-  "SELECT id, zone_name, coordinates FROM zones"
-);
+      if (!dropAvailable) {
+        dropAvailable = isPointInPolygon(
+          { lat: dropLat, lng: dropLng },
+          polygon
+        );
+      }
 
-let pickupAvailable = false;
-let dropAvailable = false;
+      if (pickupAvailable && dropAvailable) break;
+    }
 
-for (const zone of zones) {
-  let polygon;
+    if (!pickupAvailable) {
+      return res.status(400).json({
+        success: false,
+        message: "Cab or Ride service not available for pickup location",
+        errors: null
+      });
+    }
 
-  try {
-    polygon = JSON.parse(zone.coordinates);
-  } catch (err) {
-    continue; // invalid JSON skip
-  }
+    if (!dropAvailable) {
+      return res.status(400).json({
+        success: false,
+        message: "Cab or Ride service not available for drop location",
+        errors: null
+      });
+    }
 
-  if (!Array.isArray(polygon) || polygon.length < 3) continue;
-
-  // 🔹 Pickup check
-  if (!pickupAvailable) {
-    pickupAvailable = isPointInPolygon(
-      { lat: pickupLat, lng: pickupLng },
-      polygon
-    );
-  }
-
-  // 🔹 Drop check
-  if (!dropAvailable) {
-    dropAvailable = isPointInPolygon(
-      { lat: dropLat, lng: dropLng },
-      polygon
-    );
-  }
-
-  if (pickupAvailable && dropAvailable) break;
-}
-
-// ❌ Pickup zone fail
-if (!pickupAvailable) {
-  return res.status(400).json({
-    success: false,
-    message: "Cab or Ride service not available for pickup location",
-    errors: null
-  });
-}
-
-// ❌ Drop zone fail
-if (!dropAvailable) {
-  return res.status(400).json({
-    success: false,
-    message: "Cab or Ride service not available for drop location",
-    errors: null
-  });
-}
-
-/* =========== ZONE CONCEPT END (GET VEHICLE AMOUNT) ============== */
-
-
+    /* =========== ZONE CHECK END ============== */
 
     /* =========================
-       SETTINGS : RIDE RADIUS (KM)
-       (ONLY ADDITION – NO EXISTING LOGIC TOUCHED)
+       SETTINGS
     ========================= */
     const [[rideRadiusSetting]] = await db.query(
       `
@@ -926,27 +922,13 @@ if (!dropAvailable) {
       `
     );
 
-    // fallback default (safe)
     const rideRadiusKm = Number(rideRadiusSetting?.value || 5);
 
-
-
-    /* =========================
-       DISTANCE
-    ========================= */
-    const distanceKm = calculateDistanceInKm(
-      Number(pickup_latitude),
-      Number(pickup_longitude),
-      Number(drop_latitude),
-      Number(drop_longitude)
-    );
-
-    const distance = Number(distanceKm.toFixed(2));
+    const distance = Number(Number(distance_km).toFixed(2));
     const BASE_URL = process.env.BASE_URL || "";
 
     /* =========================
        FETCH VEHICLE + SLABS
-       (brand/model sirf response ke liye)
     ========================= */
     const [rows] = await db.query(
       `
@@ -968,17 +950,9 @@ if (!dropAvailable) {
         vc.rate_per_km
 
       FROM vehicle v
-      INNER JOIN vehicle_charges vc
-        ON vc.vehicle_id = v.id
-
-      LEFT JOIN brand b
-        ON b.vehicle_id = v.id
-        AND b.status = 1
-
-      LEFT JOIN model m
-        ON m.brand_id = b.id
-        AND m.status = 1
-
+      INNER JOIN vehicle_charges vc ON vc.vehicle_id = v.id
+      LEFT JOIN brand b ON b.vehicle_id = v.id AND b.status = 1
+      LEFT JOIN model m ON m.brand_id = b.id AND m.status = 1
       WHERE v.visible_status = 1
       ORDER BY v.id ASC, vc.from_km ASC
       `
@@ -998,74 +972,53 @@ if (!dropAvailable) {
       const discountPercent = Number(row.discount) || 0;
       const increasePercent = Number(row.user_increase) || 0;
 
-      /* =========================
-         INIT VEHICLE ONCE
-      ========================= */
       if (!vehicleMap[row.vehicle_id]) {
-
         const nearestDriver = await getNearbyOnlineDrivers({
           pickup_latitude,
           pickup_longitude,
           vehicle_type: row.vehicle_id,
-          brand_id: row.brand_id,   // sirf response/driver filter
-          model_id: row.model_id,
-
-          // 🔥 SETTINGS BASED RADIUS (NEW ADDITION)
-          ride_radius_km: rideRadiusKm
+          brand_id: row.brand_id,
+          model_id: row.model_id
         });
 
         vehicleMap[row.vehicle_id] = {
           vehicle_id: row.vehicle_id,
           vehicle_name: row.vehicle_name,
-
           brand_id: row.brand_id,
           brand_name: row.brand_name,
-
           model_id: row.model_id,
           model_name: row.model_name,
-
           image: `${BASE_URL.replace(/\/$/, "")}/${row.vehicle_image.replace(/^\//, "")}`,
           max_passenger: row.max_passenger,
-
-          selected_status:
-            Number(row.vehicle_id) === Number(vehicle_id) ? 1 : 0,
-
+          selected_status: Number(row.vehicle_id) === Number(vehicle_id) ? 1 : 0,
           rate_per_km: 0,
           amount: 0,
           discount: 0,
           user_increase: 0,
-
-          arrive_time: nearestDriver ? nearestDriver.arrive_time : null
+          arrive_time: nearestDriver ? nearestDriver.arrive_time : null,
+          slabMatched: false
         };
       }
 
-      /* =========================
-         MATCH SLAB (MAIN LOGIC)
-      ========================= */
       if (distance >= row.from_km && distance < row.to_km) {
-        const amount = Number(
-          (distance * row.rate_per_km).toFixed(2)
-        );
+        const amount = Number((distance * row.rate_per_km).toFixed(2));
 
-        vehicleMap[row.vehicle_id].rate_per_km =
-          Number(row.rate_per_km);
-
+        vehicleMap[row.vehicle_id].rate_per_km = Number(row.rate_per_km);
         vehicleMap[row.vehicle_id].amount = amount;
-
-        vehicleMap[row.vehicle_id].discount = Math.floor(
-          (amount * discountPercent) / 100
-        );
-
-        vehicleMap[row.vehicle_id].user_increase = Math.floor(
-          (amount * increasePercent) / 100
-        );
+        vehicleMap[row.vehicle_id].discount = Math.floor((amount * discountPercent) / 100);
+        vehicleMap[row.vehicle_id].user_increase = Math.floor((amount * increasePercent) / 100);
+        vehicleMap[row.vehicle_id].slabMatched = true;
       }
     }
 
+    const finalVehicles = Object.values(vehicleMap).filter(
+      v => v.slabMatched === true
+    );
+
     return res.status(200).json({
       success: true,
-      distance_km: distance,
-      data: Object.values(vehicleMap)
+      distance_km: distance_km,
+      data: finalVehicles
     });
 
   } catch (err) {
@@ -1076,7 +1029,6 @@ if (!dropAvailable) {
     });
   }
 }
-
 
 
 
@@ -1850,6 +1802,346 @@ export const deleteExpiredCabOrders = async (req, res) => {
 
 
 
+
+
+// export async function changeCabOrderStatus(req, res) {
+//   try {
+//     let {
+//       order_id,
+//       order_status,
+//       type,
+//       user_id,
+//       driver_id,
+//       cancel_reason,
+//       orderOtp
+//     } = req.body;
+
+//     /* =========================
+//       BASIC VALIDATION
+//     ========================= */
+//     if (!order_id || !order_status || !type) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "order_id, order_status and type are required"
+//       });
+//     }
+
+//     if (![1, 2].includes(Number(type))) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "type must be 1 (user) or 2 (driver)"
+//       });
+//     }
+
+//     if (Number(type) === 1 && !user_id) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "user_id is required when type = 1"
+//       });
+//     }
+
+//     if (Number(type) === 2 && !driver_id) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "driver_id is required when type = 2"
+//       });
+//     }
+
+//     if (Number(order_status) === 3 && !orderOtp) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "orderOtp is required for ride start"
+//       });
+//     }
+
+
+
+//     if (Number(order_status) === 6 && Number(type) !== 1) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "order_status 6 requires type = 1"
+//       });
+//     }
+
+//     if (Number(order_status) === 7 && Number(type) !== 2) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "order_status 7 requires type = 2"
+//       });
+//     }
+
+  
+
+//     const now = nowIST();
+//     const firestore = getFirestore();
+
+//     /* =========================
+//       FETCH ORDER DETAILS
+//     ========================= */
+//     const [orderRows] = await db.query(
+//       `
+//       SELECT
+//         id,
+//         orderOtp,
+//         order_status,
+//         pay_mode,
+//         user_id,
+//         wallet_apply,
+//         final_amount
+//       FROM cab_orders
+//       WHERE id = ?
+//       LIMIT 1
+//       `,
+//       [order_id]
+//     );
+
+//     if (!orderRows.length) {
+//       return res.status(404).json({
+//         success: false,
+//         message: "Order not found"
+//       });
+//     }
+
+
+//     if (Number(orderRows[0].order_status) === Number(order_status)) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Order status already updated",
+//         order_id,
+//         order_status: Number(order_status)
+//       });
+//     }
+
+
+
+//     if (!user_id) {
+//       user_id = orderRows[0].user_id;
+//     }
+
+//     const {
+//       pay_mode,
+//       wallet_apply,
+//       final_amount
+//     } = orderRows[0];
+
+//     /* =========================
+//       OTP MATCH CHECK
+//     ========================= */
+//     if (Number(order_status) === 3) {
+//       if (String(orderRows[0].orderOtp) !== String(orderOtp)) {
+//         return res.status(400).json({
+//           success: false,
+//           message: "Invalid order OTP"
+//         });
+//       }
+//     }
+
+//     /* =========================================================
+//       🔥 SPECIAL PAYMENT LOGIC
+//       This block runs ONLY when order_status = 5 (Ride Completed)
+//     ========================================================= */
+//     if (Number(order_status) === 5) {
+
+//       /* =========================
+//          CASE 1:
+//          Online payment (pay_mode = 1)
+//          with wallet partially applied (wallet_apply = 1)
+//          → No extra operation required
+//       ========================= */
+//       if (Number(pay_mode) === 1 && Number(wallet_apply) === 1) {
+//         // Directly proceed to order completion
+//       }
+
+//       /* =========================
+//          CASE 2:
+//          Wallet payment (pay_mode = 3)
+//       ========================= */
+//       if (Number(pay_mode) === 3) {
+
+//         // Platform fee calculation
+//         const [setting] = await db.query(
+//           `SELECT value FROM settings WHERE name = 'platform_fee' LIMIT 1`
+//         );
+
+//         const percent = setting.length ? Number(setting[0].value) : 0;
+//         const fee = (Number(final_amount) * percent) / 100;
+
+//         const finalAmount_for_driver_wallet =
+//           Number(final_amount) - fee;
+
+//         const platformFeeFormatted =
+//           `${percent}% - ₹${fee.toFixed(2)}`;
+
+//         // Insert into paying table
+//         await db.query(
+//           `
+//           INSERT INTO paying
+//           (
+//             service_order_id,
+//             user_id,
+//             amount,
+//             platform_fee,
+//             final_amount,
+//             payment_type,
+//             gateway_type,
+//             transaction_id,
+//             status,
+//             module_type,
+//             created_at,
+//             updated_at
+//           )
+//           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+//           `,
+//           [
+//             order_id,
+//             user_id,
+//             final_amount,
+//             platformFeeFormatted,
+//             finalAmount_for_driver_wallet,
+//             3,
+//             null,
+//             null,
+//             1,
+//             2,
+//             now,
+//             now
+//           ]
+//         );
+
+//         // Deduct full amount from user wallet
+//         await db.query(
+//           `UPDATE users SET wallet = wallet - ? WHERE id = ?`,
+//           [final_amount, user_id]
+//         );
+
+//         // Add amount to driver wallet
+//         await db.query(
+//           `
+//           UPDATE driver_registration
+//           SET wallet = wallet + ?
+//           WHERE id = ?
+//           `,
+//           [finalAmount_for_driver_wallet, driver_id]
+//         );
+//       }
+
+//       /* =========================
+//          CASE 3:
+//          Offline payment (pay_mode = 2)
+//       ========================= */
+//       if (Number(pay_mode) === 2) {
+
+//         const [setting] = await db.query(
+//           `SELECT value FROM settings WHERE name = 'platform_fee' LIMIT 1`
+//         );
+
+//         const percent = setting.length ? Number(setting[0].value) : 0;
+//         const fee = (Number(final_amount) * percent) / 100;
+
+//         const platformFeeFormatted =
+//           `${percent}% - ₹${fee.toFixed(2)}`;
+
+//         // Insert into paying table
+//         await db.query(
+//           `
+//           INSERT INTO paying
+//           (
+//             service_order_id,
+//             user_id,
+//             amount,
+//             platform_fee,
+//             final_amount,
+//             payment_type,
+//             gateway_type,
+//             transaction_id,
+//             status,
+//             module_type,
+//             created_at,
+//             updated_at
+//           )
+//           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+//           `,
+//           [
+//             order_id,
+//             user_id,
+//             final_amount,
+//             platformFeeFormatted,
+//             final_amount,
+//             2,
+//             null,
+//             null,
+//             1,
+//             2,
+//             now,
+//             now
+//           ]
+//         );
+
+
+ 
+//       await db.query(
+//           `
+//           UPDATE driver_registration
+//           SET
+//             due_wallet = due_wallet + ?
+//           WHERE id = ?
+//           `,
+//           [fee, driver_id]
+//         );
+//       }
+//     }
+
+//     /* =========================
+//       UPDATE ORDER STATUS
+//     ========================= */
+//     await db.query(
+//       `
+//       UPDATE cab_orders
+//       SET
+//         order_status = ?,
+//         cancel_reason = ?,
+//         updated_at = ?
+//       WHERE id = ?
+//       `,
+//       [
+//         Number(order_status),
+//         [6, 7].includes(Number(order_status)) ? cancel_reason : null,
+//         now,
+//         order_id
+//       ]
+//     );
+
+//     await firestore
+//       .collection("cab_orders")
+//       .doc(String(order_id))
+//       .set(
+//         {
+//           order_status: Number(order_status),
+//           cancel_reason:
+//             [6, 7].includes(Number(order_status)) ? cancel_reason : null,
+//           updated_at: now
+//         },
+//         { merge: true }
+//       );
+
+//     return res.status(200).json({
+//       success: true,
+//       message: "Order status updated successfully",
+//       order_id,
+//       order_status: Number(order_status)
+//     });
+
+//   } catch (error) {
+//     console.error("Change Order Status Error:", error);
+//     return res.status(500).json({
+//       success: false,
+//       message: "Internal Server Error",
+//       error: error.message
+//     });
+//   }
+// }
+
+
 export async function changeCabOrderStatus(req, res) {
   try {
     let {
@@ -1872,6 +2164,7 @@ export async function changeCabOrderStatus(req, res) {
       });
     }
 
+    // type: 1 = user, 2 = driver
     if (![1, 2].includes(Number(type))) {
       return res.status(400).json({
         success: false,
@@ -1893,6 +2186,7 @@ export async function changeCabOrderStatus(req, res) {
       });
     }
 
+    // Ride start requires OTP
     if (Number(order_status) === 3 && !orderOtp) {
       return res.status(400).json({
         success: false,
@@ -1900,8 +2194,7 @@ export async function changeCabOrderStatus(req, res) {
       });
     }
 
-
-
+    // User cancel validation
     if (Number(order_status) === 6 && Number(type) !== 1) {
       return res.status(400).json({
         success: false,
@@ -1909,19 +2202,13 @@ export async function changeCabOrderStatus(req, res) {
       });
     }
 
+    // Driver cancel validation
     if (Number(order_status) === 7 && Number(type) !== 2) {
       return res.status(400).json({
         success: false,
         message: "order_status 7 requires type = 2"
       });
     }
-
-    // if ([6, 7].includes(Number(order_status)) && !cancel_reason) {
-    //   return res.status(400).json({
-    //     success: false,
-    //     message: "cancel_reason is required"
-    //   });
-    // }
 
     const now = nowIST();
     const firestore = getFirestore();
@@ -1937,6 +2224,7 @@ export async function changeCabOrderStatus(req, res) {
         order_status,
         pay_mode,
         user_id,
+        driver_id,
         wallet_apply,
         final_amount
       FROM cab_orders
@@ -1953,8 +2241,10 @@ export async function changeCabOrderStatus(req, res) {
       });
     }
 
+    const previousStatus = Number(orderRows[0].order_status);
 
-    if (Number(orderRows[0].order_status) === Number(order_status)) {
+    // Prevent duplicate update
+    if (previousStatus === Number(order_status)) {
       return res.status(400).json({
         success: false,
         message: "Order status already updated",
@@ -1963,17 +2253,11 @@ export async function changeCabOrderStatus(req, res) {
       });
     }
 
+    // Fallback IDs
+    if (!user_id) user_id = orderRows[0].user_id;
+    if (!driver_id) driver_id = orderRows[0].driver_id;
 
-
-    if (!user_id) {
-      user_id = orderRows[0].user_id;
-    }
-
-    const {
-      pay_mode,
-      wallet_apply,
-      final_amount
-    } = orderRows[0];
+    const { pay_mode, wallet_apply, final_amount } = orderRows[0];
 
     /* =========================
        OTP MATCH CHECK
@@ -1988,28 +2272,19 @@ export async function changeCabOrderStatus(req, res) {
     }
 
     /* =========================================================
-       🔥 SPECIAL PAYMENT LOGIC
+       🔥 SPECIAL PAYMENT LOGIC (UNCHANGED)
        This block runs ONLY when order_status = 5 (Ride Completed)
     ========================================================= */
     if (Number(order_status) === 5) {
 
-      /* =========================
-         CASE 1:
-         Online payment (pay_mode = 1)
-         with wallet partially applied (wallet_apply = 1)
-         → No extra operation required
-      ========================= */
+      /* CASE 1: Online payment + wallet applied */
       if (Number(pay_mode) === 1 && Number(wallet_apply) === 1) {
-        // Directly proceed to order completion
+        // No extra operation required
       }
 
-      /* =========================
-         CASE 2:
-         Wallet payment (pay_mode = 3)
-      ========================= */
+      /* CASE 2: Wallet payment */
       if (Number(pay_mode) === 3) {
 
-        // Platform fee calculation
         const [setting] = await db.query(
           `SELECT value FROM settings WHERE name = 'platform_fee' LIMIT 1`
         );
@@ -2023,7 +2298,6 @@ export async function changeCabOrderStatus(req, res) {
         const platformFeeFormatted =
           `${percent}% - ₹${fee.toFixed(2)}`;
 
-        // Insert into paying table
         await db.query(
           `
           INSERT INTO paying
@@ -2059,13 +2333,11 @@ export async function changeCabOrderStatus(req, res) {
           ]
         );
 
-        // Deduct full amount from user wallet
         await db.query(
           `UPDATE users SET wallet = wallet - ? WHERE id = ?`,
           [final_amount, user_id]
         );
 
-        // Add amount to driver wallet
         await db.query(
           `
           UPDATE driver_registration
@@ -2076,10 +2348,7 @@ export async function changeCabOrderStatus(req, res) {
         );
       }
 
-      /* =========================
-         CASE 3:
-         Offline payment (pay_mode = 2)
-      ========================= */
+      /* CASE 3: Offline payment */
       if (Number(pay_mode) === 2) {
 
         const [setting] = await db.query(
@@ -2092,7 +2361,6 @@ export async function changeCabOrderStatus(req, res) {
         const platformFeeFormatted =
           `${percent}% - ₹${fee.toFixed(2)}`;
 
-        // Insert into paying table
         await db.query(
           `
           INSERT INTO paying
@@ -2128,14 +2396,10 @@ export async function changeCabOrderStatus(req, res) {
           ]
         );
 
-
-   console.log("abc user ki id", user_id);
-        // Add full amount to driver wallet
-       await db.query(
+        await db.query(
           `
           UPDATE driver_registration
-          SET
-            due_wallet = due_wallet + ?
+          SET due_wallet = due_wallet + ?
           WHERE id = ?
           `,
           [fee, driver_id]
@@ -2176,6 +2440,79 @@ export async function changeCabOrderStatus(req, res) {
         { merge: true }
       );
 
+    /* =====================================================
+       🔔 FIREBASE NOTIFICATION LOGIC (ADDED ONLY)
+    ===================================================== */
+
+    // ❌ If order was never accepted (status = 0), do NOT notify anyone
+  /* =====================================================
+   🔔 FIREBASE NOTIFICATION LOGIC
+   (USING EXISTING FCMHelper STYLE)
+===================================================== */
+
+if (previousStatus > 0 && [6, 7].includes(Number(order_status))) {
+
+  // ✅ USER CANCEL → NOTIFY DRIVER
+  if (Number(order_status) === 6 && Number(type) === 1) {
+
+    setImmediate(async () => {
+      try {
+        const [[driver]] = await db.query(
+          `SELECT fcm_token FROM driver_registration WHERE id = ?`,
+          [driver_id]
+        );
+
+        if (!driver || !driver.fcm_token) return;
+
+        await FCMHelper.sendNotification(
+          driver.fcm_token,
+          "Ride Cancelled",
+          "User has cancelled the ride",
+          {
+            order_id: String(order_id),
+            cancelled_by: "user"
+          }
+        );
+
+      } catch (err) {
+        console.error("FCM Driver Cancel Error:", err);
+      }
+    });
+  }
+
+  // ✅ DRIVER CANCEL → NOTIFY USER
+  if (Number(order_status) === 7 && Number(type) === 2) {
+
+    setImmediate(async () => {
+      try {
+        const [[user]] = await db.query(
+          `SELECT fcm_token FROM users WHERE id = ?`,
+          [user_id]
+        );
+
+        if (!user || !user.fcm_token) return;
+
+        await FCMHelper.sendNotification(
+          user.fcm_token,
+          "Ride Cancelled",
+          "Driver has cancelled the ride",
+          {
+            order_id: String(order_id),
+            cancelled_by: "driver"
+          }
+        );
+
+      } catch (err) {
+        console.error("FCM User Cancel Error:", err);
+      }
+    });
+  }
+}
+
+
+    /* =========================
+       FINAL RESPONSE
+    ========================= */
     return res.status(200).json({
       success: true,
       message: "Order status updated successfully",

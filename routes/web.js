@@ -43,7 +43,8 @@ cabOrdersController
 
 import { 
 allPayments,
-allServicePayments
+allServicePayments,
+UserPayments
 } from "../controllers/PaymentController.js";
 
 import { 
@@ -51,7 +52,12 @@ createZone,
 insertZone,
 deleteZone,
 editZonePage,
-updateZone
+updateZone,
+createServiceZone,
+insertServiceZone,
+deleteServiceZone,
+editServiceZonePage,
+updateServiceZone
 } from "../controllers/ZoneController.js";
 
 
@@ -251,7 +257,15 @@ router.get("/zones/edit/:id", editZonePage);
 router.post("/zones/update/:id", updateZone);
 
 
+router.get("/create_service_zone", createServiceZone);
+router.post("/service_zones/create", insertServiceZone);
+router.post("/service_zones/delete/:id", deleteServiceZone);
+router.get("/service_zones/edit/:id", editServiceZonePage);
+router.post("/service_zones/update/:id", updateServiceZone);
+
+
 router.get("/all_payments", allPayments);
+router.get("/UserPayments", UserPayments);
 router.get("/all_payments/:payment_type", allPayments);
 
 

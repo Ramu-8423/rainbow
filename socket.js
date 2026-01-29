@@ -54,7 +54,6 @@ export function initSocket(server) {
     cors: { origin: "*" }
   });
 
-  console.log("🟢 Socket.io Initialized");
 
   io.on("connection", (socket) => {
     console.log("🔗 Serviceman Connected:", socket.id);

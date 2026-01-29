@@ -33,6 +33,15 @@
           <span>Users</span>
         </a>
       </li>
+      
+      
+       <!-- Users -->
+      <li class="<%= routeName === 'UserPayments' ? 'active' : '' %>">
+        <a href="/UserPayments" class="nav-link">
+          <i data-feather="users"></i>
+          <span>Wallet Recharge</span>
+        </a>
+      </li>
 
       <li class="menu-header">Handyman Section</li>
 
@@ -116,6 +125,15 @@
         </a>
       </li>
 
+     <li class="<%= routeName === 'create_service_zone' ? 'active' : '' %>">
+        <a href="/create_service_zone" class="nav-link">
+          <i data-feather="map"></i>
+           Service Zone
+        </a>
+      </li>
+      
+      
+      
       <li class="menu-header">Ride Booking Section</li>
       
       <!-- Cab Orders -->
@@ -206,7 +224,7 @@
        <li class="<%= routeName === 'create_zone' ? 'active' : '' %>">
         <a href="/create_zone" class="nav-link">
           <i data-feather="map"></i>
-          Service & Ride Zone
+           Ride Zone
         </a>
       </li>
 

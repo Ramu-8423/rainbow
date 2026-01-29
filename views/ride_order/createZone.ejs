@@ -1,11 +1,11 @@
-<!-- SweetAlert2 CDN -->
+<!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <div class="main-content">
 
-  <!-- 🔹 Buttons / Tabs -->
+  <!-- Buttons -->
   <div class="col-12 mb-3">
-    <button class="btn me-2 btn-primary" onclick="showTab('list')">
+    <button class="btn btn-primary me-2" onclick="showTab('list')">
       Zone List
     </button>
     <button class="btn btn-primary" onclick="showTab('create')">
@@ -13,190 +13,202 @@
     </button>
   </div>
 
-  <!-- 🔹 Zone List -->
-  <div id="zoneList" class="col-12"
-       style="display:<%= activeTab === 'list' ? 'block' : 'none' %>;">
+  <!-- ================= LIST ================= -->
+  <div id="zoneList"
+       style="display:<%= activeTab === 'list' ? 'block' : 'none' %>">
     <div class="card p-3">
       <h4>Zone List</h4>
 
-      <table class="table table-bordered mt-2">
+      <table class="table table-bordered">
         <thead>
           <tr>
             <th>ID</th>
             <th>Zone Name</th>
-            <th>Created Date</th>
-            <th width="120">Actions</th>
+            <th>Created</th>
+            <th width="120">Action</th>
           </tr>
         </thead>
         <tbody>
-          <% if (zones.length > 0) { %>
-            <% zones.forEach(zone => { %>
+          <% if (zones.length) { %>
+            <% zones.forEach(z => { %>
               <tr>
-                <td><%= zone.id %></td>
-                <td><%= zone.zone_name %></td>
-                <td><%= new Date(zone.created_at).toLocaleString() %></td>
+                <td><%= z.id %></td>
+                <td><%= z.zone_name %></td>
+                <td><%= new Date(z.created_at).toLocaleString() %></td>
                 <td>
-                  <!-- EDIT -->
-                  <a href="/zones/edit/<%= zone.id %>"
-                     class="btn btn-sm btn-warning">
-                    <i class="fa fa-edit"></i>
-                  </a>
+                  <a href="/zones/edit/<%= z.id %>"
+                     class="btn btn-sm btn-warning">Edit</a>
 
-                  <!-- DELETE -->
-                  <form id="deleteForm-<%= zone.id %>"
-                        action="/zones/delete/<%= zone.id %>"
+                  <form id="del-<%= z.id %>"
+                        action="/zones/delete/<%= z.id %>"
                         method="POST"
                         style="display:inline;">
                     <button type="button"
                             class="btn btn-sm btn-danger"
-                            onclick="confirmDelete(<%= zone.id %>)">
-                      <i class="fa fa-trash"></i>
+                            onclick="confirmDelete(<%= z.id %>)">
+                      Delete
                     </button>
                   </form>
                 </td>
               </tr>
             <% }) %>
           <% } else { %>
-            <tr>
-              <td colspan="4" class="text-center text-muted">
-                No zones found.
-              </td>
-            </tr>
+            <tr><td colspan="4" class="text-center">No zones</td></tr>
           <% } %>
         </tbody>
       </table>
     </div>
   </div>
 
-  <!-- 🔹 Create / Edit Zone -->
-  <div id="createZone" class="col-12"
-       style="display:<%= activeTab === 'create' ? 'block' : 'none' %>;">
+  <!-- ================= CREATE / EDIT ================= -->
+  <div id="createZone"
+       style="display:<%= activeTab === 'create' ? 'block' : 'none' %>">
     <div class="card p-3">
       <h4><%= editZone ? 'Edit Zone' : 'Create Zone' %></h4>
 
       <form method="POST"
-        action="<%= editZone ? '/zones/update/' + editZone.id : '/zones/create' %>">
+            action="<%= editZone ? '/zones/update/' + editZone.id : '/zones/create' %>">
 
         <div class="mb-3">
           <label class="fw-bold">Zone Name</label>
           <input type="text"
                  name="zone_name"
                  class="form-control"
-                 required
-                 value="<%= editZone ? editZone.zone_name : '' %>">
+                 value="<%= editZone ? editZone.zone_name : '' %>"
+                 required>
         </div>
 
         <div id="map"
-             style="width:100%; height:400px; border-radius:10px;"></div>
+             style="width:100%;height:400px;border-radius:10px"></div>
 
         <input type="hidden"
                id="coords"
                name="zone_coordinates"
                value='<%= editZone ? editZone.coordinates : "" %>'>
 
-        <button type="submit"
-                class="btn mt-3 btn-success">
+        <button class="btn btn-success mt-3">
           <%= editZone ? 'Update Zone' : 'Save Zone' %>
         </button>
-
-        <% if (editZone) { %>
-          <a href="/create_zone?tab=list"
-             class="btn btn-secondary mt-3 ms-2">
-            Cancel
-          </a>
-        <% } %>
       </form>
     </div>
   </div>
 
 </div>
 
-<!-- 🔹 MAP SCRIPT -->
 <script>
+let map;
+let drawingManager;
 let polygon = null;
-let editCoords = <%- editZone ? editZone.coordinates : 'null' %>;
+let mapReady = false;
+
+/* SAFE COORD PARSE */
+let rawCoords = <%- JSON.stringify(editZone ? editZone.coordinates : null) %>;
+let editCoords = [];
+
+try {
+  editCoords = rawCoords
+    ? (typeof rawCoords === "string" ? JSON.parse(rawCoords) : rawCoords)
+    : [];
+} catch (e) {
+  console.error(e);
+}
 
 function initMap() {
-  const map = new google.maps.Map(document.getElementById("map"), {
-    zoom: 12,
-    center: { lat: 26.8467, lng: 80.9462 }
+  mapReady = true;
+  if (document.getElementById("createZone").style.display !== "none") {
+    loadMap();
+  }
+}
+
+function loadMap() {
+  if (!mapReady) return;
+
+  map = new google.maps.Map(document.getElementById("map"), {
+    center: editCoords.length ? editCoords[0] : { lat: 26.8467, lng: 80.9462 },
+    zoom: 6,
+    gestureHandling: "greedy"
   });
 
-  const drawingManager = new google.maps.drawing.DrawingManager({
-    drawingControl: !editCoords,
+  drawingManager = new google.maps.drawing.DrawingManager({
+    drawingMode: null,
+    drawingControl: true,
     drawingControlOptions: {
-      drawingModes: ["polygon"]
+      position: google.maps.ControlPosition.TOP_CENTER,
+      drawingModes: [google.maps.drawing.OverlayType.POLYGON]
+    },
+    polygonOptions: {
+      editable: true,
+      fillColor: "#2563eb",
+      fillOpacity: 0.35,
+      strokeWeight: 2
     }
   });
 
   drawingManager.setMap(map);
 
-  // 🔸 Edit case: load existing polygon
-  if (editCoords) {
+  if (editCoords.length) {
     polygon = new google.maps.Polygon({
       paths: editCoords,
       editable: true,
-      map: map
+      map
     });
+    bindPolygon(polygon);
 
-    map.fitBounds(getBounds(editCoords));
-    bindPolygonEvents(polygon);
-  }
-
-  google.maps.event.addListener(drawingManager, 'polygoncomplete', function (poly) {
-    if (polygon) polygon.setMap(null);
-    polygon = poly;
-    polygon.setEditable(true);
-    bindPolygonEvents(polygon);
-  });
-
-  function bindPolygonEvents(poly) {
-    google.maps.event.addListener(poly.getPath(), 'set_at', () => saveCoords(poly));
-    google.maps.event.addListener(poly.getPath(), 'insert_at', () => saveCoords(poly));
-    saveCoords(poly);
-  }
-
-  function saveCoords(poly) {
-    let coordinates = poly.getPath().getArray().map(p => ({
-      lat: p.lat(),
-      lng: p.lng()
-    }));
-    document.getElementById("coords").value = JSON.stringify(coordinates);
-  }
-
-  function getBounds(coords) {
     const bounds = new google.maps.LatLngBounds();
-    coords.forEach(c => bounds.extend(c));
-    return bounds;
+    editCoords.forEach(p => bounds.extend(p));
+    map.fitBounds(bounds);
+  }
+
+  google.maps.event.addListener(
+    drawingManager,
+    "polygoncomplete",
+    poly => {
+      if (polygon) polygon.setMap(null);
+      polygon = poly;
+      bindPolygon(poly);
+    }
+  );
+}
+
+function bindPolygon(poly) {
+  google.maps.event.addListener(poly.getPath(), "set_at", saveCoords);
+  google.maps.event.addListener(poly.getPath(), "insert_at", saveCoords);
+  saveCoords();
+}
+
+function saveCoords() {
+  const coords = polygon.getPath().getArray().map(p => ({
+    lat: p.lat(),
+    lng: p.lng()
+  }));
+  document.getElementById("coords").value = JSON.stringify(coords);
+}
+
+/* TAB SWITCH */
+function showTab(tab) {
+  zoneList.style.display = tab === "list" ? "block" : "none";
+  createZone.style.display = tab === "create" ? "block" : "none";
+
+  if (tab === "create") {
+    setTimeout(loadMap, 300);
   }
 }
 
-// Tabs
-function showTab(tab) {
-  document.getElementById("zoneList").style.display =
-    tab === 'list' ? 'block' : 'none';
-  document.getElementById("createZone").style.display =
-    tab === 'create' ? 'block' : 'none';
-}
-
-// SweetAlert Delete
+/* DELETE */
 function confirmDelete(id) {
   Swal.fire({
-    title: 'Are you sure?',
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonColor: '#d33',
-    confirmButtonText: 'Yes, delete it!'
-  }).then((result) => {
-    if (result.isConfirmed) {
-      document.getElementById('deleteForm-' + id).submit();
+    title: "Are you sure?",
+    icon: "warning",
+    showCancelButton: true
+  }).then(r => {
+    if (r.isConfirmed) {
+      document.getElementById("del-" + id).submit();
     }
   });
 }
 </script>
 
-
-
+<!-- 🔥 DRAWING LIBRARY IS MUST -->
 <script async
-  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCm7ErTUTWLiTIT9KvG9bziUokOEt5wCBI&libraries=places&callback=initMap">
+  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCm7ErTUTWLiTIT9KvG9bziUokOEt5wCBI&libraries=drawing&callback=initMap">
 </script>

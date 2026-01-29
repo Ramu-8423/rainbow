@@ -448,8 +448,7 @@ export async function cabEarning(req, res) {
         ? new Date(row.offline_time)
         : new Date(now);
 
-      console.log("Online Time:", online);
-      console.log("Offline Time:", offline);
+     
 
       if (offline > online) {
         const diffSeconds = Math.floor((offline - online) / 1000);

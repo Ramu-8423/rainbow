@@ -63,63 +63,141 @@
 .badge-blue { background:#e0f2fe; color:#0284c7; }
 .badge-orange { background:#ffedd5; color:#ea580c; }
 .badge-dark { background:#e5e7eb; color:#111827; }
+
+
+.btn-double {
+  min-width: 120px important;  
+  text-align: center important;
+}
 </style>
 
 <!-- ================= MAIN DASHBOARD ROW ================= -->
 
-<div class="row align-items-center mb-3">
+<form method="GET" action="/dashboard" class="row g-2 align-items-end mb-3">
 
-  <!-- LEFT : TEXT -->
-  <div class="col-sm-4">
-   <h5 class="fw-semibold">
-  Total Revenue :-  
-  <span style="color:#2563eb;">
-    <%= Number(service_revenue) + Number(cab_revenue) %>
-  </span>
-</h5>
-
-   
+  <!-- FROM DATE -->
+  <div class="col-sm-3">
+    <label class="form-label form-label-sm mb-1">From Date</label>
+    <input
+      type="date"
+      name="from"
+      class="form-control form-control-sm"
+      value="<%= from || '' %>"
+      required
+    >
   </div>
 
-  <!-- RIGHT : FILTER FORM -->
-  <div class="col-sm-7">
-    <form method="GET"
-          action="/dashboard"
-          class="row g-2 justify-content-end align-items-end">
+  <!-- TO DATE -->
+  <div class="col-sm-3">
+    <label class="form-label form-label-sm mb-1">To Date</label>
+    <input
+      type="date"
+      name="to"
+      class="form-control form-control-sm"
+      value="<%= to || '' %>"
+      required
+    >
+  </div>
 
-      <div class="col-sm-4">
-        <label class="form-label form-label-sm mb-1">From Date</label>
-        <input
-          type="date"
-          name="from"
-          class="form-control form-control-sm"
-          value="<%= from || '' %>"
-          required
-        >
+  <!-- BUTTONS -->
+  <div class="col-sm-3 d-flex gap-1">
+    <button type="submit" class="btn btn-sm btn-primary w-100">
+      Filter
+    </button>
+    <a href="/dashboard" class="btn btn-sm btn-secondary w-100">
+      Reset
+    </a>
+  </div>
+
+  <!-- EMPTY SPACE (RIGHT SIDE) -->
+  <div class="col-sm-4"></div>
+
+</form>
+
+
+
+<div class="row">
+
+  <div class="col-12 mb-2">
+    <h4 class="mt-2">Revenue Overview</h4>
+  </div>
+
+  <!-- 🔥 TOTAL REVENUE -->
+  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
+    <div class="mini-card">
+      <div class="mini-card-title">Total Revenue</div>
+      <div class="mini-card-body">
+        <div class="mini-icon icon-green"><i class="bi bi-currency-rupee"></i></div>
+        <span class="mini-badge badge-green">
+          <%= (Number(service_revenue || 0) + Number(cab_revenue || 0)).toFixed(2) %>
+        </span>
       </div>
+    </div>
+  </div>
 
-      <div class="col-sm-4">
-        <label class="form-label form-label-sm mb-1">To Date</label>
-        <input
-          type="date"
-          name="to"
-          class="form-control form-control-sm"
-          value="<%= to || '' %>"
-          required
-        >
+  <!-- 🔥 TODAY TOTAL REVENUE -->
+  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
+    <div class="mini-card">
+      <div class="mini-card-title">Today Total Revenue</div>
+      <div class="mini-card-body">
+        <div class="mini-icon icon-purple"><i class="bi bi-cash-stack"></i></div>
+        <span class="mini-badge badge-purple">
+          <%= (Number(today_service_revenue || 0) + Number(today_cab_revenue || 0)).toFixed(2) %>
+        </span>
       </div>
+    </div>
+  </div>
 
-      <div class="col-sm-4 d-flex gap-2">
-        <button type="submit" class="btn btn-sm btn-primary w-100">
-          Filter
-        </button>
-
-        <a href="/dashboard" class="btn btn-sm btn-secondary w-100">
-          Reset
-        </a>
+  <!-- 🟢 TOTAL SERVICE REVENUE -->
+  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
+    <div class="mini-card">
+      <div class="mini-card-title">Total Service Revenue</div>
+      <div class="mini-card-body">
+        <div class="mini-icon icon-green"><i class="bi bi-tools"></i></div>
+        <span class="mini-badge badge-green">
+          <%= Number(service_revenue || 0).toFixed(2) %>
+        </span>
       </div>
+    </div>
+  </div>
 
-    </form>
+  <!-- 🟢 TODAY SERVICE REVENUE -->
+  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
+    <div class="mini-card">
+      <div class="mini-card-title">Today Service Revenue</div>
+      <div class="mini-card-body">
+        <div class="mini-icon icon-purple"><i class="bi bi-tools"></i></div>
+        <span class="mini-badge badge-purple">
+          <%= Number(today_service_revenue || 0).toFixed(2) %>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🚕 TOTAL CAB REVENUE -->
+  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
+    <div class="mini-card">
+      <div class="mini-card-title">Total Ride Revenue</div>
+      <div class="mini-card-body">
+        <div class="mini-icon icon-green"><i class="bi bi-car-front-fill"></i></div>
+        <span class="mini-badge badge-green">
+          <%= Number(cab_revenue || 0).toFixed(2) %>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🚕 TODAY CAB REVENUE -->
+  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
+    <div class="mini-card">
+      <div class="mini-card-title">Today Ride Revenue</div>
+      <div class="mini-card-body">
+        <div class="mini-icon icon-purple"><i class="bi bi-car-front-fill"></i></div>
+        <span class="mini-badge badge-purple">
+          <%= Number(today_cab_revenue || 0).toFixed(2) %>
+        </span>
+      </div>
+    </div>
   </div>
 
 </div>

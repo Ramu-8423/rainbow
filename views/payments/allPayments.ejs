@@ -179,12 +179,7 @@ button,
             </a>
           </li>
 
-          <li>
-            <a class="dropdown-item <%= activePaymetBy == 4 ? 'active' : '' %>"
-               href="/all_payments/4">
-              Self Wallet Add
-            </a>
-          </li>
+          
 
           <li>
             <a class="dropdown-item <%= activePaymetBy == 5 ? 'active' : '' %>"
@@ -260,6 +255,9 @@ button,
               <tr>
                 <th>ID</th>
                 <th>User Or Driver ID</th>
+                <th>Driver Name Profile</th>
+                
+                <th>Driver Mobile</th>
                 <th>Amount</th>
                 <th>Platform Fee</th>
                 <th>Final Amount</th>
@@ -276,6 +274,32 @@ button,
                   <tr>
                     <td><%= tx.id %></td>
                     <td><%= tx.user_id %></td>
+                    
+                    
+ <td>
+  <div style="display:flex; align-items:center; gap:8px;">
+    <img
+      src="<%= tx.driver_profile_photo 
+        ? BASE_URL + '/' + tx.driver_profile_photo 
+        : BASE_URL + '/assets/images/user.png' 
+      %>"
+      alt="Driver"
+      style="width:32px; height:32px; border-radius:50%; object-fit:cover;"
+    >
+    <span>
+      <%= tx.driver_name || 'N/A' %>
+    </span>
+  </div>
+</td>
+
+<!-- 📞 DRIVER MOBILE -->
+<td>
+  <%= tx.driver_mobile || '-' %>
+</td>
+
+                    
+                    
+                    
                     <td>₹<%= Number(tx.amount).toFixed(2) %></td>
                       <td><%= tx.platform_fee || '-' %></td>
                     <td>₹<%= Number(tx.final_amount).toFixed(2) %></td>
@@ -284,7 +308,7 @@ button,
                       <%= tx.payment_type == 1 ? 'Online' :
                           tx.payment_type == 2 ? 'Offline (Cash)' :
                           tx.payment_type == 3 ? 'Wallet Payment' :
-                          tx.payment_type == 4 ? 'Self Wallet Add' :
+                         
                           tx.payment_type == 5 ? 'Due Wallet' :
                           'Unknown' %>
                     </td>

@@ -96,7 +96,7 @@ export const serviceOrder = [
     
     // Fetch all zones
     const [zones] = await db.query(
-      "SELECT id, zone_name, coordinates FROM zones"
+      "SELECT id, zone_name, coordinates FROM zones WHERE zone_type = 1"
     );
     
     let serviceAvailable = false;
