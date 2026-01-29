@@ -1,0 +1,46 @@
+<VirtualHost *:80>
+    ServerName admin.rainbowsenterprises.com
+    ServerAlias admin.rainbowsenterprises.com
+
+    RewriteEngine On
+    RewriteCond %{HTTPS} off
+    RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+</VirtualHost>
+
+<VirtualHost *:443>
+    ServerAdmin admin@adminrainbowsenterprises
+    ServerName admin.rainbowsenterprises.com
+    ServerAlias admin.rainbowsenterprises.com
+
+    DocumentRoot "/www/wwwroot/adminrainbowsenterprises/"
+
+    ErrorLog "/www/wwwlogs/adminrainbowsenterprises-error_log"
+    CustomLog "/www/wwwlogs/adminrainbowsenterprises-access_log" combined
+
+    # ================= SSL =================
+    SSLEngine On
+    SSLCertificateFile /www/server/panel/vhost/cert/adminrainbowsenterprises/fullchain.pem
+    SSLCertificateKeyFile /www/server/panel/vhost/cert/adminrainbowsenterprises/privkey.pem
+
+    SSLProtocol all -SSLv2 -SSLv3 -TLSv1
+    SSLHonorCipherOrder On
+
+    # ================= SECURITY =================
+    <Files ~ (\.user.ini|\.htaccess|\.git|\.svn|\.env|package.json|package-lock.json)$>
+        Require all denied
+    </Files>
+
+    ProxyRequests Off
+    SSLProxyEngine On
+
+    # ================= WEBSOCKET (CRITICAL FIX) =================
+    ProxyPreserveHost On
+
+    ProxyPass "/socket/"  "ws://127.0.0.1:1219/socket/"
+    ProxyPassReverse "/socket/"  "ws://127.0.0.1:1219/socket/"
+
+    # ================= NORMAL HTTP =================
+    ProxyPass "/"  "http://127.0.0.1:1219/"
+    ProxyPassReverse "/"  "http://127.0.0.1:1219/"
+
+</VirtualHost>
