@@ -29,7 +29,9 @@ import {
   applyCoupon,
   saveAddress,
   getSavedAddress,
-  deleteSavedAddressByType
+  deleteSavedAddressByType,
+  getPolicyByType,
+  getHelpSupport
 } from "../controllers/api/userPublicController.js";
 
 /* =======================
@@ -333,6 +335,7 @@ router.get("/zone_cities", zoneCities);
 
 router.get("/ride-invoice/:ride_id", generateRideInvoice);
 
-
+router.get("/policy/:type", getPolicyByType);
+router.get("/help-support", getHelpSupport);
 
 export default router;

@@ -38,6 +38,7 @@ export const sendNotification = async (req, res) => {
 
 
 
+
 export const postNotification = async (req, res) => {
   try {
     const { entity_type, entity_id, title, text, push_type } = req.body;
@@ -48,6 +49,11 @@ export const postNotification = async (req, res) => {
     }
 
     const type = Number(entity_type);
+
+    if (![1, 2, 3, 4, 5].includes(type)) {
+      req.session.error = "Invalid notification type.";
+      return res.redirect("/send-notification");
+    }
 
     const chunkArray = (arr, size = 500) => {
       const chunks = [];
@@ -60,14 +66,14 @@ export const postNotification = async (req, res) => {
     const sleep = ms => new Promise(r => setTimeout(r, ms));
 
     /* ==================================================
-       CASE 1: ALL USERS
+       CASE 1: ALL / PUBLIC
     ================================================== */
-    if (type === 4) {
+    if (type === 5) {
       await db.query(
         `
         INSERT INTO notifications
         (title, text, entity_type, entity_id, created_at)
-        VALUES (?, ?, 4, NULL, NOW())
+        VALUES (?, ?, 5, NULL, NOW())
         `,
         [title, text]
       );
@@ -93,13 +99,13 @@ export const postNotification = async (req, res) => {
           const uniqueTokens = [...new Set(allTokens)];
           if (!uniqueTokens.length) return;
 
-          const chunks = chunkArray(uniqueTokens, 500);
+          const chunks = chunkArray(uniqueTokens);
 
           for (const tokens of chunks) {
             await FCMHelper.send(tokens, title, text, {
               hiddenData: {
                 type: push_type || "general",
-                entity_type: 4,
+                entity_type: 5,
               },
             });
             await sleep(200);
@@ -114,7 +120,7 @@ export const postNotification = async (req, res) => {
     }
 
     /* ==================================================
-       CASE 2: SPECIFIC USERS / DRIVERS / SERVICEMEN
+       CASE 2: SPECIFIC TARGET
     ================================================== */
     if (!entity_id || !Array.isArray(entity_id) || !entity_id.length) {
       req.session.error = "Please select at least one receiver.";
@@ -140,14 +146,29 @@ export const postNotification = async (req, res) => {
 
     let tokenQuery = "";
 
-    if (type === 1) {
-      tokenQuery = `SELECT fcm_token FROM users WHERE id IN (?) AND fcm_token IS NOT NULL`;
+    // USERS (Cab & Service)
+    if (type === 1 || type === 2) {
+      tokenQuery = `
+        SELECT fcm_token 
+        FROM users 
+        WHERE id IN (?) AND fcm_token IS NOT NULL
+      `;
     }
-    if (type === 2) {
-      tokenQuery = `SELECT fcm_token FROM driver_registration WHERE id IN (?) AND fcm_token IS NOT NULL`;
-    }
+
     if (type === 3) {
-      tokenQuery = `SELECT fcm_token FROM serviceman WHERE id IN (?) AND fcm_token IS NOT NULL`;
+      tokenQuery = `
+        SELECT fcm_token 
+        FROM driver_registration 
+        WHERE id IN (?) AND fcm_token IS NOT NULL
+      `;
+    }
+
+    if (type === 4) {
+      tokenQuery = `
+        SELECT fcm_token 
+        FROM serviceman 
+        WHERE id IN (?) AND fcm_token IS NOT NULL
+      `;
     }
 
     const [rows] = await db.query(tokenQuery, [entity_id]);
@@ -168,9 +189,11 @@ export const postNotification = async (req, res) => {
 
     req.session.success = "Notification sent successfully.";
     return res.redirect("/send-notification");
+
   } catch (error) {
     console.error("Send Notification Error:", error);
     req.session.error = "Failed to send notification.";
     return res.redirect("/send-notification");
   }
 };
+

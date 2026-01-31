@@ -772,10 +772,10 @@ export async function getNotificationByType(req, res) {
     const entity_id = Number(req.query.entity_id); 
 
     // 🔎 validations
-    if (![1, 2, 3].includes(role_type)) {
+    if (![1, 2, 3, 4].includes(role_type)) {
       return res.status(400).json({
         success: false,
-        message: "Invalid type. Allowed: 1 = User, 2 = Driver, 3 = Serviceman"
+        message: "Invalid type. Allowed: 1=User Cab, 2=User Service, 3=Driver, 4=Serviceman"
       });
     }
 
@@ -794,7 +794,7 @@ export async function getNotificationByType(req, res) {
         created_at
       FROM notifications
       WHERE 
-        entity_type = 4
+        entity_type = 5
         OR (entity_type = ? AND entity_id = ?)
       ORDER BY id DESC
     `;
@@ -1550,3 +1550,106 @@ export const deleteSavedAddressByType = async (req, res) => {
   }
 };
 
+
+
+
+
+export const getPolicyByType = async (req, res) => {
+  try {
+    const type = Number(req.params.type);
+
+    // ✅ validation
+    if (![1, 2].includes(type)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid policy type. Allowed: 1=Privacy Policy, 2=Terms & Conditions"
+      });
+    }
+
+    const [rows] = await db.query(
+      `
+      SELECT 
+        id,
+        name,
+        type,
+        description,
+        created_at,
+        updated_at
+      FROM policies
+      WHERE type = ?
+      LIMIT 1
+      `,
+      [type]
+    );
+
+    if (!rows.length) {
+      return res.status(404).json({
+        success: false,
+        message: "Policy not found"
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Policy fetched successfully",
+      data: rows[0]
+    });
+
+  } catch (error) {
+    console.error("Get Policy Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message
+    });
+  }
+};
+
+
+
+export const getHelpSupport = async (req, res) => {
+  try {
+    const [rows] = await db.query(
+      `
+      SELECT id, value
+      FROM settings
+      WHERE id IN (8, 9)
+      `
+    );
+
+    if (!rows.length) {
+      return res.status(404).json({
+        success: false,
+        message: "Support details not found"
+      });
+    }
+
+    const data = {
+      email: null,
+      support_mobile: null
+    };
+
+    rows.forEach(row => {
+      if (row.id === 8) {
+        data.email = row.value;
+      }
+      if (row.id === 9) {
+        data.support_mobile = row.value;
+      }
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Help & support details fetched successfully",
+      data
+    });
+
+  } catch (error) {
+    console.error("Help Support API Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+      error: error.message
+    });
+  }
+};

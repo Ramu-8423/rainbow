@@ -9,7 +9,7 @@ export const allUsers = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const offset = (page - 1) * perPage;
 
-    const { from, to, status } = req.query;
+    const { from, to, status, search } = req.query;
 
     let where = "WHERE 1 ";
     let values = [];
@@ -27,6 +27,13 @@ export const allUsers = async (req, res) => {
       where += "AND status = 0 ";
     }
 
+    // 🔍 NAME / PHONE SEARCH (FIXED)
+    if (search && search.trim() !== "") {
+      where += "AND (name LIKE ? OR phone LIKE ?) ";
+      const keyword = `%${search.trim()}%`;
+      values.push(keyword, keyword);
+    }
+
     // COUNT
     const [[{ total }]] = await db.query(
       `SELECT COUNT(*) AS total FROM users ${where}`,
@@ -35,8 +42,9 @@ export const allUsers = async (req, res) => {
 
     // DATA
     const [rows] = await db.query(
-      `SELECT * FROM users ${where}
-       ORDER BY id DESC 
+      `SELECT * FROM users
+       ${where}
+       ORDER BY id DESC
        LIMIT ? OFFSET ?`,
       [...values, perPage, offset]
     );
@@ -50,11 +58,13 @@ export const allUsers = async (req, res) => {
       totalPages: Math.ceil(total / perPage),
       from,
       to,
-      status,                    // ⭐ send status to EJS
-      isFiltered: Boolean(from && to),
+      status,
+      search,
+      isFiltered: Boolean(from || to || search), // ✅ better UX
     });
 
   } catch (err) {
+    console.error("allUsers error:", err);
     return res.render("users/allUsers", {
       title: "Users List",
       users: [],
@@ -525,19 +535,70 @@ export const updateSetting = async (req, res) => {
       return res.redirect("/settings");
     }
 
-    // 🧹 STEP 1: value ko string banao (safe)
-    value = String(value);
+    // STEP 1: value ko string banao
+    value = String(value).trim();
 
-    // 🧹 STEP 2: saare % remove karo (jitne bhi ho)
+    /* ===============================
+       ID = 7 → EMAIL VALIDATION
+    ================================ */
+    if (Number(id) === 8) {
+      const emailRegex =
+        /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+      if (!emailRegex.test(value)) {
+        req.session.error = "Invalid email address.";
+        return res.redirect("/settings");
+      }
+
+      await db.query(
+        `
+        UPDATE settings
+        SET value = ?, updated_at = NOW()
+        WHERE id = ?
+        `,
+        [value, id]
+      );
+
+      req.session.success = "Email updated successfully.";
+      return res.redirect("/settings");
+    }
+
+    /* ===============================
+       ID = 8 → MOBILE VALIDATION
+    ================================ */
+    if (Number(id) === 9) {
+      const mobileRegex = /^[6-9][0-9]{9}$/; // India 10 digit mobile
+
+      if (!mobileRegex.test(value)) {
+        req.session.error = "Invalid mobile number. Enter 10 digit number.";
+        return res.redirect("/settings");
+      }
+
+      await db.query(
+        `
+        UPDATE settings
+        SET value = ?, updated_at = NOW()
+        WHERE id = ?
+        `,
+        [value, id]
+      );
+
+      req.session.success = "Mobile number updated successfully.";
+      return res.redirect("/settings");
+    }
+
+    /* ===============================
+       OTHER IDS → NUMERIC VALIDATION
+    ================================ */
+
+    // saare % hatao
     value = value.replace(/%/g, "").trim();
 
-    // 🧮 STEP 3: number validate karo (integer ya decimal)
     if (value === "" || isNaN(value)) {
       req.session.error = "Invalid numeric value.";
       return res.redirect("/settings");
     }
 
-    // STEP 4: final numeric value
     const finalValue = Number(value);
 
     await db.query(
@@ -558,3 +619,4 @@ export const updateSetting = async (req, res) => {
     return res.redirect("/settings");
   }
 };
+

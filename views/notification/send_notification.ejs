@@ -1,4 +1,23 @@
-<div class="main-content container-fluid">
+
+  <style>
+    body {
+      background: #f4f6f9;
+    }
+    .card {
+      border-radius: 12px;
+    }
+    .card-header {
+      border-radius: 12px 12px 0 0;
+    }
+    .entity-list-item:hover {
+      background: #eef2ff;
+    }
+    .text-right {
+      text-align: right;
+    }
+  </style>
+
+<div class="main-content container-fluid mt-4">
   <div class="card shadow-sm">
     <div class="card-header bg-primary text-white">
       <h5 class="mb-0">Send Notification</h5>
@@ -6,16 +25,14 @@
 
     <div class="card-body">
       <form method="POST" action="/notification/send" id="notificationForm">
-        <!-- Single row with two columns -->
-        <div class="row">
-          <!-- Left column: Form controls -->
-          <div class="col-sm-6">
-            <!-- ================= ENTITY TYPE ================= -->
-            <div class="mb-4">
-              <label for="entityType" class="form-label fw-semibold">
-                Select Type
-              </label>
 
+        <div class="row">
+          <!-- LEFT -->
+          <div class="col-sm-6">
+
+            <!-- ENTITY TYPE -->
+            <div class="mb-4">
+              <label class="form-label fw-semibold">Select Type</label>
               <select
                 class="form-select form-select-sm shadow-sm"
                 id="entityType"
@@ -23,18 +40,18 @@
                 required
               >
                 <option value="" selected disabled>-- Select --</option>
-                <option value="1">User</option>
-                <option value="2">Driver</option>
-                <option value="3">Serviceman</option>
-                <option value="4">All</option>
+                <option value="1">User (Cab)</option>
+                <option value="2">User (Service)</option>
+                <option value="3">Driver</option>
+                <option value="4">Serviceman</option>
+                <option value="5">All</option>
               </select>
             </div>
 
-            <!-- ================= RECEIVERS ================= -->
+            <!-- RECEIVERS -->
             <div class="mb-4 d-none" id="entityBox">
               <label class="form-label fw-semibold">Select Receivers</label>
 
-              <!-- SEARCH -->
               <input
                 type="text"
                 id="searchInput"
@@ -42,176 +59,135 @@
                 placeholder="Search by name or mobile..."
               >
 
-              <!-- SELECT ALL -->
               <div class="form-check mb-2 d-none" id="selectAllBox">
-                <input
-                  class="form-check-input"
-                  type="checkbox"
-                  id="selectAll"
-                >
+                <input class="form-check-input" type="checkbox" id="selectAll">
                 <label class="form-check-label fw-semibold" for="selectAll">
                   Select All
                 </label>
               </div>
 
-              <!-- LIST -->
               <div
                 class="border rounded p-2 bg-light"
-                style="max-height: 200px; overflow-y: auto;"
+                style="max-height:200px;overflow-y:auto"
                 id="entityList"
               >
-                <div class="text-muted small">
-                  Select type to load data
-                </div>
+                <div class="text-muted small">Select type to load data</div>
               </div>
             </div>
           </div>
 
-          <!-- Right column: Title and Text -->
+          <!-- RIGHT -->
           <div class="col-sm-6">
-            <!-- ================= TITLE ================= -->
+
+            <!-- TITLE -->
             <div class="mb-4">
               <label class="form-label fw-semibold">Title</label>
-              <input 
-                type="text" 
-                class="form-control shadow-sm" 
-                name="title" 
+              <input
+                type="text"
+                class="form-control shadow-sm"
+                name="title"
                 id="titleInput"
-                placeholder="Enter notification title"
                 required
               >
               <div class="form-text" id="titleHelpText">
-                Short and descriptive title for your notification.
-              </div>
-              <div class="text-danger small mt-1 d-none" id="titleError">
                 Maximum 10 words allowed
+              </div>
+              <div class="text-danger small d-none" id="titleError">
+                Title exceeds 10 words
               </div>
             </div>
 
-            <!-- ================= TEXT ================= -->
+            <!-- TEXT -->
             <div class="mb-4">
-              <label class="form-label fw-semibold">Message Text</label>
-              <textarea 
-                class="form-control shadow-sm" 
-                name="text" 
+              <label class="form-label fw-semibold">Message</label>
+              <textarea
+                class="form-control shadow-sm"
+                name="text"
                 id="textInput"
-                rows="6" 
-                placeholder="Enter your notification message here..."
+                rows="6"
                 required
               ></textarea>
               <div class="form-text" id="textHelpText">
-                Main content of the notification to be sent.
-              </div>
-              <div class="text-danger small mt-1 d-none" id="textError">
                 Maximum 45 words allowed
+              </div>
+              <div class="text-danger small d-none" id="textError">
+                Message exceeds 45 words
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Submit button at the bottom -->
+        <!-- BUTTON -->
         <div class="row">
           <div class="col-12 text-right">
-            <button type="submit" class="btn btn-primary px-4 py-2">
-              <i class="bi bi-send"></i> Send Notification
+            <button type="submit" class="btn btn-primary px-4">
+              <i class="bi bi-send"></i> Send
             </button>
-            <a href="/send-notification" class="btn btn-outline-secondary px-4 py-2 ms-2">
-              <i class="bi bi-arrow-clockwise"></i> Reset
+            <a href="/send-notification" class="btn btn-outline-secondary px-4 ms-2">
+              Reset
             </a>
           </div>
         </div>
+
       </form>
     </div>
   </div>
 </div>
 
 <script>
-  /* ================= DATA ================= */
+  /* ===== DATA FROM SERVER ===== */
   const users = <%- JSON.stringify(users) %>;
   const drivers = <%- JSON.stringify(drivers) %>;
   const servicemen = <%- JSON.stringify(servicemen) %>;
 
-  /* ================= ELEMENTS ================= */
+  /* ===== ELEMENTS ===== */
   const entityType = document.getElementById("entityType");
   const entityBox = document.getElementById("entityBox");
   const entityList = document.getElementById("entityList");
   const selectAll = document.getElementById("selectAll");
   const selectAllBox = document.getElementById("selectAllBox");
   const searchInput = document.getElementById("searchInput");
+
   const titleInput = document.getElementById("titleInput");
   const textInput = document.getElementById("textInput");
   const titleError = document.getElementById("titleError");
   const textError = document.getElementById("textError");
   const titleHelpText = document.getElementById("titleHelpText");
   const textHelpText = document.getElementById("textHelpText");
-  const notificationForm = document.getElementById("notificationForm");
 
   let currentData = [];
   let currentType = null;
 
-  /* ================= WORD COUNT FUNCTIONS ================= */
+  /* ===== WORD COUNT ===== */
   function countWords(text) {
     if (!text) return 0;
-    return text.trim().split(/\s+/).filter(word => word.length > 0).length;
+    return text.trim().split(/\s+/).filter(Boolean).length;
   }
 
-  function checkTitleWords() {
-    const wordCount = countWords(titleInput.value);
-    if (wordCount > 10) {
-      titleError.classList.remove("d-none");
-      titleHelpText.classList.add("d-none");
-      return false;
-    } else {
-      titleError.classList.add("d-none");
-      titleHelpText.classList.remove("d-none");
-      return true;
-    }
+  function validateTitle() {
+    const ok = countWords(titleInput.value) <= 10;
+    titleError.classList.toggle("d-none", ok);
+    titleHelpText.classList.toggle("d-none", !ok);
+    return ok;
   }
 
-  function checkTextWords() {
-    const wordCount = countWords(textInput.value);
-    if (wordCount > 45) {
-      textError.classList.remove("d-none");
-      textHelpText.classList.add("d-none");
-      return false;
-    } else {
-      textError.classList.add("d-none");
-      textHelpText.classList.remove("d-none");
-      return true;
-    }
+  function validateText() {
+    const ok = countWords(textInput.value) <= 45;
+    textError.classList.toggle("d-none", ok);
+    textHelpText.classList.toggle("d-none", !ok);
+    return ok;
   }
 
-  /* ================= EVENT LISTENERS FOR WORD LIMIT ================= */
-  titleInput.addEventListener("input", checkTitleWords);
-  textInput.addEventListener("input", checkTextWords);
+  titleInput.addEventListener("input", validateTitle);
+  textInput.addEventListener("input", validateText);
 
-  /* ================= FORM VALIDATION ================= */
-  notificationForm.addEventListener("submit", function(event) {
-    const isTitleValid = checkTitleWords();
-    const isTextValid = checkTextWords();
-    
-    if (!isTitleValid || !isTextValid) {
-      event.preventDefault();
-      event.stopPropagation();
-      
-      // Scroll to first error
-      if (!isTitleValid) {
-        titleInput.focus();
-      } else if (!isTextValid) {
-        textInput.focus();
-      }
-      
-      return false;
-    }
-  });
-
-  /* ================= TYPE CHANGE ================= */
+  /* ===== ENTITY TYPE CHANGE ===== */
   entityType.addEventListener("change", () => {
     currentType = entityType.value;
     searchInput.value = "";
     selectAll.checked = false;
 
-    if (currentType === "4") {
+    if (currentType === "5") {
       entityBox.classList.add("d-none");
       return;
     }
@@ -219,35 +195,33 @@
     entityBox.classList.remove("d-none");
     selectAllBox.classList.remove("d-none");
 
-    if (currentType === "1") currentData = users;
-    if (currentType === "2") currentData = drivers;
-    if (currentType === "3") currentData = servicemen;
+    if (currentType === "1" || currentType === "2") currentData = users;
+    if (currentType === "3") currentData = drivers;
+    if (currentType === "4") currentData = servicemen;
 
     renderList(currentData);
   });
 
-  /* ================= RENDER LIST ================= */
+  /* ===== RENDER LIST (FIXED) ===== */
   function renderList(data) {
     entityList.innerHTML = "";
 
     if (!data.length) {
-      entityList.innerHTML = `<div class="text-muted p-2">No data found</div>`;
+      entityList.innerHTML = `<div class="text-muted">No data found</div>`;
       return;
     }
 
     data.forEach(item => {
-      let labelText = "";
+      const name =
+        (currentType === "1" || currentType === "2")
+          ? `${item.name} ${item.last_name}`
+          : `${item.first_name} ${item.last_name}`;
 
-      if (currentType === "1") {
-        labelText = `${item.name} ${item.last_name} (${item.mobile})`;
-      } else {
-        labelText = `${item.first_name} ${item.last_name} (${item.mobile})`;
-      }
-
+      // 🔑 UNIQUE ID (VERY IMPORTANT)
       const checkboxId = `entity_${currentType}_${item.id}`;
 
       entityList.innerHTML += `
-        <div class="form-check py-2 px-2 border-bottom">
+        <div class="form-check entity-list-item py-2 border-bottom">
           <input
             class="form-check-input entityCheck"
             type="checkbox"
@@ -255,48 +229,53 @@
             value="${item.id}"
             id="${checkboxId}"
           >
-          <label class="form-check-label ms-2" for="${checkboxId}">
-            ${labelText}
+          <label
+            class="form-check-label ms-2"
+            for="${checkboxId}"
+            style="cursor:pointer"
+          >
+            ${name} (${item.mobile})
           </label>
         </div>
       `;
     });
   }
 
-  /* ================= SEARCH ================= */
+  /* ===== SEARCH ===== */
   searchInput.addEventListener("input", () => {
-    const keyword = searchInput.value.trim().toLowerCase();
+    const keyword = searchInput.value.toLowerCase();
 
     const filtered = currentData.filter(item => {
       const name =
-        currentType === "1"
-          ? `${item.name} ${item.last_name}`.toLowerCase()
-          : `${item.first_name} ${item.last_name}`.toLowerCase();
+        (item.name || item.first_name || "") +
+        " " +
+        (item.last_name || "");
 
-      const mobile = String(item.mobile);
-
-      return name.includes(keyword) || mobile.includes(keyword);
+      return (
+        name.toLowerCase().includes(keyword) ||
+        String(item.mobile).includes(keyword)
+      );
     });
 
     selectAll.checked = false;
     renderList(filtered);
   });
 
-  /* ================= SELECT ALL ================= */
+  /* ===== SELECT ALL ===== */
   selectAll.addEventListener("change", () => {
-    const checkboxes = document.querySelectorAll(".entityCheck");
-    checkboxes.forEach(cb => {
-      cb.checked = selectAll.checked;
+    document
+      .querySelectorAll(".entityCheck")
+      .forEach(cb => (cb.checked = selectAll.checked));
+  });
+
+  /* ===== FORM SUBMIT ===== */
+  document
+    .getElementById("notificationForm")
+    .addEventListener("submit", e => {
+      if (!validateTitle() || !validateText()) {
+        e.preventDefault();
+      }
     });
-  });
-
-  /* ================= SYNC SELECT ALL WHEN SINGLE CHANGES ================= */
-  document.addEventListener("change", (e) => {
-    if (!e.target.classList.contains("entityCheck")) return;
-
-    const checkboxes = document.querySelectorAll(".entityCheck");
-    const checked = document.querySelectorAll(".entityCheck:checked").length;
-
-    selectAll.checked = (checkboxes.length > 0 && checked === checkboxes.length);
-  });
 </script>
+
+

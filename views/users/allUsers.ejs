@@ -141,61 +141,61 @@
 
     <div class="card">
 
-   <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
+   <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
 
+  <!-- LEFT -->
   <h4 class="mb-0">Users List</h4>
 
-
- <div class="d-flex gap-2 flex-wrap">
-
+  <!-- CENTER : STATUS -->
+  <div class="d-flex gap-2">
     <a href="/all-users"
        class="btn btn-sm <%= !status ? 'btn-primary' : 'btn-secondary' %>"
-       style="border-radius:0;">
-      All
-    </a>
+       style="border-radius:0;">All</a>
 
     <a href="/all-users?status=1"
        class="btn btn-sm <%= status == 1 ? 'btn-primary' : 'btn-secondary' %>"
-       style="border-radius:0;">
-      Active
-    </a>
+       style="border-radius:0;">Active</a>
 
     <a href="/all-users?status=0"
        class="btn btn-sm <%= status == 0 ? 'btn-primary' : 'btn-secondary' %>"
-       style="border-radius:0;">
-      Inactive
-    </a>
-
+       style="border-radius:0;">Inactive</a>
   </div>
-  <!-- SEARCH -->
-  <input 
-    type="text"
-    id="tableSearch"
-    placeholder="Search..."
-    class="form-control mx-3"
-    style="width:220px;"
-  />
 
-  <!-- STATUS FILTER BUTTONS -->
- 
+  <!-- RIGHT : SEARCH + DATE + FILTER -->
+  <form method="GET" class="filter-form d-flex align-items-center gap-2 flex-wrap">
 
-  <!-- FILTER FORM -->
-  <form class="filter-form d-flex align-items-center" method="GET">
+    <!-- SEARCH -->
+    <input
+      type="text"
+      name="search"
+      value="<%= search || '' %>"
+      placeholder="Search name / mobile"
+      class="form-control"
+      style="width:200px;"
+    />
 
-    <input type="date" name="from" value="<%= from || '' %>" class="form-control" style="width:150px;" />
-    <input type="date" name="to" value="<%= to || '' %>" class="form-control" style="width:150px;" />
+    <!-- DATE -->
+    <input type="date" name="from" value="<%= from || '' %>" class="form-control" style="width:140px;" />
+    <input type="date" name="to" value="<%= to || '' %>" class="form-control" style="width:140px;" />
+
+    <!-- STATUS PRESERVE -->
+    <% if (status !== undefined && status !== "") { %>
+      <input type="hidden" name="status" value="<%= status %>">
+    <% } %>
 
     <button type="submit" class="btn btn-primary btn-sm" style="border-radius:0;">
       Filter
     </button>
 
-    <% if (isFiltered) { %>
+    <% if (search || isFiltered) { %>
       <a href="/all-users" class="btn btn-secondary btn-sm" style="border-radius:0;">
         Reset
       </a>
     <% } %>
 
   </form>
+
+
 
 </div>
 

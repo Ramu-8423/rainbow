@@ -9,10 +9,9 @@ export const allServiceman = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const offset = (page - 1) * perPage;
 
-    const { from, to } = req.query;
+    const { from, to, search } = req.query;
 
     // 🔑 ROUTE PARAM KO HI status BANA DIYA
-    // so EJS same rahe
     const status = req.params.status || req.query.status;
 
     let where = "WHERE 1 ";
@@ -24,14 +23,7 @@ export const allServiceman = async (req, res) => {
       values.push(from, to);
     }
 
-    /* =================================================
-       STATUS LOGIC (SAME VARIABLE NAME)
-       -------------------------------------------------
-       1 -> login active
-       0 -> login inactive
-       3 -> online
-       4 -> offline
-    ================================================== */
+    /* ================= STATUS FILTER ================= */
     if (status === "1") {
       where += "AND s.login_status = 1 ";
     } 
@@ -43,6 +35,40 @@ export const allServiceman = async (req, res) => {
     } 
     else if (status === "4") {
       where += "AND s.online_status = 1 ";
+    }
+
+    /* =================================================
+       🔍 SEARCH (mobile + first_name + last_name)
+       ✔ supports: viveak | oberai | viveak oberai
+    ================================================== */
+    if (search && search.trim() !== "") {
+
+      const clean = search.trim();
+      const parts = clean.split(/\s+/); // multiple spaces safe
+
+      const conditions = [];
+      const localValues = [];
+
+      // mobile
+      conditions.push(`s.mobile LIKE ?`);
+      localValues.push(`%${clean}%`);
+
+      // first name
+      conditions.push(`s.first_name LIKE ?`);
+      localValues.push(`%${clean}%`);
+
+      // last name
+      conditions.push(`s.last_name LIKE ?`);
+      localValues.push(`%${clean}%`);
+
+      // full name logic: first + last
+      if (parts.length >= 2) {
+        conditions.push(`(s.first_name LIKE ? AND s.last_name LIKE ?)`);
+        localValues.push(`%${parts[0]}%`, `%${parts[1]}%`);
+      }
+
+      where += ` AND ( ${conditions.join(" OR ")} ) `;
+      values.push(...localValues);
     }
 
     /* ================= COUNT ================= */
@@ -84,8 +110,9 @@ export const allServiceman = async (req, res) => {
       totalPages: Math.ceil(total / perPage),
       from,
       to,
-      status,                 // ✅ EJS ko mil gaya
-      isFiltered: Boolean(from || to || status),
+      status,
+      search,
+      isFiltered: Boolean(from || to || status || search),
     });
 
   } catch (err) {
@@ -98,12 +125,11 @@ export const allServiceman = async (req, res) => {
       page: 1,
       perPage: 8,
       totalPages: 1,
-      status: null,           // ✅ safety
+      status: null,
       error: "Something went wrong!",
     });
   }
 };
-
 
 /* ===========================
    UPDATE SERVICEMAN STATUS

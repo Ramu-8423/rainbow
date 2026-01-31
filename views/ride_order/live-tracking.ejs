@@ -1,41 +1,48 @@
 <div class="main-content">
 
+<style>
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    font-family: Arial;
+  }
+  th, td {
+    padding: 10px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+    vertical-align: top;
+  }
+  th {
+    background: #f2f2f2;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+  }
+  tr.active {
+    background: #eaffea;
+  }
+  .info-box {
+    line-height: 1.5;
+  }
+  .info-box b {
+    display: inline-block;
+    min-width: 55px;
+  }
+</style>
 
-  <style>
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 15px;
-      font-family: Arial;
-    }
-    th, td {
-      padding: 10px;
-      border: 1px solid #ccc;
-      font-size: 14px;
-    }
-    th {
-      background: #f2f2f2;
-    }
-    tr.active {
-      background: #eaffea;
-    }
-  </style>
+<!-- 🔥 Firebase CDN -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
-  <!-- 🔥 Firebase CDN -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-
- 
- 
- 
 <h2>Live Active Rides</h2>
 
 <table>
   <thead>
     <tr>
       <th>Order ID</th>
-      <th>User ID</th>
-      <th>Driver ID</th>
+      <th>User</th>
+      <th>Driver</th>
       <th>Vehicle</th>
       <th>Pickup</th>
       <th>Drop</th>
@@ -51,19 +58,12 @@
   </tbody>
 </table>
 
-
-
-
-
-
-
 </div>
 
-
 <script>
-/* =====================================================
-   🔥 Firebase Config (PUBLIC ONLY)
-===================================================== */
+/* ===============================
+   🔥 Firebase Config
+================================ */
 const firebaseConfig = {
   apiKey: "YOUR_API_KEY",
   authDomain: "rainbow-f0f87.firebaseapp.com",
@@ -75,10 +75,9 @@ const db = firebase.firestore();
 
 const rideBody = document.getElementById("rideBody");
 
-/* =====================================================
-   🔥 LIVE ACTIVE RIDE LISTENER
-   order_status BETWEEN 1 AND 4
-===================================================== */
+/* ===============================
+   🔥 Live Ride Listener
+================================ */
 db.collection("cab_orders")
   .where("order_status", ">", 0)
   .where("order_status", "<", 5)
@@ -97,45 +96,48 @@ db.collection("cab_orders")
 
       rideBody.innerHTML += `
         <tr class="active">
-          <td>${d.order_id}</td>
-          <td>${d.user_id}</td>
-          <td>${d.driver_id ?? "-"}</td>
-          <td>${d.vehicle_name ?? "-"}</td>
-          <td>
-  <marquee behavior="scroll" direction="left" scrollamount="3">
-    ${d.pickup_location ?? "-"}
-  </marquee>
-</td>
+          <td>${d.order_id ?? "-"}</td>
 
-<td>
-  <marquee behavior="scroll" direction="left" scrollamount="3">
-    ${d.drop_location ?? "-"}
-  </marquee>
-</td>
+          <td class="info-box">
+            
+            <b>Name:</b> ${d.user_name ?? "-"}<br>
+            <b>Mob:</b> ${d.user_mobile ?? "-"}
+          </td>
+
+          <td class="info-box">
+            
+            <b>Name:</b> ${d.driver_name ?? "-"}<br>
+            <b>Mob:</b> ${d.contact_number ?? "-"}
+          </td>
+
+          <td>${d.vehicle_name ?? "-"}</td>
+
+          <td>
+            <marquee scrollamount="3">${d.pickup_location ?? "-"}</marquee>
+          </td>
+
+          <td>
+            <marquee scrollamount="3">${d.drop_location ?? "-"}</marquee>
+          </td>
 
           <td>₹ ${d.estimated_amount ?? 0}</td>
           <td>${rideStatusText(d.order_status)}</td>
         </tr>
       `;
     });
-  }, error => {
-    console.error("Firestore Error:", error);
+
   });
 
-/* =====================================================
-   🔹 STATUS TEXT
-===================================================== */
+/* ===============================
+   🔹 Status Text
+================================ */
 function rideStatusText(status) {
   switch (Number(status)) {
     case 1: return "Accepted";
     case 2: return "On the Way";
     case 3: return "Arrived";
     case 4: return "Started";
-    default: return status;
+    default: return "-";
   }
 }
 </script>
-
-
-
-
