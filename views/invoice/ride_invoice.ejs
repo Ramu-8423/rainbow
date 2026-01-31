@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8" />
+
+<!-- Bootstrap CSS -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+
+<!-- Bootstrap Icons -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet"/>
+
+<style>
+  body {
+    font-family: Arial, Helvetica, sans-serif;
+    background: #f4f4f4;
+    padding: 20px;
+    font-size: 13px;
+  }
+
+  .invoice {
+    background: #fff;
+    max-width: 800px;
+    margin: auto;
+    padding: 24px;
+    border-radius: 6px;
+  }
+
+  .section-title {
+    font-weight: 600;
+    margin: 22px 0 10px;
+  }
+
+  .row-item {
+    border-bottom: 1px solid #e5e5e5;
+    padding: 8px 0;
+  }
+
+  .total-box {
+    background: #fafafa;
+    padding: 18px 0;
+    margin: 20px -24px;
+    text-align: center;
+  }
+
+  .total-box .amount {
+    font-size: 28px;
+    font-weight: bold;
+  }
+
+  .bill-box {
+    background: #fafafa;
+    padding: 16px;
+    border-radius: 6px;
+  }
+
+  .bill-total {
+    font-size: 16px;
+    font-weight: bold;
+  }
+
+  .bill-note {
+    font-size: 11px;
+    color: #777;
+  }
+
+  .footer {
+    text-align: center;
+    font-size: 11px;
+    color: #777;
+    margin-top: 30px;
+  }
+
+  /* Payment Summary fonts */
+  .payment-summary h5 {
+    font-size: 25px;
+    font-weight: 600;
+  }
+
+  .payment-summary span {
+    font-size: 18px;
+  }
+
+  .payment-summary img {
+    max-height: 40px;
+  }
+</style>
+</head>
+
+<body>
+
+<div class="invoice">
+
+<!-- ================= PAYMENT SUMMARY ================= -->
+<div class="row align-items-start mb-3 payment-summary">
+
+  <div class="col-sm-10">
+    <h5 class="fw-bold mb-3">Payment Summary</h5>
+  </div>
+
+  <div class="col-sm-2 d-flex justify-content-end">
+    <% if (companyLogo) { %>
+      <img src="<%= companyLogo %>" />
+    <% } %>
+  </div>
+
+  <div class="col-sm-12">
+    <div class="d-flex justify-content-between">
+      <span>Ride ID</span>
+      <span class="fw-semibold">2026RNO<%= ride.id %></span>
+    </div>
+
+    <div class="d-flex justify-content-between mt-1">
+      <span>Time of Ride</span>
+      <span><%= new Date(ride.created_at).toLocaleString() %></span>
+    </div>
+  </div>
+
+</div>
+
+<!-- ================= TOTAL ================= -->
+<div class="total-box">
+  <div>Total</div>
+  <div class="amount">₹ <%= Number(ride.final_amount).toFixed(2) %></div>
+</div>
+
+<!-- ================= RIDE DETAILS ================= -->
+
+<div class="section-title">Ride Details</div>
+<div class="row-item d-flex justify-content-between">
+  <span><i class="bi bi-geo-fill text-success"></i> Pickup Location</span>
+  <span class="text-end"><%= ride.pickup_location %></span>
+</div>
+
+<div class="row-item d-flex justify-content-between">
+  <span><i class="bi bi-geo-fill text-danger"></i> Drop Location</span>
+  <span class="text-end"><%= ride.drop_location %></span>
+</div>
+
+<div class="row-item d-flex justify-content-between">
+  <span>Distance</span>
+  <span><%= ride.distance_km %> km</span>
+</div>
+
+<!-- ================= BILL DETAILS (IMAGE STYLE) ================= -->
+<%
+  const totalAmount = Number(ride.final_amount);
+  const bookingFee = Number(invoice.gst_percentage || 0); // DIRECT ₹ VALUE
+  const rideCharge = totalAmount - bookingFee;
+%>
+
+<div class="section-title">Bill Details</div>
+
+<div class="bill-box">
+
+  <div class="d-flex justify-content-between mb-2">
+    <span>Ride Charge</span>
+    <span>₹ <%= rideCharge.toFixed(2) %></span>
+  </div>
+
+  <div class="d-flex justify-content-between mb-2">
+    <span>Booking Fees & Convenience Charges</span>
+    <span>₹ <%= bookingFee.toFixed(2) %></span>
+  </div>
+
+  <hr/>
+
+  <div class="d-flex justify-content-between bill-total">
+    <span>Total Amount</span>
+    <span>₹ <%= totalAmount.toFixed(2) %></span>
+  </div>
+
+  <div class="bill-note">(Inclusive of Taxes)</div>
+
+</div>
+
+<!-- ================= SELLER DETAILS ================= -->
+<div class="section-title">Seller Details</div>
+
+<div class="row-item d-flex justify-content-between">
+  <span>Company Name</span>
+  <span><%= invoice.company_name %></span>
+</div>
+
+<div class="row-item d-flex justify-content-between">
+  <span>Address</span>
+  <span class="text-end w-50"><%= invoice.company_address %></span>
+</div>
+
+<div class="row-item d-flex justify-content-between">
+  <span>GSTIN</span>
+  <span><%= invoice.gst_number || "N/A" %></span>
+</div>
+
+<div class="row-item d-flex justify-content-between">
+  <span>State</span>
+  <span><%= state %></span>
+</div>
+
+<!-- ================= CUSTOMER & VEHICLE ================= -->
+<div class="section-title">Customer & Vehicle</div>
+
+<div class="row-item d-flex justify-content-between">
+  <span>Customer Name</span>
+  <span><%= ride.user_name %></span>
+</div>
+
+<div class="row-item d-flex justify-content-between">
+  <span>Captain Name</span>
+  <span><%= ride.driver_name %></span>
+</div>
+
+<div class="row-item d-flex justify-content-between">
+  <span>Vehicle Number</span>
+  <span><%= ride.vehicle_plate_number %></span>
+</div>
+
+<!-- ================= FOOTER ================= -->
+<div class="footer">
+  This is a system generated invoice. No signature required.
+</div>
+
+</div>
+
+</body>
+</html>

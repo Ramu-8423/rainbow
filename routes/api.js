@@ -4,6 +4,10 @@ import { uploadImageDynamic } from "../middleware/upload.js";
 /* =======================
    USER PUBLIC CONTROLLERS
 ======================= */
+import {
+generateRideInvoice
+} from "../controllers/api/InvoiceController.js"
+
 
 
 import {
@@ -84,11 +88,10 @@ cabEarning,
 submitDriverRating
 } from "../controllers/api/cabBookingController.js";
 
+
 import {
 driver_transactions
 } from "../controllers/api/driverTransaction.js";
-
-
 
 
 
@@ -151,7 +154,12 @@ router.patch(
    USER GENERAL DATA
 ======================= */
 router.get("/cities", City);
+
 router.get("/user_notification/:type", getNotificationByType);
+
+
+
+
 router.get("/User_banner", userBanner);
 router.get("/top_services", topServices);
 
@@ -321,6 +329,10 @@ router.post(
 
 
 router.get("/zone_cities", zoneCities);
+
+
+router.get("/ride-invoice/:ride_id", generateRideInvoice);
+
 
 
 export default router;

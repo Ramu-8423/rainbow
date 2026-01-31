@@ -41,6 +41,13 @@ cabOrdersController
 } from "../controllers/cabOrdersController.js";
 
 
+
+import { 
+sendNotification,
+postNotification
+} from "../controllers/notificationController.js";
+
+
 import { 
 allPayments,
 allServicePayments,
@@ -281,5 +288,7 @@ router.get("/cabLiveOrdersRoutes", liveTrackingPage);
 router.get("/cab-orders", cabOrdersController);
 
 router.get("/cab-orders/:status", cabOrdersController);
+router.get("/send-notification", sendNotification);
+router.post("/notification/send", postNotification);
 
 export default router;

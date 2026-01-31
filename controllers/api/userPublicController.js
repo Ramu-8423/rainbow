@@ -762,15 +762,27 @@ function timeAgo(dateString) {
 
 
 
+
+
+
+
 export async function getNotificationByType(req, res) {
   try {
-    const type = Number(req.params.type);
+    const role_type = Number(req.params.type);      
+    const entity_id = Number(req.query.entity_id); 
 
-    if (![1, 2].includes(type)) {
+    // 🔎 validations
+    if (![1, 2, 3].includes(role_type)) {
       return res.status(400).json({
         success: false,
-        message: "Invalid type. Allowed: 1 = Offer, 2 = Announcement",
-        data: null
+        message: "Invalid type. Allowed: 1 = User, 2 = Driver, 3 = Serviceman"
+      });
+    }
+
+    if (!entity_id) {
+      return res.status(400).json({
+        success: false,
+        message: "entity_id is required"
       });
     }
 
@@ -780,15 +792,19 @@ export async function getNotificationByType(req, res) {
         title,
         text,
         created_at
-      FROM user_notification
-      WHERE type = ?
+      FROM notifications
+      WHERE 
+        entity_type = 4
+        OR (entity_type = ? AND entity_id = ?)
       ORDER BY id DESC
     `;
 
-    const [rows] = await db.query(sql, [type]);
+    const [rows] = await db.query(sql, [
+      role_type,
+      entity_id
+    ]);
 
-    // 👇 final output without created_at but with time_ago
-    const data = rows.map((item) => ({
+    const data = rows.map(item => ({
       id: item.id,
       title: item.title,
       text: item.text,
@@ -798,11 +814,11 @@ export async function getNotificationByType(req, res) {
     return res.status(200).json({
       success: true,
       message: "Notifications fetched successfully",
-      data: data
+      data
     });
 
   } catch (error) {
-    console.log("Notification Error:", error);
+    console.error("Notification Error:", error);
     return res.status(500).json({
       success: false,
       message: "Internal Server Error",
@@ -810,6 +826,11 @@ export async function getNotificationByType(req, res) {
     });
   }
 }
+
+
+
+
+
 
 
 export async function userBanner(req, res) {
