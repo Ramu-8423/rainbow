@@ -5,7 +5,8 @@ import { uploadImageDynamic } from "../middleware/upload.js";
    USER PUBLIC CONTROLLERS
 ======================= */
 import {
-generateRideInvoice
+generateRideInvoice,
+viewInvoice
 } from "../controllers/api/InvoiceController.js"
 
 
@@ -329,11 +330,11 @@ router.post(
 );
 
 
-
 router.get("/zone_cities", zoneCities);
 
 
 router.get("/ride-invoice/:ride_id", generateRideInvoice);
+router.get("/view-invoice/:ride_id", viewInvoice);
 
 router.get("/policy/:type", getPolicyByType);
 router.get("/help-support", getHelpSupport);

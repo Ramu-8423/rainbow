@@ -108,9 +108,7 @@ export async function getCabCancelReasons(req, res) {
 
 export const cabHistory = async (req, res) => {
   try {
-    /* =========================
-       BODY EXISTENCE CHECK
-    ========================= */
+
     if (!req.body || Object.keys(req.body).length === 0) {
       return res.status(400).json({
         success: false,
@@ -132,10 +130,6 @@ export const cabHistory = async (req, res) => {
       order_status,
       order_type
     } = req.body;
-
-    /* =========================
-       BASIC VALIDATION
-    ========================= */
 
     const allowedStatus = [0,1,2,3,4,5,6,7,8];
 
@@ -186,10 +180,6 @@ export const cabHistory = async (req, res) => {
       });
     }
 
-    /* =========================
-       ORDER STATUS VALIDATION
-    ========================= */
-
     if (!Array.isArray(order_status) || order_status.length === 0) {
       return res.status(400).json({
         success: false,
@@ -197,10 +187,6 @@ export const cabHistory = async (req, res) => {
         allowed: [0, 6, 5, 7, 8]
       });
     }
-
-    /* =========================
-       BUILD WHERE CONDITION
-    ========================= */
 
     let where = "WHERE co.order_status IN (?) AND co.order_type = ? ";
     let values = [order_status, order_type];
@@ -217,54 +203,69 @@ export const cabHistory = async (req, res) => {
 
     const BASE_URL = process.env.BASE_URL || "";
 
-    /* =========================
-       FETCH DATA
-    ========================= */
+    const [rows] = await db.query(
+      `
+      SELECT
+        co.id,
+        co.wallet_apply,
+        co.pay_mode,
+        co.amount_after_wallet,
+        co.final_amount,
+        co.brand_name,
+        co.model_name,
+        co.distance_km,
+        co.estimated_amount,
+        co.order_status,
+        co.pickup_location,
+        co.drop_location,
+        co.cancel_reason,
+        co.order_type,
+        co.schedule_time,
+        co.payment_status,
+        co.user_comment,
+        co.over_limit_passenger,
+        co.profile_photo,
+        co.vehicle_color,
+        co.driver_name,
+        co.vehicle_plate_number,
+        co.contact_number,
+        co.orderOtp,
+        co.rating,
+        co.user_name,
+        co.user_mobile,
+        co.vehicle_id,
+        co.order_rating,
 
-  const [rows] = await db.query(
-  `
-  SELECT
-    co.id,
-    co.wallet_apply,
-    co.pay_mode,
-    co.amount_after_wallet,
-    co.final_amount,
-    co.brand_name,
-    co.model_name,
-    co.distance_km,
-    co.estimated_amount,
-    co.order_status,
-    co.pickup_location,
-    co.drop_location,
-    co.cancel_reason,
-    co.order_type,
-    co.schedule_time,
-    co.payment_status,
-    co.user_comment,
-    co.over_limit_passenger,
-    co.profile_photo,
-    co.vehicle_color,
-    co.driver_name,
-    co.vehicle_plate_number,
-    co.contact_number,
-    co.orderOtp,
-    co.rating,
-    co.user_name,
-    co.user_mobile,
-    co.vehicle_id,
-    co.order_rating,
+        v.name AS vehicle_name,
+        CONCAT(TRIM(TRAILING '/' FROM ?), '/', v.image) AS vehicle_image
 
-    v.name AS vehicle_name,
-    CONCAT(TRIM(TRAILING '/' FROM ?), '/', v.image) AS vehicle_image
+      FROM cab_orders co
+      LEFT JOIN vehicle v ON v.id = co.vehicle_id
+      ${where}
+      ORDER BY co.id DESC
+      `,
+      [BASE_URL, ...values]
+    );
 
-  FROM cab_orders co
-  LEFT JOIN vehicle v ON v.id = co.vehicle_id
-  ${where}
-  ORDER BY co.id DESC
-  `,
-  [BASE_URL, ...values]
-);
+    /* ============== ONLY NEW LOGIC START ============== */
 
+    rows.forEach(row => {
+
+      // Default sab me null
+      row.invoice_link = null;
+
+      // Sirf isi pavitra condition me link milega
+      if (
+        [1, 2].includes(Number(row.order_type)) &&
+        Number(row.order_status) === 5
+      ) {
+        row.invoice_link =
+          `${BASE_URL.replace(/\/$/, "")}/api/ride-invoice/${row.id}`;
+      }
+
+    });
+
+    /* ============== ONLY NEW LOGIC END ============== */
 
     return res.status(200).json({
       success: true,

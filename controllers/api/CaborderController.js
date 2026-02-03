@@ -2441,74 +2441,142 @@ export async function changeCabOrderStatus(req, res) {
       );
 
     /* =====================================================
-       🔔 FIREBASE NOTIFICATION LOGIC (ADDED ONLY)
+       🔔 FIREBASE NOTIFICATION LOGIC
+       (USING EXISTING FCMHelper STYLE)
     ===================================================== */
 
     // ❌ If order was never accepted (status = 0), do NOT notify anyone
-  /* =====================================================
-   🔔 FIREBASE NOTIFICATION LOGIC
-   (USING EXISTING FCMHelper STYLE)
-===================================================== */
+    /* =====================================================
+       🔔 FIREBASE NOTIFICATION LOGIC
+       (USING EXISTING FCMHelper STYLE)
+    ===================================================== */
 
-if (previousStatus > 0 && [6, 7].includes(Number(order_status))) {
+    if (previousStatus > 0 && [6, 7].includes(Number(order_status))) {
 
-  // ✅ USER CANCEL → NOTIFY DRIVER
-  if (Number(order_status) === 6 && Number(type) === 1) {
+      // ✅ USER CANCEL → NOTIFY DRIVER
+      if (Number(order_status) === 6 && Number(type) === 1) {
 
-    setImmediate(async () => {
-      try {
-        const [[driver]] = await db.query(
-          `SELECT fcm_token FROM driver_registration WHERE id = ?`,
-          [driver_id]
-        );
+        setImmediate(async () => {
+          try {
+            const [[driver]] = await db.query(
+              `SELECT fcm_token FROM driver_registration WHERE id = ?`,
+              [driver_id]
+            );
 
-        if (!driver || !driver.fcm_token) return;
+            if (!driver || !driver.fcm_token) return;
 
-        await FCMHelper.sendNotification(
-          driver.fcm_token,
-          "Ride Cancelled",
-          "User has cancelled the ride",
-          {
-            order_id: String(order_id),
-            cancelled_by: "user"
+            await FCMHelper.sendNotification(
+              driver.fcm_token,
+              "Ride Cancelled",
+              "User has cancelled the ride",
+              {
+                order_id: String(order_id),
+                cancelled_by: "user"
+              }
+            );
+
+          } catch (err) {
+            console.error("FCM Driver Cancel Error:", err);
           }
-        );
-
-      } catch (err) {
-        console.error("FCM Driver Cancel Error:", err);
+        });
       }
-    });
-  }
 
-  // ✅ DRIVER CANCEL → NOTIFY USER
-  if (Number(order_status) === 7 && Number(type) === 2) {
+      // ✅ DRIVER CANCEL → NOTIFY USER
+      if (Number(order_status) === 7 && Number(type) === 2) {
 
-    setImmediate(async () => {
-      try {
-        const [[user]] = await db.query(
-          `SELECT fcm_token FROM users WHERE id = ?`,
-          [user_id]
-        );
+        setImmediate(async () => {
+          try {
+            const [[user]] = await db.query(
+              `SELECT fcm_token FROM users WHERE id = ?`,
+              [user_id]
+            );
 
-        if (!user || !user.fcm_token) return;
+            if (!user || !user.fcm_token) return;
 
-        await FCMHelper.sendNotification(
-          user.fcm_token,
-          "Ride Cancelled",
-          "Driver has cancelled the ride",
-          {
-            order_id: String(order_id),
-            cancelled_by: "driver"
+            await FCMHelper.sendNotification(
+              user.fcm_token,
+              "Ride Cancelled",
+              "Driver has cancelled the ride",
+              {
+                order_id: String(order_id),
+                cancelled_by: "driver"
+              }
+            );
+
+          } catch (err) {
+            console.error("FCM User Cancel Error:", err);
           }
-        );
-
-      } catch (err) {
-        console.error("FCM User Cancel Error:", err);
+        });
       }
-    });
-  }
-}
+    }
 
+    /* =====================================================
+       🚕 DRIVER ACCEPTED NOTIFICATION (Status 0 → 2)
+       Aapke screenshot 1 ke according
+    ===================================================== */
+    if (Number(order_status) === 2 && Number(previousStatus) === 0) {
+      setImmediate(async () => {
+        try {
+          const [[user]] = await db.query(
+            `SELECT fcm_token FROM users WHERE id = ?`,
+            [user_id]
+          );
+          
+          if (!user || !user.fcm_token) return;
+          
+          // Aapke screenshot ke hisab se notification message
+          await FCMHelper.sendNotification(
+            user.fcm_token,
+            "Ride Accepted",
+            `Use PIN ${orderRows[0].orderOtp}. Give it to your driver at pick-up to start your ride`,
+            {
+              order_id: String(order_id),
+              driver_id: String(driver_id),
+              order_status: "2",
+              order_otp: String(orderRows[0].orderOtp)
+            }
+          );
+          
+          console.log("Driver accepted notification sent to user with OTP:", orderRows[0].orderOtp);
+        } catch (err) {
+          console.error("FCM Driver Accept Error:", err);
+        }
+      });
+    }
+
+    /* =====================================================
+       ✅ TRIP VERIFIED NOTIFICATION (Status → 3)
+       Aapke screenshot 2 ke according
+    ===================================================== */
+    if (Number(order_status) === 3) {
+      setImmediate(async () => {
+        try {
+          const [[user]] = await db.query(
+            `SELECT fcm_token FROM users WHERE id = ?`,
+            [user_id]
+          );
+          
+          if (!user || !user.fcm_token) return;
+          
+          // Aapke screenshot 2 ke hisab se notification message
+          await FCMHelper.sendNotification(
+            user.fcm_token,
+            "Trip Verified",
+            "Have a great trip!",
+            {
+              order_id: String(order_id),
+              driver_id: String(driver_id),
+              order_status: "3",
+              verified: "true"
+            }
+          );
+          
+          console.log("Trip verified notification sent to user");
+        } catch (err) {
+          console.error("FCM Trip Verified Error:", err);
+        }
+      });
+    }
 
     /* =========================
        FINAL RESPONSE
@@ -2529,7 +2597,6 @@ if (previousStatus > 0 && [6, 7].includes(Number(order_status))) {
     });
   }
 }
-
 
 
 export async function activeRide(req, res) {

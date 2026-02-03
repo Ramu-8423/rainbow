@@ -150,6 +150,32 @@
 
 </style>
 
+<style>
+/* Button styling like input (NO radius) */
+.service-dropdown-btn {
+  min-width:150px;
+  text-align: left;
+  border-radius: 0 !important;
+  height:30px; /* same as input */
+}
+
+/* Dropdown menu also sharp */
+.service-dropdown-menu {
+  min-width: 260px;
+  max-height: 240px;
+  overflow: auto;
+  border-radius: 0 !important;
+}
+
+/* Red + bold text */
+.service-text {
+  color: #dc3545; /* bootstrap danger red */
+  font-weight: 600;
+}
+</style>
+
+
+
 <div class="main-content">
 <section class="section">
 <div class="card">
@@ -162,7 +188,7 @@
 
 
 
-<div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+<div class="card-header d-flex  align-items-center flex-wrap gap-2">
 
   <!-- LEFT : TITLE -->
   <h4 class="mb-0">Serviceman List</h4>
@@ -189,7 +215,44 @@
   </div>
 
   <!-- RIGHT : SEARCH + DATE + FILTER -->
-  <form class="filter-form d-flex align-items-center gap-2 flex-wrap" method="GET">
+  <form class="filter-form d-flex align-items-center  gap-2 flex-wrap" method="GET">
+
+
+
+<div class="dropdown">
+  <button
+    class="btn btn-outline-secondary btn-sm dropdown-toggle service-dropdown-btn"
+    type="button"
+    data-bs-toggle="dropdown"
+  >
+    <span class="service-text">
+      Filter By Skills
+      <% if (selectedCategories.length) { %>
+        (<%= selectedCategories.length %>)
+      <% } %>
+    </span>
+  </button>
+
+  <ul class="dropdown-menu service-dropdown-menu p-2">
+    <% categories.forEach(cat => { %>
+      <li class="dropdown-item">
+        <label class="d-flex align-items-center gap-2 mb-0">
+          <input
+            type="checkbox"
+            name="categories"
+            value="<%= cat.id %>"
+            <%= selectedCategories.includes(String(cat.id)) ? 'checked' : '' %>
+          />
+          <span><%= cat.name %></span>
+        </label>
+      </li>
+    <% }) %>
+  </ul>
+</div>
+
+
+
+
 
     <!-- 🔍 SEARCH -->
     <input

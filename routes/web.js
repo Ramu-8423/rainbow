@@ -14,7 +14,9 @@ import {
     addCategory,
     addSubcategory,
     allSettings,
-    updateSetting
+    updateSetting,
+    invoiceSettings,
+    updateInvoiceSetting
 } from "../controllers/PublicController.js";
 
 
@@ -292,7 +294,8 @@ router.get("/send-notification", sendNotification);
 router.post("/notification/send", postNotification);
 
 
-
+router.get("/invoice-settings", invoiceSettings);
+router.post("/invoice-settings/edit/:id", updateInvoiceSetting);
 
 
 export default router;

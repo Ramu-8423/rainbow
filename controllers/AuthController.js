@@ -8,6 +8,7 @@ export const loginPage = (req, res) => {
   });
 };
 
+
 export const redirectIfLoggedIn = (req, res, next) => {
   if (req.session && req.session.admin) {
     return res.redirect("/dashboard");

@@ -10,58 +10,54 @@ export const allServiceman = async (req, res) => {
     const offset = (page - 1) * perPage;
 
     const { from, to, search } = req.query;
-
-    // 🔑 ROUTE PARAM KO HI status BANA DIYA
     const status = req.params.status || req.query.status;
+
+    /* ================= CATEGORY FROM GET ================= */
+    const selectedCategories = req.query.categories
+      ? Array.isArray(req.query.categories)
+        ? req.query.categories
+        : [req.query.categories]
+      : [];
+
+    console.log("✅ selectedCategories:", selectedCategories);
 
     let where = "WHERE 1 ";
     let values = [];
 
     /* ================= DATE FILTER ================= */
     if (from && to) {
-      where += "AND DATE(s.created_at) BETWEEN ? AND ? ";
+      where += " AND DATE(s.created_at) BETWEEN ? AND ? ";
       values.push(from, to);
     }
 
     /* ================= STATUS FILTER ================= */
     if (status === "1") {
-      where += "AND s.login_status = 1 ";
-    } 
-    else if (status === "0") {
-      where += "AND s.login_status = 0 ";
-    } 
-    else if (status === "3") {
-      where += "AND s.online_status = 0 ";
-    } 
-    else if (status === "4") {
-      where += "AND s.online_status = 1 ";
+      where += " AND s.login_status = 1 ";
+    } else if (status === "0") {
+      where += " AND s.login_status = 0 ";
+    } else if (status === "3") {
+      where += " AND s.online_status = 0 ";
+    } else if (status === "4") {
+      where += " AND s.online_status = 1 ";
     }
 
-    /* =================================================
-       🔍 SEARCH (mobile + first_name + last_name)
-       ✔ supports: viveak | oberai | viveak oberai
-    ================================================== */
+    /* ================= SEARCH ================= */
     if (search && search.trim() !== "") {
-
       const clean = search.trim();
-      const parts = clean.split(/\s+/); // multiple spaces safe
+      const parts = clean.split(/\s+/);
 
       const conditions = [];
       const localValues = [];
 
-      // mobile
       conditions.push(`s.mobile LIKE ?`);
       localValues.push(`%${clean}%`);
 
-      // first name
       conditions.push(`s.first_name LIKE ?`);
       localValues.push(`%${clean}%`);
 
-      // last name
       conditions.push(`s.last_name LIKE ?`);
       localValues.push(`%${clean}%`);
 
-      // full name logic: first + last
       if (parts.length >= 2) {
         conditions.push(`(s.first_name LIKE ? AND s.last_name LIKE ?)`);
         localValues.push(`%${parts[0]}%`, `%${parts[1]}%`);
@@ -71,13 +67,20 @@ export const allServiceman = async (req, res) => {
       values.push(...localValues);
     }
 
+    /* ================= CATEGORY FILTER (ALL MUST MATCH) ================= */
+    if (selectedCategories.length > 0) {
+      selectedCategories.forEach(() => {
+        where += ` AND JSON_CONTAINS(s.service_category, CAST(? AS JSON)) `;
+      });
+
+      values.push(...selectedCategories);
+    }
+
     /* ================= COUNT ================= */
     const [[{ total }]] = await db.query(
       `
       SELECT COUNT(DISTINCT s.id) AS total
       FROM serviceman s
-      LEFT JOIN categories c
-        ON JSON_CONTAINS(s.service_category, CAST(c.id AS JSON))
       ${where}
       `,
       values
@@ -88,22 +91,33 @@ export const allServiceman = async (req, res) => {
       `
       SELECT 
         s.*,
-        GROUP_CONCAT(DISTINCT c.name ORDER BY c.name SEPARATOR ', ') 
-          AS service_name
+        (
+          SELECT GROUP_CONCAT(c.name ORDER BY c.name SEPARATOR ', ')
+          FROM categories c
+          WHERE JSON_CONTAINS(s.service_category, CAST(c.id AS JSON))
+            AND c.status = 1
+        ) AS service_name
       FROM serviceman s
-      LEFT JOIN categories c
-        ON JSON_CONTAINS(s.service_category, CAST(c.id AS JSON))
       ${where}
-      GROUP BY s.id
       ORDER BY s.id DESC
       LIMIT ? OFFSET ?
       `,
       [...values, perPage, offset]
     );
 
+    /* ================= ACTIVE CATEGORIES ================= */
+    const [categories] = await db.query(`
+      SELECT id, name
+      FROM categories
+      WHERE status = 1
+      ORDER BY name ASC
+    `);
+
     return res.render("serviceman/allServiceman", {
       title: "Serviceman List",
       servicemen: rows,
+      categories,
+      selectedCategories,
       total,
       page,
       perPage,
@@ -112,15 +126,19 @@ export const allServiceman = async (req, res) => {
       to,
       status,
       search,
-      isFiltered: Boolean(from || to || status || search),
+      isFiltered: Boolean(
+        from || to || status || search || selectedCategories.length
+      ),
     });
 
   } catch (err) {
-    console.log("SERVICEMAN LIST ERROR:", err);
+    console.error("❌ SERVICEMAN LIST ERROR:", err);
 
     return res.render("serviceman/allServiceman", {
       title: "Serviceman List",
       servicemen: [],
+      categories: [],
+      selectedCategories: [],
       total: 0,
       page: 1,
       perPage: 8,

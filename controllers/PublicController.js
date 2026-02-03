@@ -490,15 +490,6 @@ export const addSubcategory = async (req, res) => {
 
 
 
-
-
-
-
-
-
-
-
-
 export const allSettings = async (req, res) => {
   try {
     const [rows] = await db.query(
@@ -619,4 +610,86 @@ export const updateSetting = async (req, res) => {
     return res.redirect("/settings");
   }
 };
+
+
+
+
+
+
+
+export const invoiceSettings = async (req, res) => {
+  try {
+    const [rows] = await db.query(
+      "SELECT * FROM invoice_settings ORDER BY id DESC"
+    );
+
+    return res.render("invoice/adminviewinvoice", {
+      pageTitle: "Invoice Settings",
+      settings: rows,
+
+      // 👉 SESSION BASED MESSAGE
+      messageSuccess: req.session.success || null,
+      messageError: req.session.error || null
+    });
+
+  } catch (error) {
+    console.error("Invoice Settings Fetch Error:", error);
+
+    req.session.error = "Unable to fetch invoice settings";
+    res.redirect("/invoice-settings");
+  }
+};
+
+
+
+
+export const updateInvoiceSetting = async (req, res) => {
+  try {
+    const { id } = req.params;
+    let data = req.body;
+
+    console.log("🟡 UPDATE ID:", id);
+    console.log("🟢 BODY:", data);
+
+    if (!id) {
+      req.session.error = "Invalid request.";
+      return res.redirect("/invoice-settings");
+    }
+
+    // ID remove
+    delete data.id;
+
+    // 👉 BASIC VALIDATION LIKE YOUR SETTING
+    if (data.website_link) {
+      const urlRegex =
+        /^(https?:\/\/)[^\s$.?#].[^\s]*$/;
+
+      if (!urlRegex.test(data.website_link)) {
+        req.session.error = "Invalid website URL.";
+        return res.redirect("/invoice-settings");
+      }
+    }
+
+    await db.query(
+      `UPDATE invoice_settings SET ? WHERE id = ?`,
+      [data, id]
+    );
+
+    req.session.success = "Invoice setting updated successfully.";
+    return res.redirect("/invoice-settings");
+
+  } catch (error) {
+    console.error("❌ UPDATE ERROR:", error);
+
+    req.session.error =
+      "Something went wrong while updating invoice setting.";
+
+    return res.redirect("/invoice-settings");
+  }
+};
+
+
+
+
+
 

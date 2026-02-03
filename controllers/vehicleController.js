@@ -1,5 +1,7 @@
 import db from "../config/database.js";
 
+
+
 export const vehicleList = async (req, res) => {
   try {
     const { register_status } = req.query;
