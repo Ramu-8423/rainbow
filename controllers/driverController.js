@@ -133,15 +133,15 @@ export const approveAllDocuments = async (req, res) => {
 
 
 
-
 export const driver_controller = async (req, res) => {
   try {
     const perPage = parseInt(req.query.perPage) || 8;
     const page = parseInt(req.query.page) || 1;
     const offset = (page - 1) * perPage;
 
-    const { from, to } = req.query;
-    const filterCode = req.params.id; // 👈 route parameter
+    const { from, to, vehicle_id, name, mobile } = req.query;
+
+    const filterCode = req.params.id;
 
     let where = "WHERE 1 ";
     let values = [];
@@ -152,54 +152,45 @@ export const driver_controller = async (req, res) => {
       values.push(from, to);
     }
 
-    /* =================================================
-       ROUTE PARAM FILTER LOGIC
-       =================================================
+    /* ============= VEHICLE FILTER ================== */
+    if (vehicle_id) {
+      where += "AND vehicle_type = ? ";
+      values.push(vehicle_id);
+    }
 
-       1 → online_status = 1
-       0 → online_status = 0
-       2 → login_status = 1 (Active)
-       4 → login_status = 0 (Inactive)
-       5 → ALL documents status = 1
-       6 → ANY document status = 0
-    ================================================== */
+    /* ============= MOBILE FILTER =================== */
+    if (mobile) {
+      where += "AND mobile LIKE ? ";
+      values.push(`%${mobile}%`);
+    }
 
+    /* ============= NAME FILTER ===================== */
+    if (name) {
+      where += "AND CONCAT(first_name, ' ', last_name) LIKE ? ";
+      values.push(`%${name}%`);
+    }
+
+    /* ============= ROUTE FILTER LOGIC ============== */
     if (filterCode !== undefined) {
-
       switch (parseInt(filterCode)) {
 
-        // ONLINE
         case 1:
           where += "AND online_status = 1 ";
           break;
 
-        // OFFLINE
         case 0:
           where += "AND online_status = 0 ";
           break;
 
-        // LOGIN ACTIVE
-        case 2:
-          where += "AND login_status = 1 ";
+        // 👇 NEW LOGIN STATUS LOGIC
+        case 7:
+          where += "AND login_status = 0 "; // INACTIVE
           break;
 
-        // LOGIN INACTIVE
-        case 4:
-          where += "AND login_status = 0 ";
+        case 8:
+          where += "AND login_status = 1 "; // ACTIVE
           break;
 
-        // ALL DOCUMENTS VERIFIED (STATUS = 1)
-        case 5:
-          where += `
-            AND personal_information_status = 1
-            AND vehicle_info_status = 1
-            AND driver_licence_status = 1
-            AND aadhaar_pan_status = 1
-            AND required_certificates_status = 1
-          `;
-          break;
-
-        // ANY DOCUMENT NOT FILLED (STATUS = 0)
         case 6:
           where += `
             AND (
@@ -211,10 +202,6 @@ export const driver_controller = async (req, res) => {
             )
           `;
           break;
-
-        default:
-          // kuch nahi → all drivers
-          break;
       }
     }
 
@@ -224,25 +211,93 @@ export const driver_controller = async (req, res) => {
       values
     );
 
-    /* ================= DATA FETCH ================= */
+    /* ========== DRIVER DATA WITH RIDE COUNTS ========= */
     const [rows] = await db.query(
-      `SELECT * FROM driver_registration
+      `SELECT d.*,
+
+        COALESCE(o.cancel_ride, 0) AS cancel_ride,
+        COALESCE(o.completed_ride, 0) AS completed_ride
+
+       FROM driver_registration d
+
+       LEFT JOIN (
+          SELECT 
+            driver_id,
+            COUNT(CASE WHEN order_status = 7 THEN 1 END) AS cancel_ride,
+            COUNT(CASE WHEN order_status = 5 THEN 1 END) AS completed_ride
+          FROM cab_orders
+          GROUP BY driver_id
+       ) o ON d.id = o.driver_id
+
        ${where}
-       ORDER BY id DESC
+
+       ORDER BY completed_ride DESC, d.id DESC
+
        LIMIT ? OFFSET ?`,
       [...values, perPage, offset]
     );
 
+    const [vehicles] = await db.query(
+      `SELECT id, name FROM vehicle`
+    );
+
+    /* ============ DYNAMIC TITLE TEXT ============ */
+
+    let pageTitleText = `Total ${total} Drivers`;
+
+    if (filterCode == 1) {
+      pageTitleText = `Total ${total} Online Drivers`;
+    }
+
+    if (filterCode == 0) {
+      pageTitleText = `Total ${total} Offline Drivers`;
+    }
+
+    if (filterCode == 7) {
+      pageTitleText = `Total ${total} Inactive Drivers`;
+    }
+
+    if (filterCode == 8) {
+      pageTitleText = `Total ${total} Active Drivers`;
+    }
+
+    if (filterCode == 6) {
+      pageTitleText = `Total ${total} Drivers Documents Pending`;
+    }
+
+    if (name || mobile) {
+      pageTitleText = `Total ${total} Drivers Found`;
+    }
+
+    if (from && to) {
+      pageTitleText = `Total ${total} Drivers (Date Filtered)`;
+    }
+
     return res.render("drivers/allDrivers", {
       title: "Drivers List",
+
       drivers: rows,
+      vehicles: vehicles,
+
+      vehicle_id: vehicle_id || "",
+      name: name || "",
+      mobile: mobile || "",
+
+      filterCode: filterCode || "",
+
       total,
+      pageTitleText,
+
       page,
       perPage,
       totalPages: Math.ceil(total / perPage),
+
       from,
       to,
-      isFiltered: Boolean(from || to || filterCode),
+
+      isFiltered: Boolean(
+        from || to || filterCode || vehicle_id || name || mobile
+      ),
     });
 
   } catch (err) {
@@ -251,7 +306,12 @@ export const driver_controller = async (req, res) => {
     return res.render("drivers/allDrivers", {
       title: "Drivers List",
       drivers: [],
+      vehicles: [],
+      vehicle_id: "",
+      name: "",
+      mobile: "",
       total: 0,
+      pageTitleText: "Total 0 Drivers",
       page: 1,
       perPage: 8,
       totalPages: 1,
@@ -259,7 +319,6 @@ export const driver_controller = async (req, res) => {
     });
   }
 };
-
 
 
 export const driverView = async (req, res) => {

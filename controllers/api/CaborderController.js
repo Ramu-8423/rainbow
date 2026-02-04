@@ -4,6 +4,9 @@ import { nowIST } from "../../utils/dateParser.js";
 import { getFirestore } from "../../utils/firebaseInit.js";
 import { scheduleApiHits } from "../../scheduleHit.js";
 
+
+import { emitInstantRide, emitRemoveRide } from "../../cabSocket.js";
+
 /* =========================================================
    DISTANCE FUNCTION (SAME)
 ========================================================= */
@@ -70,8 +73,7 @@ function validateCabOrder(body) {
   
  
 
-  if (!body.pay_mode) return "pay_mode is required";
- 
+ if (!body.pay_mode) return "pay_mode is required";
  if (![1, 2].includes(Number(body.pay_mode)))
   return "payment mode must be online or offline";
 
@@ -137,7 +139,6 @@ async function getMatchedDriversForCabOrder({
     allowedVehicleIds = vehicles.map(v => Number(v.id));
   }
 
-console.log("sdfghjk", allowedVehicleIds);
   /* =========================
      FIREBASE : DRIVER MATCH
   ========================= */
@@ -383,11 +384,32 @@ export const cabOrder = async (req, res) => {
       rideRadiusKm
     });
 
-    await db.query(
+   await db.query(
       `UPDATE cab_orders SET matched_driver_id = ? WHERE id = ?`,
-      [JSON.stringify(matched_driver_ids), order_id]
+      [
+        Number(order_type) === 1 
+          ? JSON.stringify(matched_driver_ids) 
+          : null,
+    
+        order_id
+      ]
     );
 
+
+
+    // Socket insert new ride emit=========================
+    if (matched_driver_ids.length > 0 && order_type == 1) {
+      console.log("sockettest", order_type);
+      emitInstantRide(matched_driver_ids, {
+        order_id: order_id,
+        order_type: order_type,
+        pickup_address: pickup_location,
+        drop_address: drop_location,
+        distance: distance_km
+      });
+    }
+     // Socket insert new ride emit end=========================
+ 
     /* =========================
        FIREBASE : STORE ORDER
     ========================= */
@@ -433,7 +455,7 @@ export const cabOrder = async (req, res) => {
        FCM : BACKGROUND NOTIFICATION
     ========================= */
    if (order_type == 1) {
-  setImmediate(async () => {
+    setImmediate(async () => {
     try {
       if (!matched_driver_ids.length) return;
 
@@ -465,8 +487,6 @@ export const cabOrder = async (req, res) => {
     }
   });
 }
-
-
 
 
     /* =========================
@@ -1328,6 +1348,7 @@ if (driver_due_wallet >= driver_due_limit) {
       `,
       [order_id, driver_id]
     );
+  
     
     /* =========================
        INSERT / UPDATE (MySQL)
@@ -1714,6 +1735,8 @@ export async function acceptCabRide(req, res) {
       }
     }
 
+    await emitRemoveRide(order_id);
+
     return res.status(200).json({
       success: true,
       message: "Ride accepted successfully",
@@ -1783,6 +1806,9 @@ export const deleteExpiredCabOrders = async (req, res) => {
       }
     }
 
+
+   await emitRemoveRide(orderIds);
+ 
     return res.status(200).json({
       success: true,
       message: "Expired order_type 1 pending orders deleted successfully",
@@ -2578,6 +2604,7 @@ export async function changeCabOrderStatus(req, res) {
       });
     }
 
+  await emitRemoveRide(order_id);
     /* =========================
        FINAL RESPONSE
     ========================= */
@@ -3078,11 +3105,13 @@ function buildFirebaseOrderPayload(order, matched_driver_ids, createdAt) {
 
 export const laterAssignOrder = async (req, res) => {
   const { order_id } = req.query;
+
   try {
+
     /* =========================
        1. FETCH SCHEDULED ORDER
     ========================= */
-   const [[order]] = await db.query(
+    const [[order]] = await db.query(
       `
       SELECT *
       FROM cab_orders
@@ -3094,7 +3123,6 @@ export const laterAssignOrder = async (req, res) => {
       [order_id]
     );
 
-
     if (!order) {
       return res.json({
         success: false,
@@ -3102,9 +3130,43 @@ export const laterAssignOrder = async (req, res) => {
       });
     }
 
+
+    /* =====================================================
+       2. FETCH DYNAMIC RADIUS FROM SETTINGS TABLE
+    ===================================================== */
+
+    const [[radiusRow]] = await db.query(`
+      SELECT value
+      FROM settings
+      WHERE name = 'ride_radius_km'
+      LIMIT 1
+    `);
+
+    const RIDE_RADIUS_KM = radiusRow ? Number(radiusRow.value) : 5;
+
+
+    /* =====================================================
+       3. FIND BUSY DRIVERS FROM MYSQL
+       jinka:
+       - driver_id ho
+       - order_status > 0 AND <= 4
+    ===================================================== */
+
+    const [busyDrivers] = await db.query(`
+      SELECT DISTINCT driver_id
+      FROM cab_orders
+      WHERE driver_id IS NOT NULL
+      AND order_status > 0
+      AND order_status <= 4
+    `);
+
+    const busyDriverIds = busyDrivers.map(d => Number(d.driver_id));
+
+
     /* =========================
-       2. REAL-TIME DRIVER MATCH
+       4. REAL-TIME DRIVER MATCH
     ========================= */
+
     const firestore = getFirestore();
 
     const snapshot = await firestore
@@ -3117,6 +3179,10 @@ export const laterAssignOrder = async (req, res) => {
 
     snapshot.forEach(doc => {
       const d = doc.data();
+      const driverId = Number(doc.id);
+
+      // 🚫 BUSY DRIVER IGNORE
+      if (busyDriverIds.includes(driverId)) return;
 
       if (!d.current_latitude || !d.current_longitude) return;
 
@@ -3127,23 +3193,26 @@ export const laterAssignOrder = async (req, res) => {
         order.pickup_longitude
       );
 
-      if (dist <= 5000) {
-        matched_driver_ids.push(Number(doc.id));
+      // 🎯 DYNAMIC RADIUS LOGIC FROM DB
+      if (dist <= RIDE_RADIUS_KM) {
+        matched_driver_ids.push(driverId);
       }
     });
 
+
     /* =========================
-       3. UPDATE MYSQL
+       5. UPDATE MYSQL
     ========================= */
     await db.query(
       `UPDATE cab_orders SET matched_driver_id = ? WHERE id = ?`,
       [JSON.stringify(matched_driver_ids), order_id]
     );
 
+
     /* =========================
-       4. FIREBASE INSERT / UPDATE
-       (FORMAT SAME)
+       6. FIREBASE INSERT / UPDATE
     ========================= */
+
     if (matched_driver_ids.length > 0) {
       const payload = buildFirebaseOrderPayload(
         order,
@@ -3157,9 +3226,11 @@ export const laterAssignOrder = async (req, res) => {
         .set(payload);
     }
 
+
     /* =========================
-       5. FCM NOTIFICATION
+       7. FCM NOTIFICATION
     ========================= */
+
     if (matched_driver_ids.length > 0) {
       const [drivers] = await db.query(
         `SELECT fcm_token FROM driver_registration WHERE id IN (?)`,
@@ -3180,14 +3251,29 @@ export const laterAssignOrder = async (req, res) => {
       }
     }
 
+    //======== soket data inert ===  
+      if (matched_driver_ids.length > 0) {
+          console.log("🚀 LATER SOCKET EMIT");
+          emitInstantRide(matched_driver_ids, {
+            order_id: Number(order.id),
+            order_type: Number(order.order_type),
+            pickup_address: order.pickup_location,
+            drop_address: order.drop_location,
+            distance: order.distance_km
+          });
+        }
+    //======== soket data inert ===  
+    
     return res.json({
       success: true,
       order_id,
       matched_driver_count: matched_driver_ids.length
     });
 
+
   } catch (err) {
     console.error("laterAssignOrder error:", err);
+
     return res.status(500).json({
       success: false,
       message: "Internal Server Error"
@@ -3394,6 +3480,8 @@ export async function acceptLaterRide(req, res) {
   }
 }
 
+ await emitRemoveRide(order_id);
+ 
     return res.status(200).json({
       success: true,
       message: "Ride accepted successfully",
@@ -3555,6 +3643,9 @@ export const driverIgnoreCabOrder = async (req, res) => {
         updated_at: updatedAt
       });
 
+
+
+    await emitRemoveRide(order_id);
     /* =========================
        SUCCESS RESPONSE
     ========================= */
