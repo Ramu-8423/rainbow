@@ -13,8 +13,7 @@ import { scheduleApiHits } from "./scheduleHit.js";
 import http from "http";
 import { initSocket } from "./socket.js";
 
-
-
+import { initCabSocket } from "./cabSocket.js";
 
 
 
@@ -32,6 +31,9 @@ const server = http.createServer(app);
 
 
 initSocket(server);
+
+
+initCabSocket(server);
 
 // ---------------- EXPRESS MIDDLEWARES ----------------
 

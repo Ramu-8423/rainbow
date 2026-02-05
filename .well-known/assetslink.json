@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.foundercode.yoyomiles",
+      "sha256_cert_fingerprints": [
+        "CB:C5:49:B6:33:75:0F:45:A5:8F:9B:C3:BD:37:15:D1:9A:16:3F:17:81:E2:9E:59:A4:B7:9E:E3:2D:2C:38:6B"
+      ]
+    }
+  }
+]

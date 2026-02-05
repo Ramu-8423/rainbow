@@ -29,6 +29,7 @@
     "multer": "^2.0.2",
     "mysql2": "^3.15.3",
     "paytmchecksum": "^1.5.1",
+    "puppeteer": "^24.36.1",
     "socket.io": "^4.8.1"
   },
   "description": "",
