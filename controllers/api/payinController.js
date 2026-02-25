@@ -1,32 +1,224 @@
-import db from "../../config/database.js";
-import { parseIST, nowIST } from "../../utils/dateParser.js";
+import express from "express";
+import { v4 as uuidv4 } from "uuid";
+import moment from "moment-timezone";
 import axios from "axios";
+import db from "../../config/database.js";
+import PaytmChecksum from "paytmchecksum";
+import { parseIST, nowIST } from "../../utils/dateParser.js";
 
 
 
 
-export const payment = async (req, res) => { 
+
+
+
+
+const istNow = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
+const currentDate = nowIST();
+
+/* ================= PAYTM CONFIG ================= */
+const PAYTM_MID = "IneuZB64959027148878";
+const PAYTM_KEY = "3C0XgpYmOkh@MHoB";
+const PAYTM_WEBSITE = "WEBSTAGING";
+
+const PAYTM_CALLBACK_URL =
+  "https://admin.rainbowsenterprises.com/api/callback_paytm";
+const PAYTM_TXN_URL ="https://securestage.paytmpayments.com/theia/api/v1/initiateTransaction";
+
+/* ================= HTML RESPONSES ================= */
+const HTML_RESPONSES = {
+  success: `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Success</title>
+  <link href="https://fonts.googleapis.com/css?family=Nunito+Sans:400,400i,700,900&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/@dotlottie/player-component@2.7.12/dist/dotlottie-player.mjs" type="module"></script>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      text-align:center;
+      padding:20px;
+      background: linear-gradient(135deg, #a1c4fd, #c2e9fb);
+      font-family: "Nunito Sans","Helvetica Neue",sans-serif;
+      height:100vh;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+    }
+    .card {
+      background:#fff;
+      padding:40px 30px;
+      border-radius:15px;
+      box-shadow:0 12px 24px rgba(0,0,0,0.1);
+      width:100%;
+      max-width:450px;
+      text-align:center;
+      animation: pop 0.4s ease;
+    }
+    @keyframes pop {
+      from { transform: scale(0.9); opacity:0; }
+      to   { transform: scale(1); opacity:1; }
+    }
+    h1 {
+      color:#4CAF50;
+      font-weight:900;
+      font-size:36px;
+      margin-bottom:10px;
+    }
+    p {
+      color:#555;
+      font-size:16px;
+      line-height:1.6;
+    }
+    dotlottie-player {
+      width:100%;
+      max-width:360px;
+      margin:0 auto 10px;
+    }
+    @media (max-width:600px){
+      h1{font-size:28px;}
+      p{font-size:14px;}
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <dotlottie-player 
+      src="https://lottie.host/743650e7-51dc-42cb-8ec0-4d9cdf32542d/qwKFt4V60W.lottie"
+      background="transparent"
+      speed="1"
+      autoplay>
+    </dotlottie-player>
+    <h1>Success</h1>
+    <p>
+      Payment completed successfully.<br>
+      Thank you for choosing us.
+    </p>
+  </div>
+</body>
+</html>`,
+
+  failed: `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Failed</title>
+  <link href="https://fonts.googleapis.com/css?family=Nunito+Sans:400,400i,700,900&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/@dotlottie/player-component@2.7.12/dist/dotlottie-player.mjs" type="module"></script>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      text-align:center;
+      padding:20px;
+      background: linear-gradient(135deg, #ff9a9e, #fad0c4);
+      font-family: "Nunito Sans","Helvetica Neue",sans-serif;
+      height:100vh;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+    }
+    .card {
+      background:#fff;
+      padding:40px 30px;
+      border-radius:15px;
+      box-shadow:0 12px 24px rgba(0,0,0,0.1);
+      width:100%;
+      max-width:450px;
+      text-align:center;
+      animation: pop 0.4s ease;
+    }
+    @keyframes pop {
+      from { transform: scale(0.9); opacity:0; }
+      to   { transform: scale(1); opacity:1; }
+    }
+    h1 {
+      color:#e53935;
+      font-weight:900;
+      font-size:36px;
+      margin-bottom:10px;
+    }
+    p {
+      color:#555;
+      font-size:16px;
+      line-height:1.6;
+    }
+    dotlottie-player {
+      width:100%;
+      max-width:360px;
+      margin:0 auto 10px;
+    }
+    @media (max-width:600px){
+      h1{font-size:28px;}
+      p{font-size:14px;}
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <dotlottie-player 
+      src="https://lottie.host/9d0f60b4-1c5d-4d70-9e57-9f6a7f68c7a2/failed.lottie"
+      background="transparent"
+      speed="1"
+      autoplay>
+    </dotlottie-player>
+    <h1>Failed</h1>
+    <p>
+      Payment could not be completed.<br>
+      Please try again.
+    </p>
+  </div>
+</body>
+</html>`
+};
+
+
+
+
+
+export const payment = async (req, res) => {
+  console.log("🚀 payment API called");
   try {
+
+    console.log("📥 Request Body:", req.body);
+
     const { 
       user_id, 
       amount, 
       payment_type,
       service_order_id,
       gateway_type,
-      module_type   // nullable
+      module_type
     } = req.body;
 
-    const currentDate = nowIST();
-    if (!user_id)
+    console.log("✅ Variables Extracted:", {
+      user_id,
+      amount,
+      payment_type,
+      service_order_id,
+      gateway_type,
+      module_type
+    });
+
+    if (!user_id){
+      console.log("❌ user_id missing");
       return res.status(400).json({ status: false, message: "User ID is required" });
+    }
 
-    if (!amount)
+    if (!amount){
+      console.log("❌ amount missing");
       return res.status(400).json({ status: false, message: "Amount is required" });
+    }
 
-    if (!payment_type)
+    if (!payment_type){
+      console.log("❌ payment_type missing");
       return res.status(400).json({ status: false, message: "payment_type is required" });
+    }
 
     if (Number(payment_type) === 1 && !service_order_id) {
+      console.log("❌ service_order_id missing for payment_type 1");
       return res.status(400).json({
         status: false,
         message: "service_order_id is required for payment_type 1"
@@ -34,11 +226,12 @@ export const payment = async (req, res) => {
     }
 
     let payer = null;
+    console.log("➡️ Checking payment type logic");
 
-    /* =====================================================
-       DRIVER DUE WALLET (payment_type = 5, module_type = 2)
-    ===================================================== */
+    /* DRIVER */
     if (Number(payment_type) === 5 && Number(module_type) === 2) {
+
+      console.log("🚗 DRIVER DUE WALLET FLOW");
 
       const [rows] = await db.query(
         `
@@ -50,16 +243,20 @@ export const payment = async (req, res) => {
         [user_id]
       );
 
-      if (!rows.length)
+      console.log("📊 Driver Query Result:", rows);
+
+      if (!rows.length){
+        console.log("❌ Driver not found");
         return res.status(404).json({ status: false, message: "Driver not found" });
+      }
 
       payer = rows[0];
     }
 
-    /* =====================================================
-       SERVICEMAN DUE WALLET (OLD LOGIC)
-    ===================================================== */
+    /* SERVICEMAN */
     else if (Number(payment_type) === 5) {
+
+      console.log("🧰 SERVICEMAN FLOW");
 
       const [rows] = await db.query(
         `
@@ -71,16 +268,20 @@ export const payment = async (req, res) => {
         [user_id]
       );
 
-      if (!rows.length)
+      console.log("📊 Serviceman Query Result:", rows);
+
+      if (!rows.length){
+        console.log("❌ Serviceman not found");
         return res.status(404).json({ status: false, message: "Serviceman not found" });
+      }
 
       payer = rows[0];
     }
 
-    /* =====================================================
-       USER PAYMENT (SERVICE / CAB)
-    ===================================================== */
+    /* USER */
     else {
+
+      console.log("👤 USER PAYMENT FLOW");
 
       const [rows] = await db.query(
         `
@@ -92,72 +293,113 @@ export const payment = async (req, res) => {
         [user_id]
       );
 
-      if (!rows.length)
+      console.log("📊 User Query Result:", rows);
+
+      if (!rows.length){
+        console.log("❌ User not found");
         return res.status(404).json({ status: false, message: "User not found" });
+      }
 
       payer = rows[0];
     }
 
-    // service_order_id logic
+    console.log("✅ Payer Selected:", payer);
+
     const finalServiceOrderId =
       Number(payment_type) === 1 ? service_order_id : null;
+
+    console.log("📌 finalServiceOrderId:", finalServiceOrderId);
 
     let platformFeeFormatted = "0% - ₹0.00";
     let finalAmount = Number(amount);
 
-    /* =====================================================
-       PLATFORM FEE (SERVICE vs CAB)
-    ===================================================== */
+    /* PLATFORM FEE */
     if (Number(payment_type) === 1) {
 
+      console.log("💰 PLATFORM FEE CALCULATION START");
+
       let feeSettingName = "platform_fee";
-      if (Number(module_type) === 2) feeSettingName = "cab_platform_fee";
+      if (Number(module_type) === 2){
+        feeSettingName = "cab_platform_fee";
+      }
+
+      console.log("⚙️ Fee Setting Name:", feeSettingName);
 
       const [setting] = await db.query(
         "SELECT value FROM settings WHERE name = ? LIMIT 1",
         [feeSettingName]
       );
 
+      console.log("📊 Setting Result:", setting);
+
       const percent = setting.length ? Number(setting[0].value) : 0;
       const fee = (Number(amount) * percent) / 100;
 
       finalAmount = Number(amount) - fee;
       platformFeeFormatted = `${percent}% - ₹${fee.toFixed(2)}`;
+
+      console.log("✅ Fee Calculated:", {
+        percent,
+        fee,
+        finalAmount
+      });
     }
 
     const orderId = "ORD" + Date.now();
+    console.log("🧾 Order ID Generated:", orderId);
 
-    const response = await axios.post(
-      "https://sandbox.cashfree.com/pg/orders",
-      {
-        order_id: orderId,
-        order_amount: parseFloat(amount),
-        order_currency: "INR",
-        customer_details: {
-          customer_id: `USER${user_id}`,
-          customer_email: payer.email || "test@example.com",
-          customer_phone: String(payer.mobile || "9999999999"),
-          customer_name: payer.name || "User"
-        },
-        order_meta: {
-          notify_url: "https://yoyomiles.codescarts.com/api/callback_service"
-        },
-        payment_methods: "upi,card,netbanking"
+    const paytmBody = {
+      requestType: "Payment",
+      mid: PAYTM_MID,
+      websiteName: PAYTM_WEBSITE,
+      orderId,
+      callbackUrl: PAYTM_CALLBACK_URL,
+      txnAmount: {
+        value: String(amount),
+        currency: "INR",
       },
-      {
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-          "x-api-version": "2023-08-01",
-          "x-client-id": "TEST10256948ec57a943389eb31e588f84965201",
-          "x-client-secret": "cfsk_ma_test_4bf75f253a8b0b51dd9252a617bec825_4076da95"
-        }
-      }
+      userInfo: {
+        custId: String(user_id),
+      },
+    };
+
+    console.log("📦 Paytm Body:", paytmBody);
+
+    const checksum = await PaytmChecksum.generateSignature(
+      JSON.stringify(paytmBody),
+      PAYTM_KEY
     );
 
-    /* =====================================================
-       🔥 FIX IS HERE (module_type INSERTED)
-    ===================================================== */
+    console.log("🔐 Checksum Generated");
+
+    const payload = {
+      body: paytmBody,
+      head: { signature: checksum },
+    };
+
+    const url = `${PAYTM_TXN_URL}?mid=${PAYTM_MID}&orderId=${orderId}`;
+    console.log("🌐 Paytm URL:", url);
+
+    const response = await axios.post(url, payload, {
+      headers: { "Content-Type": "application/json" },
+    });
+
+    console.log("📡 Paytm Response:", response.data);
+
+    const txnToken = response?.data?.body?.txnToken;
+    console.log("🎟 txnToken:", txnToken);
+
+    if (!txnToken) {
+      console.log("❌ Paytm Token Missing");
+      return res.status(400).json({
+        status: false,
+        message: "Paytm session creation failed",
+        data: response.data,
+      });
+    }
+
+    console.log("💾 Inserting into paying table");
+
     await db.query(
       `
       INSERT INTO paying 
@@ -173,7 +415,7 @@ export const payment = async (req, res) => {
         platformFeeFormatted,
         finalAmount,
         payment_type,
-        gateway_type || 1,
+        2,
         orderId,
         0,
         Number(module_type) === 2 ? 2 : 1,
@@ -182,21 +424,27 @@ export const payment = async (req, res) => {
       ]
     );
 
+    console.log("✅ DB Insert Success");
+
     return res.status(200).json({
       status: true,
       message: "Payment session created successfully",
-      order_id: orderId,
-      platform_fee: platformFeeFormatted,
-      final_amount: finalAmount,
-      data: response.data
+      data: {
+        order_id: orderId,
+        txnToken,
+        amount,
+        platform_fee: platformFeeFormatted,
+        final_amount: finalAmount
+      },
     });
 
   } catch (error) {
-    console.error("Payment Error:", error);
+    console.log("🔥 ERROR OCCURRED");
+    console.error("Paytm Payment Error:", error?.response?.data || error.message);
+
     return res.status(500).json({
       status: false,
       message: "Internal server error",
-      error: error.message
     });
   }
 };
@@ -204,28 +452,45 @@ export const payment = async (req, res) => {
 
 
 
-export const callbackService = async (req, res) => {
+export const paytmCallback = async (req, res) => {
   try {
-    const { order_id, status } = req.body;
+    const paytmData = { ...req.body };
+    const checksum = paytmData.CHECKSUMHASH;
 
-    if (!order_id || status === undefined) {
+    /* ================= CHECKSUM (PAYTM EXTRA) ================= */
+    if (!checksum) {
       return res.status(400).json({
         success: false,
-        message: "order_id and status are required"
+        message: "Missing checksum",
       });
     }
 
-    /* =========================
-       NORMALIZE STATUS
-    ========================= */
-    const paymentStatus =
-      String(status).toLowerCase() === "success" || Number(status) === 1
-        ? 1
-        : 2;
+    delete paytmData.CHECKSUMHASH;
 
-    /* =========================
-       FETCH PAYING ROW
-    ========================= */
+    const isValidChecksum = PaytmChecksum.verifySignature(
+      paytmData,
+      PAYTM_KEY,
+      checksum
+    );
+
+    if (!isValidChecksum) {
+      return res.status(400).json({
+        success: false,
+        message: "Checksum mismatch",
+      });
+    }
+
+    /* ================= NORMALIZE STATUS (PAYTM TO 1/2) ================= */
+    const order_id = paytmData.ORDERID;
+    let paymentStatus = 0;
+
+    if (paytmData.STATUS === "TXN_SUCCESS") paymentStatus = 1;
+    else if (
+      ["TXN_FAILURE", "FAILED", "CANCELLED"].includes(paytmData.STATUS)
+    )
+      paymentStatus = 2;
+
+    /* ================= FETCH PAYING ROW ================= */
     const [payingRows] = await db.query(
       `SELECT * FROM paying WHERE transaction_id = ? LIMIT 1`,
       [order_id]
@@ -237,8 +502,6 @@ export const callbackService = async (req, res) => {
         message: "Payment record not found"
       });
     }
-    
-    
 
     const {
       id,
@@ -249,22 +512,20 @@ export const callbackService = async (req, res) => {
       module_type
     } = payingRows[0];
 
-    /* =========================
-       UPDATE PAYING STATUS
-    ========================= */
+    /* ================= UPDATE PAYING STATUS ================= */
     await db.query(
       `UPDATE paying SET status = ?, updated_at = NOW() WHERE id = ?`,
       [paymentStatus, id]
     );
 
-    // ❌ STOP IF FAILED
+    // ❌ STOP IF FAILED (RETURN HTML FOR FAILURE)
     if (paymentStatus !== 1) {
-      return res.status(200).json({
-        success: true,
-        message: "Payment failed",
-        order_id
-      });
+      return res.status(200).send(HTML_RESPONSES.failed);
     }
+
+    /* =====================================================
+       ✅ SUCCESS FLOW - WALLET LOGIC (SAME AS CASHFREE)
+    ===================================================== */
 
     /* =====================================================
        CASE 1: SERVICE → SERVICEMAN WALLET
@@ -283,91 +544,95 @@ export const callbackService = async (req, res) => {
       }
     }
 
-  
+    /* =====================================================
+       CASE 2: CAB BOOKING (MODULE_TYPE = 2) - CRITICAL LOGIC
+       Wallet deduct from user, add to driver after platform fee
+    ===================================================== */
+    if (Number(payment_type) === 1 && Number(module_type) === 2) {
+      const [orderRows] = await db.query(
+        `
+        SELECT 
+          driver_id,
+          user_id,
+          wallet_apply,
+          pay_mode,
+          final_amount AS ride_total_amount,
+          amount_after_wallet
+        FROM cab_orders
+        WHERE id = ?
+        LIMIT 1
+        `,
+        [service_order_id]
+      );
 
-if (Number(payment_type) === 1 && Number(module_type) === 2) {
-  const [orderRows] = await db.query(
-    `
-    SELECT 
-      driver_id,
-      user_id,
-      wallet_apply,
-      pay_mode,
-      final_amount AS ride_total_amount,
-      amount_after_wallet
-    FROM cab_orders
-    WHERE id = ?
-    LIMIT 1
-    `,
-    [service_order_id]
-  );
+      if (orderRows.length) {
+        const {
+          driver_id,
+          user_id: cab_user_id,
+          wallet_apply,
+          pay_mode,
+          ride_total_amount,
+          amount_after_wallet
+        } = orderRows[0];
 
-  if (!orderRows.length) return;
+        // ✅ Wallet calculation from cab_orders
+        const walletUsed =
+          Number(ride_total_amount) - Number(amount_after_wallet);
 
-  const {
-    driver_id,
-    user_id,
-    wallet_apply,
-    pay_mode,
-    ride_total_amount,
-    amount_after_wallet
-  } = orderRows[0];
+        let creditAmount = Number(ride_total_amount);
 
-  // ✅ Wallet calculation ONLY from cab_orders
-  const walletUsed =
-    Number(ride_total_amount) - Number(amount_after_wallet); // 500 - 400 = 100
+        if (Number(wallet_apply) === 1 && Number(pay_mode) === 1) {
 
-  let creditAmount = Number(ride_total_amount);
+          // Platform fee on FULL ride amount
+          const [setting] = await db.query(
+            `SELECT value FROM settings WHERE name = 'cab_platform_fee' LIMIT 1`
+          );
 
-  if (Number(wallet_apply) === 1 && Number(pay_mode) === 1) {
+          const percent = setting.length ? Number(setting[0].value) : 0;
+          const fee = (Number(ride_total_amount) * percent) / 100;
 
-    // Platform fee on FULL ride amount
-    const [setting] = await db.query(
-      `SELECT value FROM settings WHERE name = 'cab_platform_fee' LIMIT 1`
-    );
+          creditAmount = Number(ride_total_amount) - fee;
 
-    const percent = setting.length ? Number(setting[0].value) : 0;
-    const fee = (Number(ride_total_amount) * percent) / 100;
+          const platformFeeFormatted =
+            `${percent}% - ₹${fee.toFixed(2)}`;
+            
+          await db.query(
+            `
+            UPDATE paying
+            SET 
+              amount = ?,
+              final_amount = ?,
+              platform_fee = ?
+            WHERE transaction_id = ?
+            `,
+            [ride_total_amount, creditAmount, platformFeeFormatted, order_id]
+          );
 
-    creditAmount = Number(ride_total_amount) - fee; 
+          // 💰 DEDUCT FROM USER WALLET (walletUsed)
+          await db.query(
+            `
+            UPDATE users
+            SET wallet = wallet - ?
+            WHERE id = ?
+            `,
+            [walletUsed, cab_user_id]
+          );
+        }
 
-    const platformFeeFormatted =
-      `${percent}% - ₹${fee.toFixed(2)}`;
-      
-    await db.query(
-      `
-      UPDATE paying
-      SET 
-        amount = ?,
-        final_amount = ?,
-        platform_fee = ?
-      WHERE transaction_id = ?
-      `,
-      [ride_total_amount, creditAmount, platformFeeFormatted, order_id]
-    );
-
-    await db.query(
-      `
-      UPDATE users
-      SET wallet = wallet - ?
-      WHERE id = ?
-      `,
-      [walletUsed, user_id]
-    );
-  }
-  await db.query(
-    `
-    UPDATE driver_registration
-    SET wallet = wallet + ?
-    WHERE id = ?
-    `,
-    [creditAmount, driver_id]
-  );
-}
-
+        // 💰 ADD TO DRIVER WALLET (after platform fee)
+        await db.query(
+          `
+          UPDATE driver_registration
+          SET wallet = wallet + ?
+          WHERE id = ?
+          `,
+          [creditAmount, driver_id]
+        );
+      }
+    }
 
     /* =====================================================
-       CASE 3: USER WALLET ADD
+       CASE 3: USER WALLET ADD (payment_type = 4)
     ===================================================== */
     if (Number(payment_type) === 4) {
       await db.query(
@@ -377,7 +642,7 @@ if (Number(payment_type) === 1 && Number(module_type) === 2) {
     }
 
     /* =====================================================
-       CASE 4: SERVICEMAN DUE WALLET CLEAR
+       CASE 4: SERVICEMAN DUE WALLET CLEAR (payment_type = 5, module_type ≠ 2)
     ===================================================== */
     if (Number(payment_type) === 5 && Number(module_type) !== 2) {
       await db.query(
@@ -387,7 +652,7 @@ if (Number(payment_type) === 1 && Number(module_type) === 2) {
     }
 
     /* =====================================================
-       CASE 5: DRIVER DUE WALLET CLEAR
+       CASE 5: DRIVER DUE WALLET CLEAR (payment_type = 5, module_type = 2)
     ===================================================== */
     if (Number(payment_type) === 5 && Number(module_type) === 2) {
       await db.query(
@@ -396,26 +661,20 @@ if (Number(payment_type) === 1 && Number(module_type) === 2) {
       );
     }
 
-    /* =========================
-       FINAL RESPONSE
-    ========================= */
-    return res.status(200).json({
-      success: true,
-      message: "Callback processed successfully",
-      service_order_id,
-      module_type: module_type,
-      order_id
-    });
+    /* ================= SUCCESS HTML RESPONSE ================= */
+    return res.status(200).send(HTML_RESPONSES.success);
 
   } catch (error) {
-    console.error("Callback Error:", error);
+    console.error("💥 Paytm Callback Error:", error);
     return res.status(500).json({
       success: false,
-      message: "Callback failed",
-      error: error.message
+      message: "Failed to process callback",
+      error: error.message,
     });
   }
 };
+
+
 
 
 
@@ -433,6 +692,7 @@ export const bankDetails = async (req, res) => {
     } = req.body;
 
     let errors = [];
+
 
     if (!user_id) errors.push("The user_id field is required.");
     if (!type) errors.push("The type field is required (1=serviceman, 2=driver).");
@@ -482,13 +742,14 @@ export const bankDetails = async (req, res) => {
       errors.push("Account number and Re-account number must match.");
     }
 
+ 
     if (errors.length > 0) {
       return res.status(400).json({
         success: false,
         message: "Failed: " + errors.join(", "),
       });
     }
-
+ 
     // INSERT QUERY
     await db.query(
       `
@@ -521,6 +782,8 @@ export const bankDetails = async (req, res) => {
     });
   }
 };
+
+
 
 
 export const getBankDetails = async (req, res) => {

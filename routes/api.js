@@ -56,7 +56,8 @@ import {
   myActiveOrders,
   changePaymentMode,
   addServicemanRating,
-  getServicemanRatings
+  getServicemanRatings,
+  ignoreOrder
 } from "../controllers/api/serviceOrderController.js";
 
 /* =======================
@@ -68,7 +69,7 @@ import {
   getBankDetails,
   bankDetailsUpdateRequest,
   getBankUpdateRequest,
-  callbackService,
+  paytmCallback,
   serviceman_transaction,
   user_transaction,
   servicemanEarnings,
@@ -214,7 +215,7 @@ router.post("/online_status", servicemanOnlineStatus);
    BANK / PAYMENT
 ======================= */
 router.post("/payment", payment);
-router.post("/callback_service", callbackService);
+router.post("/callback_paytm", paytmCallback);
 router.post("/add_bank_details", bankDetails);
 router.post("/get_bank_details", getBankDetails);
 router.post("/bank_update_request", bankDetailsUpdateRequest);
@@ -333,10 +334,14 @@ router.post(
 router.get("/zone_cities", zoneCities);
 
 
+
 router.get("/ride-invoice/:ride_id", generateRideInvoice);
 router.get("/view-invoice/:ride_id", viewInvoice);
 
 router.get("/policy/:type", getPolicyByType);
 router.get("/help-support", getHelpSupport);
 
+
+
+router.post("/ignore-service-order", ignoreOrder);
 export default router;
