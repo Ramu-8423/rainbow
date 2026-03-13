@@ -1,5 +1,6 @@
 import db from "../config/database.js";
-
+import fs from "fs";
+import path from "path";
 
 
 
@@ -324,7 +325,47 @@ export const subcategoriesPage = async (req, res) => {
   }
 };
 
+export const updateSubcategory = async (req, res) => {
+  try {
 
+    const { id, category_id, name, old_image } = req.body;
+
+    let imagePath = old_image;
+
+    if (req.file) {
+
+      if (old_image) {
+        const oldPath = path.join("public", old_image);
+
+        if (fs.existsSync(oldPath)) {
+          fs.unlinkSync(oldPath);
+        }
+      }
+
+      imagePath = `subcategories/${req.file.filename}`;
+    }
+
+    await db.query(
+      `UPDATE subcategories
+       SET
+       category_id = IFNULL(NULLIF(?, ''), category_id),
+       name = IFNULL(NULLIF(?, ''), name),
+       image = IFNULL(NULLIF(?, ''), image)
+       WHERE id = ?`,
+      [category_id, name, imagePath, id]
+    );
+
+    req.session.success = "Subcategory updated successfully!";
+    return res.redirect("/subcategories");
+
+  } catch (err) {
+
+    console.log("SUBCATEGORY UPDATE ERROR:", err);
+
+    req.session.error = "Something went wrong!";
+    return res.redirect("/subcategories");
+  }
+};
 
 export const subcategoriesListAjax = async (req, res) => {
   try {
@@ -447,6 +488,53 @@ export const addCategory = async (req, res) => {
 };
 
 
+
+
+export const updateCategory = async (req, res) => {
+  try {
+
+    const { id, name, old_image } = req.body;
+
+    let imagePath = old_image;
+
+    // if new image uploaded
+    if (req.file) {
+
+      // old image delete
+      if (old_image) {
+        const oldPath = path.join("public", old_image);
+
+        if (fs.existsSync(oldPath)) {
+          fs.unlinkSync(oldPath);
+        }
+      }
+
+      // new image path
+      imagePath = `categories/${req.file.filename}`;
+    }
+
+    // UPDATE QUERY
+    await db.query(
+      `UPDATE categories
+       SET 
+       name = IFNULL(NULLIF(?, ''), name),
+       image = IFNULL(NULLIF(?, ''), image)
+       WHERE id = ?`,
+      [name, imagePath, id]
+    );
+
+    req.session.success = "Category updated successfully!";
+    return res.redirect("/categories");
+
+  } catch (err) {
+
+    console.log("CATEGORY UPDATE ERROR:", err);
+
+    req.session.error = "Something went wrong!";
+    return res.redirect("/categories");
+
+  }
+};
 
 
 export const addSubcategory = async (req, res) => {

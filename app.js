@@ -2,6 +2,8 @@ import express from "express";
 import session from "express-session";
 import dotenv from "dotenv";
 import path from "path";
+import cors from "cors";
+
 import { fileURLToPath } from "url";
 import expressLayouts from "express-ejs-layouts";
 import { autoAuth } from "./middleware/auth.js";
@@ -9,13 +11,11 @@ import { requestTime } from "./middleware/requestTime.js";
 
 import { scheduleApiHits } from "./scheduleHit.js";
 
-
 import http from "http";
+
+// SOCKET MODULES
 import { initSocket } from "./socket.js";
-
 import { initCabSocket } from "./cabSocket.js";
-
-
 
 dotenv.config();
 
@@ -26,14 +26,19 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
-
+// ===============================================
+// SINGLE HTTP SERVER – ONLY ONE ENGINE
+// ===============================================
 const server = http.createServer(app);
 
 
-initSocket(server);
+app.use(cors());
 
-
-initCabSocket(server);
+// ===============================================
+// 🚀 SOCKET INIT – SHARE SAME INSTANCE
+// ===============================================
+const mainIO = initSocket(server);      // existing socket system
+initCabSocket(server, mainIO);          // cab system reuse
 
 // ---------------- EXPRESS MIDDLEWARES ----------------
 
@@ -45,7 +50,6 @@ app.use((req, res, next) => {
   res.locals.activePath = req.path;
   next();
 });
-
 
 app.use(
   session({
@@ -64,20 +68,15 @@ app.use((req, res, next) => {
   res.locals.success = req.session.success || null;
   res.locals.error = req.session.error || null;
 
-  // ✅ turant clear
   req.session.success = null;
   req.session.error = null;
 
   next();
 });
 
-
-
 app.use(requestTime);
 
-
 app.locals.BASE_URL = process.env.BASE_URL;
-
 
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));

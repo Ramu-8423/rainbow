@@ -73,7 +73,8 @@ import {
   serviceman_transaction,
   user_transaction,
   servicemanEarnings,
-  servicemanServiceInfo
+  servicemanServiceInfo,
+  paytmData
 } from "../controllers/api/payinController.js";
 
 
@@ -334,13 +335,13 @@ router.post(
 router.get("/zone_cities", zoneCities);
 
 
-
 router.get("/ride-invoice/:ride_id", generateRideInvoice);
 router.get("/view-invoice/:ride_id", viewInvoice);
 
 router.get("/policy/:type", getPolicyByType);
 router.get("/help-support", getHelpSupport);
 
+router.get("/paytm_date", paytmData);
 
 
 router.post("/ignore-service-order", ignoreOrder);

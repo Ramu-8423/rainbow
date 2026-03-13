@@ -7,8 +7,10 @@ import {
     allUsers,
     updateUserStatus,
     allCategories,
+    updateCategory,
     updateCategoryStatus,
     subcategoriesPage,
+    updateSubcategory,
     subcategoriesListAjax,
     subcategoryStatusUpdate,
     addCategory,
@@ -36,6 +38,11 @@ allServiceman,
 updateServicemanStatus
 } from "../controllers/serviceManController.js";
 
+
+
+import {
+updateRideStatusFromPage
+} from "../controllers/LiveOrderCancel.js";
 
 
 import { 
@@ -119,6 +126,7 @@ updateService,
 getSubcategoriesByCategory,
 storeService,
 updateServiceStatus,
+updateTopServicesStatus,
 deleteService
 } from "../controllers/serviceController.js";
 
@@ -143,6 +151,11 @@ router.get("/user-status-update/:id", updateUserStatus);
 
 
 router.get("/categories", allCategories);
+router.post(
+  "/category-update",
+  uploadImageDynamic("categories").single("image"),
+  updateCategory
+);
 router.get("/category-status-update/:id", updateCategoryStatus);
 
 
@@ -162,6 +175,13 @@ router.post(
   uploadImageDynamic("subcategories").single("image"), 
   addSubcategory
 );
+
+router.post(
+  "/subcategory-update",
+  uploadImageDynamic("subcategories").single("image"),
+  updateSubcategory
+);
+
 
 
 router.get("/bank-details/:type", getBankDetails);
@@ -193,6 +213,13 @@ router.get(
   "/service-status-update/:id",
   updateServiceStatus
 );
+
+
+router.get(
+  "/top_services_status/:id",
+  updateTopServicesStatus
+);
+
 
 router.get(
   "/service-delete/:id",
@@ -296,6 +323,10 @@ router.post("/notification/send", postNotification);
 
 router.get("/invoice-settings", invoiceSettings);
 router.post("/invoice-settings/edit/:id", updateInvoiceSetting);
+
+
+
+router.post("/update-ride-status", updateRideStatusFromPage);
 
 
 export default router;

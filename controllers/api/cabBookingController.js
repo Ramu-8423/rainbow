@@ -287,16 +287,10 @@ export const cabHistory = async (req, res) => {
 
 export async function cabEarning(req, res) {
   try {
-    console.log("==== CAB EARNING API HIT ====");
-    console.log("Request Body:", req.body);
 
     const { driver_id, type } = req.body;
 
-    console.log("driver_id:", driver_id);
-    console.log("type:", type);
-
     if (!driver_id) {
-      console.log("❌ driver_id missing");
       return res.status(400).json({
         success: false,
         message: "driver_id is required"
@@ -304,7 +298,6 @@ export async function cabEarning(req, res) {
     }
 
     if (![1, 2, 3].includes(Number(type))) {
-      console.log("❌ invalid type:", type);
       return res.status(400).json({
         success: false,
         message: "type must be 1 (all), 2 (today), 3 (weekly)"
@@ -312,7 +305,6 @@ export async function cabEarning(req, res) {
     }
 
     const now = nowIST();
-    console.log("Current IST Time:", now);
 
     /* =========================
        DATE RANGE (IST SAFE)
@@ -321,21 +313,15 @@ export async function cabEarning(req, res) {
     const startOfToday = `${todayDate} 00:00:00`;
     const endOfToday = `${todayDate} 23:59:59`;
 
-    console.log("Today Date:", todayDate);
-    console.log("Start Of Today:", startOfToday);
-    console.log("End Of Today:", endOfToday);
-
     let dateCondition = "";
     let logDateCondition = "";
     let orderParams = [driver_id];
     let logParams = [driver_id];
 
     if (Number(type) === 1) {
-      console.log("📌 TYPE 1: ALL DATA");
     }
 
     if (Number(type) === 2) {
-      console.log("📌 TYPE 2: TODAY DATA");
       dateCondition = "AND created_at BETWEEN ? AND ?";
       logDateCondition = "AND online_time BETWEEN ? AND ?";
 
@@ -344,18 +330,12 @@ export async function cabEarning(req, res) {
     }
 
     if (Number(type) === 3) {
-      console.log("📌 TYPE 3: WEEKLY DATA");
       dateCondition = "AND created_at >= DATE_SUB(?, INTERVAL 7 DAY)";
       logDateCondition = "AND online_time >= DATE_SUB(?, INTERVAL 7 DAY)";
 
       orderParams = [driver_id, now];
       logParams = [driver_id, now];
     }
-
-    console.log("Order Date Condition:", dateCondition);
-    console.log("Order Params:", orderParams);
-    console.log("Log Date Condition:", logDateCondition);
-    console.log("Log Params:", logParams);
 
     /* =========================
        GET COMPLETED ORDERS
@@ -380,26 +360,18 @@ export async function cabEarning(req, res) {
       orderParams
     );
 
-    console.log("Orders Found:", orders.length);
-    console.log("Orders Data:", orders);
-
     const completedOrderIds = orders.map(o => o.id);
-    console.log("Completed Order IDs:", completedOrderIds);
 
     /* =========================
        TOTAL DISTANCE
     ========================= */
     const total_distance = Number(
       orders.reduce((sum, o) => {
-        console.log("Adding distance:", o.distance_km);
         return sum + Number(o.distance_km || 0);
       }, 0).toFixed(2)
     );
 
-    console.log("Total Distance:", total_distance);
-
     const total_completed_ride = orders.length;
-    console.log("Total Completed Rides:", total_completed_ride);
 
     /* =========================
        TOTAL EARNING
@@ -417,11 +389,8 @@ export async function cabEarning(req, res) {
         [completedOrderIds]
       );
 
-      console.log("Earning Rows:", earningRows);
       total_earning = earningRows[0]?.total || 0.00;
     }
-
-    console.log("Total Earning:", total_earning);
 
     /* =========================
        ONLINE TIME CALCULATION
@@ -436,63 +405,44 @@ export async function cabEarning(req, res) {
       logParams
     );
 
-    console.log("Online Logs Found:", onlineLogs.length);
-    console.log("Online Logs Data:", onlineLogs);
-
     let totalSeconds = 0;
 
     for (const row of onlineLogs) {
-      console.log("Processing Log:", row);
 
       const online = new Date(row.online_time);
       const offline = row.offline_time
         ? new Date(row.offline_time)
         : new Date(now);
 
-     
-
       if (offline > online) {
         const diffSeconds = Math.floor((offline - online) / 1000);
-        console.log("Session Seconds:", diffSeconds);
         totalSeconds += diffSeconds;
-      } else {
-        console.log("⚠️ Offline <= Online, skipped");
       }
     }
-
-    console.log("Total Seconds:", totalSeconds);
 
     const total_hours = Math.floor(totalSeconds / 3600);
     const total_minutes = Math.floor((totalSeconds % 3600) / 60);
 
-    console.log("Total Hours:", total_hours);
-    console.log("Total Minutes:", total_minutes);
-
- 
-  console.log("Total total_earning:", total_earning);
     /* =========================
        FINAL RESPONSE
     ========================= */
-  const responseData = {
-  success: true,
-  data: {
-    total_earning: total_earning, 
-    total_completed_ride,
-    total_distance,
-    online_time: {
-      hours: total_hours,
-      minutes: total_minutes
-    },
-    trip_details: orders
-  }
-};
-
-    console.log("FINAL RESPONSE:", responseData);
+    const responseData = {
+      success: true,
+      data: {
+        total_earning: total_earning, 
+        total_completed_ride,
+        total_distance,
+        online_time: {
+          hours: total_hours,
+          minutes: total_minutes
+        },
+        trip_details: orders
+      }
+    };
 
     return res.status(200).json(responseData);
 
   } catch (err) {
-    console.log("❌ Cab Earning API Error:", err);
     return res.status(500).json({
       success: false,
       message: "Internal Server Error",
@@ -500,7 +450,6 @@ export async function cabEarning(req, res) {
     });
   }
 }
-
 
 
 

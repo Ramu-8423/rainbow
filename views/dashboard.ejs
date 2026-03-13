@@ -122,18 +122,77 @@
     <h4 class="mt-2">Revenue Overview</h4>
   </div>
 
-  <!-- 🔥 TOTAL REVENUE -->
-  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
-    <div class="mini-card">
-      <div class="mini-card-title">Total Revenue</div>
-      <div class="mini-card-body">
-        <div class="mini-icon icon-green"><i class="bi bi-currency-rupee"></i></div>
-        <span class="mini-badge badge-green">
-          <%= (Number(service_revenue || 0) + Number(cab_revenue || 0)).toFixed(2) %>
-        </span>
-      </div>
+ <!-- 🔥 REVENUE SUMMARY -->
+<div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
+
+  <%
+    const totalRevenue =
+      Number(service_revenue || 0) +
+      Number(cab_revenue || 0);
+
+    const gstAmount = (totalRevenue * 18) / 118;
+    const actualRevenue = totalRevenue - gstAmount;
+  %>
+
+  <div class="mini-card" style="height:auto;padding:14px;">
+
+    <div class="mini-card-title mb-2">
+      Revenue Summary
     </div>
+
+    <!-- INNER FLEX -->
+    <div style="
+        display:flex;
+        gap:8px;
+        justify-content:space-between;
+    ">
+
+      <!-- TOTAL -->
+      <div style="
+          flex:1;
+          background:#e0ecff;
+          border-radius:6px;
+          padding:8px;
+          text-align:center;
+      ">
+        <div style="font-size:11px;color:#555;">Total</div>
+        <div style="font-weight:700;color:#0d6efd;">
+          ₹ <%= totalRevenue.toFixed(2) %>
+        </div>
+      </div>
+
+      <!-- GST -->
+      <div style="
+          flex:1;
+          background:#ffe3e3;
+          border-radius:6px;
+          padding:8px;
+          text-align:center;
+      ">
+        <div style="font-size:11px;color:#555;">GST</div>
+        <div style="font-weight:700;color:#dc2626;">
+          ₹ <%= gstAmount.toFixed(2) %>
+        </div>
+      </div>
+
+      <!-- NET -->
+      <div style="
+          flex:1;
+          background:#dcfce7;
+          border-radius:6px;
+          padding:8px;
+          text-align:center;
+      ">
+        <div style="font-size:11px;color:#555;">Net</div>
+        <div style="font-weight:700;color:#16a34a;">
+          ₹ <%= actualRevenue.toFixed(2) %>
+        </div>
+      </div>
+
+    </div>
+
   </div>
+</div>
 
   <!-- 🔥 TODAY TOTAL REVENUE -->
   <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">

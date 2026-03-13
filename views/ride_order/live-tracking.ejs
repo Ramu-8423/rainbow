@@ -29,6 +29,41 @@
     display: inline-block;
     min-width: 55px;
   }
+  
+  
+.auto-scroll {
+  max-width: 220px;
+  white-space: nowrap;
+  overflow-x: hidden;
+  display: block;
+
+  /* 🔥 AUTO SCROLL MAGIC */
+  animation: scrollText 12s linear infinite;
+}
+
+/* hover par user control */
+.auto-scroll:hover {
+  overflow-x: auto;
+  animation-play-state: paused;   /* auto ruk jayega */
+}
+
+/* animation */
+@keyframes scrollText {
+  0%   { text-indent: 0; }
+  100% { text-indent: -100%; }
+}
+
+/* scrollbar */
+.auto-scroll::-webkit-scrollbar {
+  height: 4px;
+}
+
+.auto-scroll::-webkit-scrollbar-thumb {
+  background: #aaa;
+  border-radius: 10px;
+}
+
+
 </style>
 
 <!-- 🔥 Firebase CDN -->
@@ -44,6 +79,7 @@
       <th>User</th>
       <th>Driver</th>
       <th>Vehicle</th>
+      <th>Distance</th>
       <th>Pickup</th>
       <th>Drop</th>
       <th>Amount</th>
@@ -111,17 +147,53 @@ db.collection("cab_orders")
           </td>
 
           <td>${d.vehicle_name ?? "-"}</td>
+          <td>${d.distance_km ?? "-"} KM</td>
 
-          <td>
-            <marquee scrollamount="3">${d.pickup_location ?? "-"}</marquee>
-          </td>
+ <td>
+  <div class="auto-scroll">
+    ${d.pickup_location ?? "-"}
+  </div>
+</td>
 
-          <td>
-            <marquee scrollamount="3">${d.drop_location ?? "-"}</marquee>
-          </td>
+<td>
+  <div class="auto-scroll">
+    ${d.drop_location ?? "-"}
+  </div>
+</td>
+
+
+
+
+
+
+
+
+
+
+
+
+
 
           <td>₹ ${d.estimated_amount ?? 0}</td>
-          <td>${rideStatusText(d.order_status)}</td>
+          
+          
+         <td>
+  ${rideStatusText(d.order_status)}
+
+<form method="POST" action="/update-ride-status" style="margin-top:6px;">
+        <input type="hidden" name="id" value="${d.order_id}">
+        <input type="hidden" name="ride_status" value="5">
+
+        <button type="submit"
+          style="background:#28a745;color:#fff;border:none;
+          padding:5px 10px;font-size:12px;border-radius:4px;cursor:pointer;">
+          Complete Ride
+        </button>
+      </form>
+</td>
+          
+          
+          
         </tr>
       `;
     });

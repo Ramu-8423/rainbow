@@ -605,72 +605,40 @@ export async function servicemanOnlineStatus(req, res) {
   }
 }
 
-// export const zoneCities = async (req, res) => {
-//   try {
-//     const [rows] = await db.query(
-//       `
-//       SELECT id, zone_name
-//       FROM zones
-//       ORDER BY id ASC
-//       `
-//     );
-
-//     if (!rows.length) {
-//       return res.status(404).json({
-//         message: "Zones not found",
-//         cities: []
-//       });
-//     }
-
-//     // same key & same structure
-//     const cities = rows.map(zone => ({
-//       id: zone.id,
-//       name: zone.zone_name
-//     }));
-
-//     return res.status(200).json({
-//       message: "Zone cities fetched successfully",
-//       cities
-//     });
-
-//   } catch (err) {
-//     console.log("Zone List Error:", err);
-//     return res.status(500).json({
-//       message: "Internal Server Error"
-//     });
-//   }
-// };
-
-
-
 export const zoneCities = async (req, res) => {
   try {
-
     const [rows] = await db.query(
-      `SELECT * FROM users`
+      `
+      SELECT id, zone_name
+      FROM zones
+      ORDER BY id ASC
+      `
     );
 
     if (!rows.length) {
-      return res.status(400).json({
-        message: "users not found",
-        users: []
+      return res.status(404).json({
+        message: "Zones not found",
+        cities: []
       });
     }
 
-    const users = rows.map(user => ({
-      id: user.id,
-      name: user.status
+    // same key & same structure
+    const cities = rows.map(zone => ({
+      id: zone.id,
+      name: zone.zone_name
     }));
 
     return res.status(200).json({
-      message: "Users fetched successfully",
-      users
+      message: "Zone cities fetched successfully",
+      cities
     });
 
-  } catch (error) {
-    console.error("zoneList Error:", error);
+  } catch (err) {
+    console.log("Zone List Error:", err);
     return res.status(500).json({
-      message: "Internal server error"
+      message: "Internal Server Error"
     });
   }
 };
+
+

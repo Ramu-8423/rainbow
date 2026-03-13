@@ -1,4 +1,845 @@
-git checkout -b backup-2026-02-21
-git add .
-git commit -m "21 febuary"
-git push origin backup-2026-02-21
+
+
+
+
+<%
+  const {
+    id,
+    wallet,
+    dues_payment,
+    vehicle_no,
+    rc_front,
+    rc_back,
+    city_name,
+    vehicle_type_name,
+    vehicle_type_image,
+    vehicle_body_detail,
+    vehicle_body_type_name,
+    vehicle_body_type_image,
+    fuel_type_name,
+    owner_name,
+    owner_aadhaar_back,
+    owner_aadhaar_front,
+    owner_pan_fornt,
+    owner_pan_back,
+    owner_selfie,
+    driver_name,
+    driving_licence_back,
+    driving_licence_front,
+    phone,
+    drive_operator,
+    doc_rej_resion,
+    status,
+    online_status,
+    vehicle_doc_status,
+    owner_doc_status,
+    driver_doc_status,
+    verify_document,
+    created_at
+  } = driver;
+%>
+
+<div id="uniqueFlashContainer" style="position: fixed; top: 20px; right: 20px; z-index: 9999;"></div>
+
+<!-- ✅ DRIVER LIST TABLE -->
+<div class="card">
+  <div class="row g-3 px-3 py-2">
+    
+  </div>
+</div>
+  
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-striped table-md">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Wallet</th>
+            <th>Dues Payment</th>
+            <th>Vehicle No</th>
+            <th>RC Front</th>
+            <th>RC Back</th>
+            <th>City Name</th>
+            <th>Vehicle Type Name</th>
+            <th>Vehicle Type Image</th>
+            <th>Vehicle Body Detail</th>
+            <th>Vehicle Body Type Name</th>
+            <th>Vehicle Body Type Image</th>
+            <th>Fuel Type Name</th>
+            <th>Owner Name</th>
+            <th>Owner Aadhaar Back</th>
+            <th>Owner Aadhaar Front</th>
+            <th>Owner PAN Front</th>
+            <th>Owner PAN Back</th>
+            <th>Owner Selfie</th>
+            <th>Driver Name</th>
+            <th>Driving Licence Back</th>
+            <th>Driving Licence Front</th>
+            <th>Phone</th>
+            <th>Driver / Operator</th>
+            <th>Document Reject Reason</th>
+            <th>Status</th>
+            <th>Online Status</th>
+            <th>Vehicle Document Status</th>
+            <th>Owner Document Status</th>
+            <th>Driver Document Status</th>
+            <th>Verify Document</th>
+            <th>Created At</th>
+          </tr>
+        </thead>
+        <tbody>
+         
+          <tr>
+            <td><%= id %></td>
+            <td>
+              <span class="badge bg-success" style="font-size:14px; padding:6px 10px;">
+                ₹ <%= wallet || 0 %>
+              </span>
+            </td>
+            
+            <td>
+              <span 
+                class="badge" 
+                style="font-size:14px; padding:6px 10px;
+                       background:<%= dues_payment == 0 ? '#28a745' : '#ff9800' %>;
+                       color:#fff;">
+                ₹ <%= dues_payment || 0 %>
+              </span>
+            </td>
+
+            <td><%= vehicle_no %></td>
+            <td>
+              <% if (rc_front) { %>
+                <img src="/<%= rc_front %>" width="40" height="40" onclick="showImage(this)" style="cursor: pointer; border-radius: 4px;" />
+              <% } else { %>
+                <span class="text-muted">N/A</span>
+              <% } %>
+            </td>
+            <td>
+              <% if (rc_back) { %>
+                <img src="/<%= rc_back %>" width="40" height="40" onclick="showImage(this)" style="cursor: pointer; border-radius: 4px;" />
+              <% } else { %>
+                <span class="text-muted">N/A</span>
+              <% } %>
+            </td>
+            <td><%= city_name %></td>
+            <td><%= vehicle_type_name %></td>
+            <td>
+              <% if (vehicle_type_image) { %>
+                <img src="/<%= vehicle_type_image %>" width="50" onclick="showImage(this)" style="cursor: pointer; border-radius: 4px;" />
+              <% } else { %>
+                <span class="text-muted">N/A</span>
+              <% } %>
+            </td>
+            <td><%= vehicle_body_detail %></td>
+            <td><%= vehicle_body_type_name %></td>
+            <td>
+              <% if (vehicle_body_type_image) { %>
+                <img src="/<%= vehicle_body_type_image %>" width="50" onclick="showImage(this)" style="cursor: pointer; border-radius: 4px;" />
+              <% } else { %>
+                <span class="text-muted">N/A</span>
+              <% } %>
+            </td>
+            <td><%= fuel_type_name %></td>
+            <td><%= owner_name %></td>
+            <td>
+              <% if (owner_aadhaar_back) { %>
+                <img src="/<%= owner_aadhaar_back %>" width="40" height="40" onclick="showImage(this)" style="cursor: pointer; border-radius: 4px;" />
+              <% } else { %>
+                <span class="text-muted">N/A</span>
+              <% } %>
+            </td>
+            <td>
+              <% if (owner_aadhaar_front) { %>
+                <img src="/<%= owner_aadhaar_front %>" width="40" height="40" onclick="showImage(this)" style="cursor: pointer; border-radius: 4px;" />
+              <% } else { %>
+                <span class="text-muted">N/A</span>
+              <% } %>
+            </td>
+            <td>
+              <% if (owner_pan_fornt) { %>
+                <img src="/<%= owner_pan_fornt %>" width="40" height="40" onclick="showImage(this)" style="cursor: pointer; border-radius: 4px;" />
+              <% } else { %>
+                <span class="text-muted">N/A</span>
+              <% } %>
+            </td>
+            <td>
+              <% if (owner_pan_back) { %>
+                <img src="/<%= owner_pan_back %>" width="40" height="40" onclick="showImage(this)" style="cursor: pointer; border-radius: 4px;" />
+              <% } else { %>
+                <span class="text-muted">N/A</span>
+              <% } %>
+            </td>
+            <td>
+              <% if (owner_selfie) { %>
+                <img src="/<%= owner_selfie %>" width="40" height="40" onclick="showImage(this)" style="cursor: pointer; border-radius: 4px;" />
+              <% } else { %>
+                <span class="text-muted">N/A</span>
+              <% } %>
+            </td>
+            <td><%= driver_name %></td>
+            <td>
+              <% if (driving_licence_back) { %>
+                <img src="/<%= driving_licence_back %>" width="40" height="40" onclick="showImage(this)" style="cursor: pointer; border-radius: 4px;" />
+              <% } else { %>
+                <span class="text-muted">N/A</span>
+              <% } %>
+            </td>
+            <td>
+              <% if (driving_licence_front) { %>
+                <img src="/<%= driving_licence_front %>" width="40" height="40" onclick="showImage(this)" style="cursor: pointer; border-radius: 4px;" />
+              <% } else { %>
+                <span class="text-muted">N/A</span>
+              <% } %>
+            </td>
+            <td><%= phone %></td>
+            <td><%= drive_operator == 1 ? 'Self' : 'Driver' %></td>
+            <td style="white-space: normal; word-wrap: break-word; max-width: 200px;">
+              <%= doc_rej_resion || 'No reason' %>
+            </td>
+
+            <td>
+              <form action="/driver/status/<%= id %>" method="POST" class="d-inline">
+                <input type="hidden" name="status" value="<%= status == 1 ? 0 : 1 %>">
+                <label style="position:relative;display:inline-block;width:55px;height:28px;cursor:pointer;">
+                  <input type="checkbox" onchange="this.form.submit()" <%= status==1?'checked':'' %>
+                  style="opacity:0;width:0;height:0;">
+                  <span style="position:absolute;inset:0;background:<%= status==1?'#28c76f':'#ea5455' %>;border-radius:50px;transition:.3s;display:flex;align-items:center;justify-content:<%= status==1?'flex-end':'flex-start' %>;padding:0 5px;">
+                    <span style="width:22px;height:22px;background:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;color:<%= status==1?'#28c76f':'#ea5455' %>;">
+                      <i class="fa <%= status==1?'fa-check':'fa-times' %>"></i>
+                    </span>
+                  </span>
+                </label>
+              </form>
+            </td>
+
+            <td>
+              <% if (online_status == 1) { %>
+                <span style="color: green; font-weight: 600;">Online</span>
+              <% } else { %>
+                <span style="color: red; font-weight: 600;">Offline</span>
+              <% } %>
+            </td>
+
+            <!-- Vehicle Document Status -->
+            <td>
+              <button class="btn btn-sm fw-bold" 
+                style="color: <%= vehicle_doc_status == 1 ? 'green' : vehicle_doc_status == 0 ? 'red' : 'gray' %>; 
+                       border: 1px solid; 
+                       border-color: <%= vehicle_doc_status == 1 ? 'green' : vehicle_doc_status == 0 ? 'red' : 'gray' %>;"
+                onclick="openVerifyModal(<%= id %>, 'vehicle')">
+                <%= vehicle_doc_status == 1 ? 'Submitted' : vehicle_doc_status == 0 ? 'Rejected' : 'Not Filled' %>
+              </button>
+              <% if (vehicle_doc_status == 0 && doc_rej_resion) { %>
+                <div class="mt-1 small text-danger fw-bold" style="max-width: 150px; word-wrap: break-word;">
+                 
+                </div>
+              <% } %>
+            </td>
+
+            <!-- Owner Document Status -->
+            <td>
+              <button class="btn btn-sm fw-bold" 
+                style="color: <%= owner_doc_status == 1 ? 'green' : owner_doc_status == 0 ? 'red' : 'gray' %>; 
+                       border: 1px solid; 
+                       border-color: <%= owner_doc_status == 1 ? 'green' : owner_doc_status == 0 ? 'red' : 'gray' %>;"
+                onclick="openVerifyModal(<%= id %>, 'owner')">
+                <%= owner_doc_status == 1 ? 'Submitted' : owner_doc_status == 0 ? 'Rejected' : 'Not Filled' %>
+              </button>
+              <% if (owner_doc_status == 0 && doc_rej_resion) { %>
+                <div class="mt-1 small text-danger fw-bold" style="max-width: 150px; word-wrap: break-word;">
+                  
+                </div>
+              <% } %>
+            </td>
+
+            <!-- Driver Document Status -->
+            <td>
+              <button class="btn btn-sm fw-bold" 
+                style="color: <%= driver_doc_status == 1 ? 'green' : driver_doc_status == 0 ? 'red' : 'gray' %>; 
+                       border: 1px solid; 
+                       border-color: <%= driver_doc_status == 1 ? 'green' : driver_doc_status == 0 ? 'red' : 'gray' %>;"
+                onclick="openVerifyModal(<%= id %>, 'driver')">
+                <%= driver_doc_status == 1 ? 'Submitted' : driver_doc_status == 0 ? 'Rejected' : 'Not Filled' %>
+              </button>
+              <% if (driver_doc_status == 0 && doc_rej_resion) { %>
+                <div class="mt-1 small text-danger fw-bold" style="max-width: 150px; word-wrap: break-word;">
+               
+                </div>
+              <% } %>
+            </td>
+
+            <!-- Verify Document Dropdown -->
+            <td>
+              <select class="form-select verify-dropdown" data-driver-id="<%= id %>" style="min-width: 120px;">
+                <option value="1" <%= verify_document == 1 ? 'selected' : '' %>>Pending</option>
+                <option value="2" <%= verify_document == 2 ? 'selected' : '' %>>Verified</option>
+                <option value="3" <%= verify_document == 3 ? 'selected' : '' %>>Rejected</option>
+              </select>
+              <% if (verify_document == 3 && doc_rej_resion) { %>
+                <div class="mt-1 small text-danger fw-bold" style="max-width: 150px; word-wrap: break-word;">
+                 
+                </div>
+              <% } %>
+            </td>
+
+            <td><%= created_at ? new Date(created_at).toLocaleString() : 'N/A' %></td>
+          </tr>
+       
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+
+
+
+
+<!-- ✅ VERIFY / REJECT MODAL -->
+<div class="modal fade" id="verifyModal" tabindex="-1" aria-labelledby="verifyModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title" id="verifyModalLabel">Verify / Reject Documents - Driver ID: <span id="modalDriverId"></span></h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="verifyDriverId">
+        
+        <!-- Show Rejection Reason if document is rejected -->
+        <div id="rejectionAlert" class="alert alert-danger d-none">
+          <h6><i class="fa fa-exclamation-triangle"></i> Rejection Details</h6>
+          <p id="rejectionReasonText" class="mb-0"></p>
+        </div>
+        
+        <div class="row text-center mb-4">
+          <!-- Vehicle Column -->
+          <div class="col-md-4 border-end">
+            <h6 class="fw-bold mb-3">Vehicle Details</h6>
+            <div id="vehicleDetails" class="text-start small mb-3" style="max-height: 400px; overflow-y: auto;">
+              <!-- Vehicle details will be populated here -->
+            </div>
+            <div class="mt-3 border-top pt-2">
+              <div class="form-check d-inline-block me-3">
+                <input class="form-check-input reject-check" type="radio" id="vehicleReject" name="vehicleAction" value="reject">
+                <label class="form-check-label text-danger fw-bold" for="vehicleReject">Reject</label>
+              </div>
+              <div class="form-check d-inline-block">
+                <input class="form-check-input verify-check" type="radio" id="vehicleVerify" name="vehicleAction" value="verify">
+                <label class="form-check-label text-success fw-bold" for="vehicleVerify">Verify</label>
+              </div>
+            </div>
+            <textarea id="vehicleReason" class="form-control mt-2 d-none" placeholder="Enter rejection reason for vehicle..." rows="2"></textarea>
+          </div>
+
+          <!-- Owner Column -->
+          <div class="col-md-4 border-end">
+            <h6 class="fw-bold mb-3">Owner Details</h6>
+            <div id="ownerDetails" class="text-start small mb-3" style="max-height: 400px; overflow-y: auto;">
+              <!-- Owner details will be populated here -->
+            </div>
+            <div class="mt-3 border-top pt-2">
+              <div class="form-check d-inline-block me-3">
+                <input class="form-check-input reject-check" type="radio" id="ownerReject" name="ownerAction" value="reject">
+                <label class="form-check-label text-danger fw-bold" for="ownerReject">Reject</label>
+              </div>
+              <div class="form-check d-inline-block">
+                <input class="form-check-input verify-check" type="radio" id="ownerVerify" name="ownerAction" value="verify">
+                <label class="form-check-label text-success fw-bold" for="ownerVerify">Verify</label>
+              </div>
+            </div>
+            <textarea id="ownerReason" class="form-control mt-2 d-none" placeholder="Enter rejection reason for owner..." rows="2"></textarea>
+          </div>
+
+          <!-- Driver Column -->
+          <div class="col-md-4">
+            <h6 class="fw-bold mb-3">Driver Details</h6>
+            <div id="driverDetails" class="text-start small mb-3" style="max-height: 400px; overflow-y: auto;">
+              <!-- Driver details will be populated here -->
+            </div>
+            <div class="mt-3 border-top pt-2">
+              <div class="form-check d-inline-block me-3">
+                <input class="form-check-input reject-check" type="radio" id="driverReject" name="driverAction" value="reject">
+                <label class="form-check-label text-danger fw-bold" for="driverReject">Reject</label>
+              </div>
+              <div class="form-check d-inline-block">
+                <input class="form-check-input verify-check" type="radio" id="driverVerify" name="driverAction" value="verify">
+                <label class="form-check-label text-success fw-bold" for="driverVerify">Verify</label>
+              </div>
+            </div>
+            <textarea id="driverReason" class="form-control mt-2 d-none" placeholder="Enter rejection reason for .." rows="2"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-success" id="submitVerifyModal">Submit Verification</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ✅ IMAGE PREVIEW MODAL -->
+<div id="imagePreview" class="image-preview" onclick="hideImage()">
+  <span class="close-btn" onclick="hideImage(event)">×</span>
+  <img id="previewImg" src="" alt="Preview">
+</div>
+
+<!-- ✅ STYLES -->
+<style>
+.image-preview {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  justify-content: center;
+  align-items: center;
+  z-index: 99999;
+  backdrop-filter: blur(2px);
+}
+.image-preview.active {
+  display: flex;
+}
+.image-preview img {
+  max-width: 90%;
+  max-height: 90%;
+  border-radius: 10px;
+  box-shadow: 0 0 20px rgba(255,255,255,0.2);
+  transition: transform 0.3s ease;
+}
+.image-preview.active img:hover {
+  transform: scale(1.03);
+}
+.close-btn {
+  position: absolute;
+  top: 20px;
+  right: 35px;
+  font-size: 48px;
+  color: white;
+  cursor: pointer;
+  z-index: 100000;
+  line-height: 1;
+  transition: color 0.2s ease;
+}
+.close-btn:hover {
+  color: #ff6666;
+}
+table { 
+  width: 100%; 
+  border-collapse: collapse; 
+  min-width: 1500px; 
+}
+th, td { 
+  border: 1px solid #ddd; 
+  padding: 8px; 
+  text-align: center; 
+  white-space: nowrap; 
+  vertical-align: middle; 
+}
+th { 
+  background-color: #f8f9fa; 
+  font-weight: bold; 
+}
+tr:nth-child(even) { 
+  background-color: #f2f2f2; 
+}
+img { 
+  cursor: pointer; 
+  border-radius: 4px;
+  transition: transform 0.2s ease; 
+}
+img:hover { 
+  transform: scale(1.1); 
+}
+.document-img {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  margin: 2px;
+  border-radius: 4px;
+}
+.modal-xl {
+  max-width: 1200px;
+}
+.rejection-badge {
+  background-color: #dc3545;
+  color: white;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  margin-top: 4px;
+  display: inline-block;
+}
+.btn-sm {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+}
+</style>
+
+<!-- ✅ SCRIPTS -->
+<script>
+// Function to show image preview
+function showImage(el) {
+  const imgSrc = el.getAttribute('src');
+  const preview = document.getElementById('imagePreview');
+  const previewImg = document.getElementById('previewImg');
+  previewImg.src = imgSrc;
+  preview.classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+// Function to hide image preview
+function hideImage(event = null) {
+  if (event) event.stopPropagation();
+  const preview = document.getElementById('imagePreview');
+  const previewImg = document.getElementById('previewImg');
+  preview.classList.remove('active');
+  previewImg.src = '';
+  document.body.style.overflow = 'auto';
+}
+
+// Function to show flash message
+function showUniqueFlashMessage(message, type = 'success', duration = 3000) {
+  const container = document.getElementById('uniqueFlashContainer');
+  if (!container) return;
+
+  const msgId = 'flashMsg_' + Date.now();
+  const msgDiv = document.createElement('div');
+  msgDiv.id = msgId;
+  msgDiv.className = `unique-flash-msg alert alert-${type} alert-dismissible fade show`;
+  msgDiv.style.minWidth = '200px';
+  msgDiv.style.marginBottom = '10px';
+  msgDiv.innerHTML = `
+    ${message}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  `;
+
+  container.appendChild(msgDiv);
+
+  setTimeout(() => {
+    const el = document.getElementById(msgId);
+    if (el) container.removeChild(el);
+  }, duration);
+}
+
+// Helper function to extract document status from cell
+function getDocStatusFromCell(cell) {
+  if (!cell) return null;
+  
+  const button = cell.querySelector('button');
+  if (!button) return null;
+  
+  const buttonText = button.textContent.trim();
+  
+  if (buttonText === 'Rejected') return 0;
+  if (buttonText === 'Submitted') return 1;
+  if (buttonText === 'Not Filled') return 2;
+  
+  return null;
+}
+
+// Function to open verify modal with driver data - IMPROVED VERSION
+function openVerifyModal(driverId, docType = null) {
+  console.log('Opening modal for driver:', driverId, 'Document type:', docType);
+  
+  // Find the driver row by ID
+  const rows = document.querySelectorAll('tbody tr');
+  let driverRow = null;
+  
+  for (let row of rows) {
+    const firstCell = row.querySelector('td:first-child');
+    if (firstCell && firstCell.textContent.trim() == driverId) {
+      driverRow = row;
+      break;
+    }
+  }
+  
+  if (!driverRow) {
+    console.error('Driver row not found for ID:', driverId);
+    showUniqueFlashMessage('Driver data not found!', 'danger');
+    return;
+  }
+  
+  const cells = driverRow.querySelectorAll('td');
+  
+  // Set driver ID
+  document.getElementById('verifyDriverId').value = driverId;
+  document.getElementById('modalDriverId').textContent = driverId;
+  
+  // Get document status values
+  const verifyDropdown = document.querySelector(`.verify-dropdown[data-driver-id="${driverId}"]`);
+  const verifyDocumentStatus = verifyDropdown ? parseInt(verifyDropdown.value) : 1;
+  const isRejected = verifyDocumentStatus === 3;
+  const isVerified = verifyDocumentStatus === 2;
+  
+  // Get individual document statuses
+  const vehicleDocStatus = getDocStatusFromCell(cells[27]);
+  const ownerDocStatus = getDocStatusFromCell(cells[28]);  
+  const driverDocStatus = getDocStatusFromCell(cells[29]);
+  
+  console.log('Document Statuses:', {
+    overall: verifyDocumentStatus,
+    vehicle: vehicleDocStatus,
+    owner: ownerDocStatus,
+    driver: driverDocStatus
+  });
+  
+  // Get rejection reason
+  const rejectionReasonCell = cells[24];
+  const rejectionReason = rejectionReasonCell ? rejectionReasonCell.textContent.trim() : '';
+  
+  // Show rejection reason if document is rejected
+  const rejectionAlert = document.getElementById('rejectionAlert');
+  const rejectionReasonText = document.getElementById('rejectionReasonText');
+  
+  if (isRejected && rejectionReason) {
+    rejectionReasonText.textContent = rejectionReason;
+    rejectionAlert.classList.remove('d-none');
+  } else {
+    rejectionAlert.classList.add('d-none');
+  }
+  
+  // Populate Vehicle Details
+  const vehicleDetails = document.getElementById('vehicleDetails');
+  vehicleDetails.innerHTML = `
+    <div class="mb-2"><strong>Vehicle No:</strong> ${cells[3].textContent}</div>
+    <div class="mb-2"><strong>RC Front:</strong> ${cells[4].querySelector('img') ? `<img src="${cells[4].querySelector('img').src}" class="document-img" onclick="showImage(this)">` : 'N/A'}</div>
+    <div class="mb-2"><strong>RC Back:</strong> ${cells[5].querySelector('img') ? `<img src="${cells[5].querySelector('img').src}" class="document-img" onclick="showImage(this)">` : 'N/A'}</div>
+    <div class="mb-2"><strong>City:</strong> ${cells[6].textContent}</div>
+    <div class="mb-2"><strong>Vehicle Type:</strong> ${cells[7].textContent}</div>
+    <div class="mb-2"><strong>Vehicle Type Image:</strong> ${cells[8].querySelector('img') ? `<img src="${cells[8].querySelector('img').src}" class="document-img" onclick="showImage(this)">` : 'N/A'}</div>
+    <div class="mb-2"><strong>Body Detail:</strong> ${cells[9].textContent}</div>
+    <div class="mb-2"><strong>Body Type:</strong> ${cells[10].textContent}</div>
+    <div class="mb-2"><strong>Body Type Image:</strong> ${cells[11].querySelector('img') ? `<img src="${cells[11].querySelector('img').src}" class="document-img" onclick="showImage(this)">` : 'N/A'}</div>
+    <div class="mb-2"><strong>Fuel Type:</strong> ${cells[12].textContent}</div>
+  `;
+  
+  // Populate Owner Details
+  const ownerDetails = document.getElementById('ownerDetails');
+  ownerDetails.innerHTML = `
+    <div class="mb-2"><strong>Owner Name:</strong> ${cells[13].textContent}</div>
+    <div class="mb-2"><strong>Aadhaar Back:</strong> ${cells[14].querySelector('img') ? `<img src="${cells[14].querySelector('img').src}" class="document-img" onclick="showImage(this)">` : 'N/A'}</div>
+    <div class="mb-2"><strong>Aadhaar Front:</strong> ${cells[15].querySelector('img') ? `<img src="${cells[15].querySelector('img').src}" class="document-img" onclick="showImage(this)">` : 'N/A'}</div>
+    <div class="mb-2"><strong>PAN Front:</strong> ${cells[16].querySelector('img') ? `<img src="${cells[16].querySelector('img').src}" class="document-img" onclick="showImage(this)">` : 'N/A'}</div>
+    <div class="mb-2"><strong>PAN Back:</strong> ${cells[17].querySelector('img') ? `<img src="${cells[17].querySelector('img').src}" class="document-img" onclick="showImage(this)">` : 'N/A'}</div>
+    <div class="mb-2"><strong>Selfie:</strong> ${cells[18].querySelector('img') ? `<img src="${cells[18].querySelector('img').src}" class="document-img" onclick="showImage(this)">` : 'N/A'}</div>
+  `;
+  
+  // Populate Driver Details
+  const driverDetails = document.getElementById('driverDetails');
+  driverDetails.innerHTML = `
+    <div class="mb-2"><strong>Driver Name:</strong> ${cells[19].textContent}</div>
+    <div class="mb-2"><strong>License Back:</strong> ${cells[20].querySelector('img') ? `<img src="${cells[20].querySelector('img').src}" class="document-img" onclick="showImage(this)">` : 'N/A'}</div>
+    <div class="mb-2"><strong>License Front:</strong> ${cells[21].querySelector('img') ? `<img src="${cells[21].querySelector('img').src}" class="document-img" onclick="showImage(this)">` : 'N/A'}</div>
+    <div class="mb-2"><strong>Phone:</strong> ${cells[22].textContent}</div>
+    <div class="mb-2"><strong>Operator Type:</strong> ${cells[23].textContent}</div>
+  `;
+  
+  // Reset all inputs first
+  document.querySelectorAll('.reject-check, .verify-check').forEach(radio => radio.checked = false);
+  document.querySelectorAll('textarea').forEach(ta => {
+    ta.value = '';
+    ta.classList.add('d-none');
+  });
+  
+  // Auto-check based on current status
+  if (isRejected) {
+    if (vehicleDocStatus === 0) {
+      document.getElementById('vehicleReject').checked = true;
+      document.getElementById('vehicleReason').classList.remove('d-none');
+      document.getElementById('vehicleReason').value = rejectionReason;
+    }
+    
+    if (ownerDocStatus === 0) {
+      document.getElementById('ownerReject').checked = true;
+      document.getElementById('ownerReason').classList.remove('d-none');
+      document.getElementById('ownerReason').value = rejectionReason;
+    }
+    
+    if (driverDocStatus === 0) {
+      document.getElementById('driverReject').checked = true;
+      document.getElementById('driverReason').classList.remove('d-none');
+      document.getElementById('driverReason').value = rejectionReason;
+    }
+  }
+  
+  if (isVerified) {
+    if (vehicleDocStatus === 1) document.getElementById('vehicleVerify').checked = true;
+    if (ownerDocStatus === 1) document.getElementById('ownerVerify').checked = true;
+    if (driverDocStatus === 1) document.getElementById('driverVerify').checked = true;
+  }
+  
+  // Auto-select specific document type if provided
+  if (docType) {
+    const docTypeMap = {
+      'vehicle': { reject: 'vehicleReject', verify: 'vehicleVerify', reason: 'vehicleReason' },
+      'owner': { reject: 'ownerReject', verify: 'ownerVerify', reason: 'ownerReason' },
+      'driver': { reject: 'driverReject', verify: 'driverVerify', reason: 'driverReason' }
+    };
+    
+    const elements = docTypeMap[docType];
+    if (elements) {
+      const docStatus = docType === 'vehicle' ? vehicleDocStatus : 
+                       docType === 'owner' ? ownerDocStatus : driverDocStatus;
+      
+      if (docStatus === 0) {
+        document.getElementById(elements.reject).checked = true;
+        document.getElementById(elements.reason).classList.remove('d-none');
+        document.getElementById(elements.reason).value = rejectionReason;
+      } else if (docStatus === 1) {
+        document.getElementById(elements.verify).checked = true;
+      }
+    }
+  }
+  
+  // Show modal using Bootstrap
+  const modalElement = document.getElementById('verifyModal');
+  const modal = new bootstrap.Modal(modalElement);
+  modal.show();
+}
+
+// DOM Ready
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('DOM loaded - initializing event listeners');
+  
+  // Handle verify_document dropdown change
+  document.querySelectorAll('.verify-dropdown').forEach(drop => {
+    drop.addEventListener('change', function() {
+      const driverId = this.getAttribute('data-driver-id');
+      const status = this.value;
+
+      if (status == '1') { // Pending
+        updateVerifyStatus(driverId, status);
+      } else { // Verified or Rejected - open modal
+        openVerifyModal(driverId);
+      }
+    });
+  });
+
+  // Show/hide reason textarea when reject is checked
+  document.querySelectorAll('.reject-check').forEach(radio => {
+    radio.addEventListener('change', function() {
+      const reasonBox = this.closest('.col-md-4').querySelector('textarea');
+      if (this.checked && this.value === 'reject') {
+        reasonBox.classList.remove('d-none');
+      } else {
+        reasonBox.classList.add('d-none');
+        reasonBox.value = '';
+      }
+    });
+  });
+
+  // Hide reason textarea when verify is checked
+  document.querySelectorAll('.verify-check').forEach(radio => {
+    radio.addEventListener('change', function() {
+      const reasonBox = this.closest('.col-md-4').querySelector('textarea');
+      if (this.checked) {
+        reasonBox.classList.add('d-none');
+        reasonBox.value = '';
+      }
+    });
+  });
+
+  // Submit button click
+  document.getElementById('submitVerifyModal').addEventListener('click', function() {
+    const driverId = document.getElementById('verifyDriverId').value;
+
+    const selections = {
+      vehicle: document.querySelector('input[name="vehicleAction"]:checked')?.value || null,
+      owner: document.querySelector('input[name="ownerAction"]:checked')?.value || null,
+      driver: document.querySelector('input[name="driverAction"]:checked')?.value || null,
+      vehicleReason: document.getElementById('vehicleReason').value.trim(),
+      ownerReason: document.getElementById('ownerReason').value.trim(),
+      driverReason: document.getElementById('driverReason').value.trim()
+    };
+
+    // Validate at least one action is selected
+    if (!selections.vehicle && !selections.owner && !selections.driver) {
+      showUniqueFlashMessage('Please select at least one action (Verify/Reject) for any section', 'warning');
+      return;
+    }
+
+    // Validate rejection reasons
+    if ((selections.vehicle === 'reject' && !selections.vehicleReason) ||
+        (selections.owner === 'reject' && !selections.ownerReason) ||
+        (selections.driver === 'reject' && !selections.driverReason)) {
+      showUniqueFlashMessage('Please provide rejection reasons for all rejected sections', 'warning');
+      return;
+    }
+
+    // Determine overall status
+    let overallStatus = 1; // Default to pending
+    if (selections.vehicle === 'reject' || selections.owner === 'reject' || selections.driver === 'reject') {
+      overallStatus = 3; // Any rejected
+    } else if (selections.vehicle === 'verify' && selections.owner === 'verify' && selections.driver === 'verify') {
+      overallStatus = 2; // All verified
+    }
+
+    fetch('/driver/update-multi-verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ driverId, ...selections, overallStatus })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        showUniqueFlashMessage(data.message || 'Status updated successfully!', 'success');
+        
+        // Update dropdown value
+        const select = document.querySelector(`.verify-dropdown[data-driver-id="${driverId}"]`);
+        if (select) select.value = overallStatus;
+        
+        // Close modal
+        const modal = bootstrap.Modal.getInstance(document.getElementById('verifyModal'));
+        if (modal) modal.hide();
+        
+        // Reload page after 1 second to reflect changes
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
+      } else {
+        showUniqueFlashMessage(data.message || 'Failed to update status', 'danger');
+      }
+    })
+    .catch(err => {
+      console.error(err);
+      showUniqueFlashMessage('Server error while updating status', 'danger');
+    });
+  });
+});
+
+function updateVerifyStatus(driverId, status) {
+  fetch('/driver/update-verify-status', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ driverId, status })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      showUniqueFlashMessage('Status updated to Pending!', 'success');
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+    } else {
+      showUniqueFlashMessage(data.error || 'Failed to update status', 'danger');
+    }
+  })
+  .catch(err => {
+    console.error(err);
+    showUniqueFlashMessage('Server error while updating status', 'danger');
+  });
+}
+
+// 🔍 TABLE LIVE SEARCH
+document.getElementById("tableSearch").addEventListener("keyup", function () {
+  let value = this.value.toLowerCase();
+  let rows = document.querySelectorAll("table tbody tr");
+
+  rows.forEach(function (row) {
+    let rowText = row.textContent.toLowerCase();
+    row.style.display = rowText.includes(value) ? "" : "none";
+  });
+});
+</script>

@@ -43,6 +43,9 @@ export const postNotification = async (req, res) => {
   try {
     const { entity_type, entity_id, title, text, push_type } = req.body;
 
+    console.log("===== NOTIFICATION REQUEST =====");
+    console.log(req.body);
+
     if (!entity_type || !title || !text) {
       req.session.error = "Invalid notification request.";
       return res.redirect("/send-notification");
@@ -65,30 +68,28 @@ export const postNotification = async (req, res) => {
 
     const sleep = ms => new Promise(r => setTimeout(r, ms));
 
-    /* ==================================================
-       CASE 1: ALL / PUBLIC
-    ================================================== */
+    const getRole = (type) => {
+      if (type === 1 || type === 2) return "user";
+      if (type === 3) return "driver";
+      if (type === 4) return "serviceman";
+      if (type === 5) return "all";
+      return "unknown";
+    };
+
+    /* ================= ALL / PUBLIC ================= */
     if (type === 5) {
       await db.query(
-        `
-        INSERT INTO notifications
+        `INSERT INTO notifications
         (title, text, entity_type, entity_id, created_at)
-        VALUES (?, ?, 5, NULL, NOW())
-        `,
+        VALUES (?, ?, 5, NULL, NOW())`,
         [title, text]
       );
 
       setImmediate(async () => {
         try {
-          const [users] = await db.query(
-            `SELECT fcm_token FROM users WHERE fcm_token IS NOT NULL`
-          );
-          const [drivers] = await db.query(
-            `SELECT fcm_token FROM driver_registration WHERE fcm_token IS NOT NULL`
-          );
-          const [servicemen] = await db.query(
-            `SELECT fcm_token FROM serviceman WHERE fcm_token IS NOT NULL`
-          );
+          const [users] = await db.query(`SELECT fcm_token FROM users WHERE fcm_token IS NOT NULL`);
+          const [drivers] = await db.query(`SELECT fcm_token FROM driver_registration WHERE fcm_token IS NOT NULL`);
+          const [servicemen] = await db.query(`SELECT fcm_token FROM serviceman WHERE fcm_token IS NOT NULL`);
 
           const allTokens = [
             ...users.map(u => u.fcm_token),
@@ -102,14 +103,31 @@ export const postNotification = async (req, res) => {
           const chunks = chunkArray(uniqueTokens);
 
           for (const tokens of chunks) {
-            await FCMHelper.send(tokens, title, text, {
-              hiddenData: {
+            for (const token of tokens) {
+
+              const payload = {
                 type: push_type || "general",
-                entity_type: 5,
-              },
-            });
+                role: "all"
+              };
+
+              console.log("---- PUBLIC NOTIFICATION PAYLOAD ----");
+              console.log({
+                token,
+                title,
+                text,
+                data: payload
+              });
+
+              await FCMHelper.sendNotification(
+                token,
+                title,
+                text,
+                payload
+              );
+            }
             await sleep(200);
           }
+
         } catch (err) {
           console.error("Public notification error:", err);
         }
@@ -119,9 +137,7 @@ export const postNotification = async (req, res) => {
       return res.redirect("/send-notification");
     }
 
-    /* ==================================================
-       CASE 2: SPECIFIC TARGET
-    ================================================== */
+    /* ================ SPECIFIC TARGET ================= */
     if (!entity_id || !Array.isArray(entity_id) || !entity_id.length) {
       req.session.error = "Please select at least one receiver.";
       return res.redirect("/send-notification");
@@ -136,53 +152,54 @@ export const postNotification = async (req, res) => {
     ]);
 
     await db.query(
-      `
-      INSERT INTO notifications
+      `INSERT INTO notifications
       (title, text, entity_type, entity_id, created_at)
-      VALUES ?
-      `,
+      VALUES ?`,
       [values]
     );
 
     let tokenQuery = "";
 
-    // USERS (Cab & Service)
     if (type === 1 || type === 2) {
-      tokenQuery = `
-        SELECT fcm_token 
-        FROM users 
-        WHERE id IN (?) AND fcm_token IS NOT NULL
-      `;
+      tokenQuery = `SELECT fcm_token FROM users WHERE id IN (?) AND fcm_token IS NOT NULL`;
     }
 
     if (type === 3) {
-      tokenQuery = `
-        SELECT fcm_token 
-        FROM driver_registration 
-        WHERE id IN (?) AND fcm_token IS NOT NULL
-      `;
+      tokenQuery = `SELECT fcm_token FROM driver_registration WHERE id IN (?) AND fcm_token IS NOT NULL`;
     }
 
     if (type === 4) {
-      tokenQuery = `
-        SELECT fcm_token 
-        FROM serviceman 
-        WHERE id IN (?) AND fcm_token IS NOT NULL
-      `;
+      tokenQuery = `SELECT fcm_token FROM serviceman WHERE id IN (?) AND fcm_token IS NOT NULL`;
     }
 
     const [rows] = await db.query(tokenQuery, [entity_id]);
     const tokens = rows.map(r => r.fcm_token).filter(Boolean);
 
     if (tokens.length) {
+      const role = getRole(type);
+
       setImmediate(async () => {
         for (const token of tokens) {
-          await FCMHelper.send(token, title, text, {
-            hiddenData: {
-              type: push_type || "general",
-              entity_type: type,
-            },
+
+          const payload = {
+            type: push_type || "general",
+            role: role
+          };
+
+          console.log("---- SINGLE USER NOTIFICATION ----");
+          console.log({
+            token,
+            title,
+            text,
+            data: payload
           });
+
+          await FCMHelper.sendNotification(
+            token,
+            title,
+            text,
+            payload
+          );
         }
       });
     }

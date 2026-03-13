@@ -96,6 +96,7 @@
                 <th>Subcategory</th>
                 <th>Subcategory Status</th>
                 <th>Date</th>
+                <th>Action</th>
               </tr>
             </thead>
 
@@ -350,6 +351,19 @@ function loadData(page = 1) {
             </td>
 
             <td>${row.created_at}</td>
+            
+            <td>
+  <button class="btn btn-sm btn-info"
+    onclick="openEditSubcategoryModal(
+      '${row.id}',
+      '${row.category_id}',
+      '${row.name}',
+      '${row.image}'
+    )">
+    Edit
+  </button>
+</td>
+
           </tr>
         `;
       });
@@ -400,6 +414,131 @@ function changeSubStatus(id, status){
   });
 }
 </script>
+
+
+
+
+
+<!-- edit sub CATEGORY  modal-->
+
+
+
+<div id="editSubcategoryModal"
+     style="
+       display:none; position:fixed; top:0; left:0;
+       width:100%; height:100%; background:rgba(0,0,0,0.6);
+       justify-content:center; align-items:center; z-index:999999;
+     ">
+
+  <div style="
+      width:420px; background:white;
+      padding:25px; border-radius:4px;
+      box-shadow:0 0 25px rgba(0,0,0,0.3);
+      position:relative;
+  ">
+
+    <span onclick="closeEditSubcategoryModal()"
+          style="position:absolute; right:15px; top:8px;
+          font-size:28px; font-weight:bold; cursor:pointer;">
+      ×
+    </span>
+
+    <h5 style="margin-bottom:18px;">Edit Subcategory</h5>
+
+    <form action="/subcategory-update" method="POST" enctype="multipart/form-data">
+
+      <input type="hidden" name="id" id="editSubId">
+      <input type="hidden" name="old_image" id="editSubOldImage">
+
+      <!-- CATEGORY -->
+      <label style="font-weight:600;">Select Category</label>
+      <select name="category_id" id="editSubCategory"
+              class="form-control"
+              style="border-radius:0; margin-bottom:15px;">
+
+        <% categories.forEach(cat => { %>
+          <option value="<%= cat.id %>"><%= cat.name %></option>
+        <% }) %>
+
+      </select>
+
+      <!-- NAME -->
+      <label style="font-weight:600;">Subcategory Name</label>
+      <input type="text"
+             name="name"
+             id="editSubName"
+             class="form-control"
+             style="border-radius:0; margin-bottom:15px;">
+
+      <!-- IMAGE -->
+      <label style="font-weight:600;">Subcategory Image</label>
+
+      <input type="file"
+             name="image"
+             accept="image/*"
+             class="form-control"
+             style="border-radius:0; margin-bottom:12px;"
+             onchange="previewEditSubImage(event)">
+
+      <div id="editSubPreviewBox"
+           class="file-box"
+           style="display:none; margin-bottom:15px;">
+        <img id="editSubPreviewImg" class="file-thumb">
+      </div>
+
+      <button type="submit"
+              class="btn btn-primary btn-sm"
+              style="width:100%; border-radius:0;">
+        Update Subcategory
+      </button>
+
+    </form>
+
+  </div>
+</div>
+
+
+
+<script>
+function openEditSubcategoryModal(id, category_id, name, image){
+  document.getElementById("editSubId").value = id;
+  document.getElementById("editSubCategory").value = category_id;
+  document.getElementById("editSubName").value = name;
+  document.getElementById("editSubOldImage").value = image;
+
+  if(image){
+    document.getElementById("editSubPreviewImg").src = "/" + image;
+    document.getElementById("editSubPreviewBox").style.display = "inline-flex";
+  }
+
+  document.getElementById("editSubcategoryModal").style.display = "flex";
+}
+
+function closeEditSubcategoryModal(){
+  document.getElementById("editSubcategoryModal").style.display = "none";
+}
+
+function previewEditSubImage(e){
+  const img = document.getElementById("editSubPreviewImg");
+  img.src = URL.createObjectURL(e.target.files[0]);
+  document.getElementById("editSubPreviewBox").style.display = "inline-flex";
+}
+</script>
+<!-- edit sub CATEGORY  modal-->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 <script src="/assets/bundles/sweetalert/sweetalert.min.js"></script>
 <script src="/assets/js/page/sweetalert.js"></script>

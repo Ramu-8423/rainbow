@@ -115,6 +115,7 @@
                 <th>Image</th>
                 <th>Status</th>
                 <th>Date</th>
+                <th>Action</th>
               </tr>
             </thead>
 
@@ -158,6 +159,77 @@
                   </td>
 
                   <td><%= c.created_at %></td>
+
+<td>
+  <button class="btn btn-sm btn-info"
+    onclick="openEditCategoryModal(
+      '<%= c.id %>',
+      '<%= c.name %>',
+      '<%= c.image %>'
+    )">
+    Edit
+  </button>
+</td>
+
+
+
+<div id="editCategoryModal"
+     style="
+       display:none; position:fixed; top:0; left:0;
+       width:100%; height:100%; background:rgba(0,0,0,0.6);
+       justify-content:center; align-items:center; z-index:99999;
+     ">
+
+  <div style="
+      background:#fff; padding:25px; width:400px;
+      border-radius:4px; position:relative;
+      box-shadow:0 0 25px rgba(0,0,0,0.3);
+  ">
+
+    <span onclick="closeEditCategoryModal()"
+          style="position:absolute; right:15px; top:10px;
+          font-size:25px; cursor:pointer;">×</span>
+
+    <h5 style="margin-bottom:20px;">Edit Category</h5>
+
+    <form action="/category-update" method="POST" enctype="multipart/form-data">
+
+      <input type="hidden" name="id" id="editCatId">
+      <input type="hidden" name="old_image" id="editOldImage">
+
+      <label>Category Name</label>
+      <input type="text"
+             name="name"
+             id="editCatName"
+             class="form-control"
+             style="border-radius:0; margin-bottom:15px;">
+
+      <label>Category Image</label>
+      <input type="file"
+             name="image"
+             accept="image/*"
+             class="form-control"
+             style="border-radius:0; margin-bottom:15px;"
+             onchange="previewEditImage(event)">
+
+      <div id="editPreviewBox"
+           style="display:none; margin-bottom:15px;"
+           class="file-box">
+        <img id="editPreviewImg" class="file-thumb">
+      </div>
+
+      <button class="btn btn-primary btn-sm"
+              type="submit"
+              style="border-radius:0; width:100%;">
+        Update Category
+      </button>
+
+    </form>
+
+  </div>
+</div>
+
+
 
                 </tr>
               <% }) %>
@@ -274,6 +346,35 @@ function changeStatus(id, status){
 
 
 <!-- ADD CATEGORY BUTTON -->
+
+
+<!-- edit CATEGORY  -->
+<script>
+function openEditCategoryModal(id, name, image){
+
+  document.getElementById("editCatId").value = id;
+  document.getElementById("editCatName").value = name;
+  document.getElementById("editOldImage").value = image;
+
+  if(image){
+    document.getElementById("editPreviewImg").src = "/" + image;
+    document.getElementById("editPreviewBox").style.display = "inline-flex";
+  }
+
+  document.getElementById("editCategoryModal").style.display = "flex";
+}
+
+function closeEditCategoryModal(){
+  document.getElementById("editCategoryModal").style.display = "none";
+}
+
+function previewEditImage(e){
+  const img = document.getElementById("editPreviewImg");
+  img.src = URL.createObjectURL(e.target.files[0]);
+  document.getElementById("editPreviewBox").style.display = "inline-flex";
+}
+</script>
+<!-- edit CATEGORY BUTTON -->
 
 
 

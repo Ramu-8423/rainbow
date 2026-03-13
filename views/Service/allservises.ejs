@@ -168,7 +168,6 @@
       <input type="date" name="from" value="<%= from || '' %>" class="form-control" style="width:150px;">
       <input type="date" name="to" value="<%= to || '' %>" class="form-control" style="width:150px;">
       <button type="submit" class="btn btn-primary btn-sm filter-reset-button">Filter</button>
-
       <% if (isFiltered) { %>
         <a href="" class="btn btn-secondary btn-sm">Reset</a>
       <% } %>
@@ -191,15 +190,21 @@
                 <th>Rating</th>
                 <th>FAQs</th>
                 <th>Status</th>
+                <th>Top services</th>
                 <th>Date</th>
                 <th>Edit</th>
                 <th>Delete</th>
               </tr>
             </thead>
-
+<script>
+  const services = <%- JSON.stringify(services) %>;
+  console.log("All service:", services);
+</script>
             <tbody>
               <% if (services && services.length > 0) { %>
                 <% services.forEach(service => { %>
+                
+                
                   <tr>
                     <td><%= service.id %></td>
 
@@ -217,7 +222,7 @@
 
 
                     <!-- SUB CATEGORY -->
-                   <td>
+ <td>
   <div class="d-flex align-items-center gap-2">
     <% if (service.subcategory_image) { %>
       <div class="file-box">
@@ -263,20 +268,26 @@
                       <% } %>
                     </td>
 
-                   <td>
+  <td>
 <select
   class="status-select <%= service.status == 1 ? 'status-active' : 'status-inactive' %>"
   data-old="<%= service.status %>"
   onchange="changeServiceStatus('<%= service.id %>', this)"
 >
-  <option value="1" <%= service.status == 1 ? 'selected' : '' %>>
-    Active
-  </option>
-  <option value="0" <%= service.status == 0 ? 'selected' : '' %>>
-    Inactive
-  </option>
+  <option value="1" <%= service.status == 1 ? 'selected' : '' %>>Active</option>
+  <option value="0" <%= service.status == 0 ? 'selected' : '' %>>Inactive</option>
 </select>
+</td>
 
+<td>
+<select
+  class="status-select <%= service.top_servises_status == 1 ? 'status-active' : 'status-inactive' %>"
+  data-old="<%= service.top_servises_status %>"
+  onchange="changeTopServicesStatus('<%= service.id %>', this)"
+>
+  <option value="1" <%= service.top_servises_status == 1 ? 'selected' : '' %>>Active</option>
+  <option value="0" <%= service.top_servises_status == 0 ? 'selected' : '' %>>Inactive</option>
+</select>
 </td>
 
 
@@ -343,7 +354,7 @@
 
 
 
- //===============update table data  ==========
+
  
  <script>
 function openEditServiceModal(service) {
@@ -546,7 +557,7 @@ document.getElementById("editServiceForm")
   </div>
 </div>
 
- //===============update table data  ==========
+ 
 
 
 
@@ -958,7 +969,6 @@ document.getElementById("categorySelect").addEventListener("change", function ()
 
 
 <script src="/assets/bundles/sweetalert/sweetalert.min.js"></script>
-
 <script>
 function changeServiceStatus(id, el) {
   const newStatus = el.value;
@@ -978,7 +988,7 @@ function changeServiceStatus(id, el) {
   }).then((ok) => {
 
     if (!ok) {
-      el.value = oldStatus; // revert dropdown
+      el.value = oldStatus;
       return;
     }
 
@@ -986,9 +996,35 @@ function changeServiceStatus(id, el) {
       `/service-status-update/${id}?status=${newStatus}`;
   });
 }
+
+
+function changeTopServicesStatus(id, el) {
+  const newStatus = el.value;
+  const oldStatus = el.getAttribute("data-old");
+
+  const text =
+    newStatus == 1
+      ? "Add this service to Top Services?"
+      : "Remove this service from Top Services?";
+
+  swal({
+    title: "Are you sure?",
+    text: text,
+    icon: "warning",
+    buttons: true,
+    dangerMode: true,
+  }).then((ok) => {
+
+    if (!ok) {
+      el.value = oldStatus;
+      return;
+    }
+
+    window.location.href =
+      `/top_services_status/${id}?top_services_status=${newStatus}`;
+  });
+}
 </script>
-
-
 
 
 <script>

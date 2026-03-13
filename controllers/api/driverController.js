@@ -2,9 +2,7 @@ import db from "../../config/database.js";
 
 /* =========================================================
    HELPER: BUILD UPDATE OBJECT (PARTIAL UPDATE SAFE)
-====================================================== */
-
-
+========================================================= */
 
 function buildUpdateObject(data, files, folder) {
   const update = {};
@@ -276,7 +274,7 @@ export const driverRegister = async (req, res) => {
 
 export const getDriverProfile = async (req, res) => {
   try {
-    const { id, current_latitude, current_longitude } = req.body;
+    const { id, current_latitude, current_longitude, fcm_token } = req.body;
 
     // 🔹 BASIC VALIDATION
     const missing = [];
@@ -301,6 +299,16 @@ export const getDriverProfile = async (req, res) => {
        WHERE id = ?`,
       [current_latitude, current_longitude, id]
     );
+
+    // 🔹 OPTIONAL FCM TOKEN UPDATE (NEW LOGIC ONLY)
+    if (fcm_token) {
+      await db.query(
+        `UPDATE driver_registration
+         SET fcm_token = ?, updated_at = NOW()
+         WHERE id = ?`,
+        [fcm_token, id]
+      );
+    }
 
     // 🔹 FETCH PROFILE
     const [rows] = await db.query(
@@ -381,7 +389,6 @@ export const getDriverProfile = async (req, res) => {
       });
     }
 
-    // ✅ EXACT SAME STYLE AS YOUR EXAMPLE
     const data = {
       ...rows[0],
 
@@ -463,7 +470,6 @@ export const getDriverProfile = async (req, res) => {
     });
   }
 };
-
 
 
 

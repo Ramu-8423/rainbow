@@ -676,9 +676,6 @@ export const serviceOrder = [
     .notEmpty()
     .withMessage("Coupon discount is required"),
 
-  body("gst_charges")
-    .notEmpty()
-    .withMessage("GST charges is required"),
 
   body("final_amount")
     .notEmpty()

@@ -6,24 +6,54 @@ import db from "../../config/database.js";
 import PaytmChecksum from "paytmchecksum";
 import { parseIST, nowIST } from "../../utils/dateParser.js";
 
-
-
-
-
-
-
-
 const istNow = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
 const currentDate = nowIST();
 
-/* ================= PAYTM CONFIG ================= */
-const PAYTM_MID = "IneuZB64959027148878";
-const PAYTM_KEY = "3C0XgpYmOkh@MHoB";
-const PAYTM_WEBSITE = "WEBSTAGING";
+/* ================= PAYTM CONFIG (ALWAYS FETCH LATEST FROM DB) ================= */
 
-const PAYTM_CALLBACK_URL =
-  "https://admin.rainbowsenterprises.com/api/callback_paytm";
-const PAYTM_TXN_URL ="https://securestage.paytmpayments.com/theia/api/v1/initiateTransaction";
+const getPaytmConfig = async () => {
+  try {
+    const [rows] = await db.query(
+      `SELECT 
+          mid, 
+          merchant_key, 
+          website, 
+          txn_url, 
+          callback_url,
+          status
+       FROM payment_gateways
+       WHERE gateway_name = 'Paytm'
+       LIMIT 1`
+    );
+
+    // ❌ Gateway not found OR disabled
+    if (!rows.length || rows[0].status !== 1) {
+      return null;
+    }
+
+    return {
+      PAYTM_MID: rows[0].mid,
+      PAYTM_KEY: rows[0].merchant_key,
+      PAYTM_WEBSITE: rows[0].website,
+      PAYTM_TXN_URL: rows[0].txn_url,
+      PAYTM_CALLBACK_URL: rows[0].callback_url,
+    };
+
+  } catch (error) {
+    console.error("Paytm Config Fetch Error:", error.message);
+    throw error;
+  }
+};
+
+
+
+const paytmConfig = await getPaytmConfig();
+const PAYTM_MID = paytmConfig.PAYTM_MID;
+const PAYTM_KEY = paytmConfig.PAYTM_KEY;
+const PAYTM_WEBSITE = paytmConfig.PAYTM_WEBSITE;
+const PAYTM_TXN_URL = paytmConfig.PAYTM_TXN_URL;
+const PAYTM_CALLBACK_URL = paytmConfig.PAYTM_CALLBACK_URL;
+
 
 /* ================= HTML RESPONSES ================= */
 const HTML_RESPONSES = {
@@ -177,48 +207,31 @@ const HTML_RESPONSES = {
 
 
 
-
 export const payment = async (req, res) => {
-  console.log("🚀 payment API called");
   try {
-
-    console.log("📥 Request Body:", req.body);
 
     const { 
       user_id, 
-      amount, 
+      amount,
       payment_type,
       service_order_id,
       gateway_type,
       module_type
     } = req.body;
 
-    console.log("✅ Variables Extracted:", {
-      user_id,
-      amount,
-      payment_type,
-      service_order_id,
-      gateway_type,
-      module_type
-    });
-
     if (!user_id){
-      console.log("❌ user_id missing");
       return res.status(400).json({ status: false, message: "User ID is required" });
     }
 
     if (!amount){
-      console.log("❌ amount missing");
       return res.status(400).json({ status: false, message: "Amount is required" });
     }
 
     if (!payment_type){
-      console.log("❌ payment_type missing");
       return res.status(400).json({ status: false, message: "payment_type is required" });
     }
 
     if (Number(payment_type) === 1 && !service_order_id) {
-      console.log("❌ service_order_id missing for payment_type 1");
       return res.status(400).json({
         status: false,
         message: "service_order_id is required for payment_type 1"
@@ -226,12 +239,9 @@ export const payment = async (req, res) => {
     }
 
     let payer = null;
-    console.log("➡️ Checking payment type logic");
 
     /* DRIVER */
     if (Number(payment_type) === 5 && Number(module_type) === 2) {
-
-      console.log("🚗 DRIVER DUE WALLET FLOW");
 
       const [rows] = await db.query(
         `
@@ -243,10 +253,7 @@ export const payment = async (req, res) => {
         [user_id]
       );
 
-      console.log("📊 Driver Query Result:", rows);
-
       if (!rows.length){
-        console.log("❌ Driver not found");
         return res.status(404).json({ status: false, message: "Driver not found" });
       }
 
@@ -255,8 +262,6 @@ export const payment = async (req, res) => {
 
     /* SERVICEMAN */
     else if (Number(payment_type) === 5) {
-
-      console.log("🧰 SERVICEMAN FLOW");
 
       const [rows] = await db.query(
         `
@@ -268,10 +273,7 @@ export const payment = async (req, res) => {
         [user_id]
       );
 
-      console.log("📊 Serviceman Query Result:", rows);
-
       if (!rows.length){
-        console.log("❌ Serviceman not found");
         return res.status(404).json({ status: false, message: "Serviceman not found" });
       }
 
@@ -280,8 +282,6 @@ export const payment = async (req, res) => {
 
     /* USER */
     else {
-
-      console.log("👤 USER PAYMENT FLOW");
 
       const [rows] = await db.query(
         `
@@ -293,22 +293,15 @@ export const payment = async (req, res) => {
         [user_id]
       );
 
-      console.log("📊 User Query Result:", rows);
-
       if (!rows.length){
-        console.log("❌ User not found");
         return res.status(404).json({ status: false, message: "User not found" });
       }
 
       payer = rows[0];
     }
 
-    console.log("✅ Payer Selected:", payer);
-
     const finalServiceOrderId =
       Number(payment_type) === 1 ? service_order_id : null;
-
-    console.log("📌 finalServiceOrderId:", finalServiceOrderId);
 
     let platformFeeFormatted = "0% - ₹0.00";
     let finalAmount = Number(amount);
@@ -316,37 +309,24 @@ export const payment = async (req, res) => {
     /* PLATFORM FEE */
     if (Number(payment_type) === 1) {
 
-      console.log("💰 PLATFORM FEE CALCULATION START");
-
       let feeSettingName = "platform_fee";
       if (Number(module_type) === 2){
         feeSettingName = "cab_platform_fee";
       }
-
-      console.log("⚙️ Fee Setting Name:", feeSettingName);
 
       const [setting] = await db.query(
         "SELECT value FROM settings WHERE name = ? LIMIT 1",
         [feeSettingName]
       );
 
-      console.log("📊 Setting Result:", setting);
-
       const percent = setting.length ? Number(setting[0].value) : 0;
       const fee = (Number(amount) * percent) / 100;
 
       finalAmount = Number(amount) - fee;
       platformFeeFormatted = `${percent}% - ₹${fee.toFixed(2)}`;
-
-      console.log("✅ Fee Calculated:", {
-        percent,
-        fee,
-        finalAmount
-      });
     }
 
     const orderId = "ORD" + Date.now();
-    console.log("🧾 Order ID Generated:", orderId);
 
     const paytmBody = {
       requestType: "Payment",
@@ -363,14 +343,10 @@ export const payment = async (req, res) => {
       },
     };
 
-    console.log("📦 Paytm Body:", paytmBody);
-
     const checksum = await PaytmChecksum.generateSignature(
       JSON.stringify(paytmBody),
       PAYTM_KEY
     );
-
-    console.log("🔐 Checksum Generated");
 
     const payload = {
       body: paytmBody,
@@ -378,27 +354,20 @@ export const payment = async (req, res) => {
     };
 
     const url = `${PAYTM_TXN_URL}?mid=${PAYTM_MID}&orderId=${orderId}`;
-    console.log("🌐 Paytm URL:", url);
 
     const response = await axios.post(url, payload, {
       headers: { "Content-Type": "application/json" },
     });
 
-    console.log("📡 Paytm Response:", response.data);
-
     const txnToken = response?.data?.body?.txnToken;
-    console.log("🎟 txnToken:", txnToken);
 
     if (!txnToken) {
-      console.log("❌ Paytm Token Missing");
       return res.status(400).json({
         status: false,
         message: "Paytm session creation failed",
         data: response.data,
       });
     }
-
-    console.log("💾 Inserting into paying table");
 
     await db.query(
       `
@@ -424,13 +393,12 @@ export const payment = async (req, res) => {
       ]
     );
 
-    console.log("✅ DB Insert Success");
-
     return res.status(200).json({
       status: true,
       message: "Payment session created successfully",
       data: {
         order_id: orderId,
+        module_type: module_type,
         txnToken,
         amount,
         platform_fee: platformFeeFormatted,
@@ -439,8 +407,6 @@ export const payment = async (req, res) => {
     });
 
   } catch (error) {
-    console.log("🔥 ERROR OCCURRED");
-    console.error("Paytm Payment Error:", error?.response?.data || error.message);
 
     return res.status(500).json({
       status: false,
@@ -448,7 +414,6 @@ export const payment = async (req, res) => {
     });
   }
 };
-
 
 
 
@@ -1396,5 +1361,45 @@ export async function servicemanServiceInfo(req, res) {
   }
 }
 
+
+
+
+
+
+export const paytmData = async (req, res) => {
+  try {
+    const [rows] = await db.query(
+      `SELECT 
+        gateway_name,
+        mid,
+        website,
+        txn_url,
+        callback_url
+       FROM payment_gateways
+       WHERE status = 1
+       LIMIT 1`
+    );
+
+    if (!rows.length) {
+      return res.status(404).json({
+        status: false,
+        message: "No active payment gateway found"
+      });
+    }
+
+    return res.status(200).json({
+      status: true,
+      message: "Payment gateway fetched successfully",
+      data: rows[0]
+    });
+
+  } catch (error) {
+    console.error("Gateway Fetch Error:", error);
+    return res.status(500).json({
+      status: false,
+      message: "Internal server error"
+    });
+  }
+};
 
 

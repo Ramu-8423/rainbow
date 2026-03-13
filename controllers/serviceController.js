@@ -41,6 +41,7 @@ export const allServisesa = async (req, res) => {
         s.rating,
         s.faqs,
         s.status,
+        s.top_servises_status,
         s.created_at,
 
         c.id AS category_id,
@@ -339,6 +340,63 @@ export async function updateServiceStatus(req, res) {
     return res.redirect("back");
   }
 }
+
+
+
+export async function updateTopServicesStatus(req, res) {
+  try {
+    const { id } = req.params;
+    const { top_services_status } = req.query;
+
+    if (!id || top_services_status === undefined) {
+      req.session.error = "Invalid request!";
+      return res.redirect(`/service/0`);
+    }
+
+    // 🔎 If activating as Top Service
+    if (top_services_status == 1) {
+
+      const [rows] = await db.query(
+        `
+        SELECT COUNT(*) as total
+        FROM services
+        WHERE top_servises_status = 1
+        AND id != ?
+        `,
+        [id]
+      );
+
+      if (rows[0].total >= 6) {
+        req.session.error =
+          "Maximum 6 services can be selected as Top Services!";
+        return res.redirect(`/service/1`);
+      }
+    }
+
+    await db.query(
+      `
+      UPDATE services
+      SET top_servises_status = ?
+      WHERE id = ?
+      `,
+      [top_services_status, id]
+    );
+
+    req.session.success =
+      top_services_status == 1
+        ? "Service added to Top Services successfully!"
+        : "Service removed from Top Services successfully!";
+
+    // ✅ Same redirect style as service status
+    return res.redirect(`/service/1`);
+
+  } catch (err) {
+    console.log("TOP SERVICE STATUS UPDATE ERROR:", err);
+    req.session.error = "Something went wrong!";
+    return res.redirect(`/service/0`);
+  }
+}
+
 
 
 export async function deleteService(req, res) {

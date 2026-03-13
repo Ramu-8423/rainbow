@@ -1,5 +1,7 @@
 // controllers/cabOrdersController.js
 import db from "../config/database.js";
+import { nowIST } from "../utils/dateParser.js";
+
 
 export const cabOrdersController = async (req, res) => {
   try {
@@ -7,20 +9,33 @@ export const cabOrdersController = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const offset = (page - 1) * perPage;
 
-    const { from, to } = req.query;
-    const statusParam = req.params.status; // 👈 optional
+    const { from, to, type } = req.query;   // 👈 order_type from query
+    const statusParam = req.params.status;
+    
+    const current_date_time = nowIST();
+    
+    console.log("current_date_time", current_date_time);
 
     let where = "WHERE 1 ";
     let values = [];
 
+    /* ================= ORDER TYPE FILTER ================= */
+    const orderType = Number(type) === 2 ? 2 : 1;  // default NOW
+    where += "AND order_type = ? ";
+    values.push(orderType);
+
     /* ================= STATUS FILTER ================= */
     if (statusParam) {
-      // single status route
       where += "AND order_status = ? ";
       values.push(Number(statusParam));
     } else {
-      // no param route
-      where += "AND order_status IN (5,6,7) ";
+      if (orderType === 2) {
+        // Later Booking
+        where += "AND order_status IN (0,5,6,7,8) ";
+      } else {
+        // Now Booking
+        where += "AND order_status IN (5,6,7,8) ";
+      }
     }
 
     /* ================= DATE FILTER ================= */
@@ -41,6 +56,7 @@ export const cabOrdersController = async (req, res) => {
       SELECT
         id,
         order_status,
+        order_type,
         user_name,
         user_mobile,
         driver_name,
@@ -49,6 +65,7 @@ export const cabOrdersController = async (req, res) => {
         drop_location,
         cancel_reason,
         final_amount,
+        schedule_time,
         estimated_amount,
         created_at
       FROM cab_orders
@@ -68,7 +85,9 @@ export const cabOrdersController = async (req, res) => {
       totalPages: Math.ceil(total / perPage),
       from,
       to,
-      statusParam
+      statusParam,
+      current_date_time,
+      orderType
     });
 
   } catch (err) {
@@ -84,3 +103,4 @@ export const cabOrdersController = async (req, res) => {
     });
   }
 };
+

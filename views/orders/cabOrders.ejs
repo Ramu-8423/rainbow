@@ -148,16 +148,66 @@
   }
 </style>
 
+<style>
+.badge{
+color:white !important;
+font-weight:bold !important;
+}
+
+
+</style>
 
 
 <div class="main-content">
 <section class="section">
 <div class="card">
 
+
+
+
+
+
+
+<div class="col-sm-5 d-flex align-items-center mt-2">
+  <h5 class="mb-0 me-3">Booking &nbsp;</h5>
+  <div class="btn-group" role="group">
+    <!-- NOW BUTTON -->
+    <a href="/cab-orders?type=1"
+       class="btn btn-sm <%= orderType == 1 ? 'btn-primary' : 'btn-outline-primary' %>"
+       style="border-radius:0;">
+      Current Booking
+    </a>
+    <a href="/cab-orders?type=2"
+       class="btn btn-sm <%= orderType == 2 ? 'btn-primary' : 'btn-outline-primary' %>"
+       style="border-radius:0;">
+       Schedule Booking
+    </a>
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 <!-- ================= HEADER (EXACT USERS CLONE) ================= -->
 <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
 
   <h4 class="mb-0">Rides</h4>
+
+<%
+  /* 🔥 preserve booking type */
+  const baseTypeQuery = orderType == 2 ? '?type=2' : '?type=1';
+%>
 
 <div class="dropdown">
 
@@ -169,47 +219,70 @@
     style="border-radius:0; min-width:180px;"
   >
     <%= !statusParam ? 'All Orders' :
+        statusParam == 0 ? 'Pending' :
         statusParam == 5 ? 'Pay Done' :
         statusParam == 6 ? 'Cancelled by User' :
         statusParam == 7 ? 'Cancelled by Driver' :
+        statusParam == 8 ? 'Cancelled by System' :
         'All Orders' %>
   </button>
 
   <ul class="dropdown-menu">
 
+    <!-- ALL -->
     <li>
       <a class="dropdown-item <%= !statusParam ? 'active' : '' %>"
-         href="/cab-orders">
+         href="/cab-orders<%= baseTypeQuery %>">
         All Orders
       </a>
     </li>
 
     <li><hr class="dropdown-divider"></li>
 
+    <% if(orderType == 2){ %>
+    <!-- ✅ PENDING ONLY FOR SCHEDULE -->
+    <li>
+      <a class="dropdown-item <%= statusParam == 0 ? 'active' : '' %>"
+         href="/cab-orders/0<%= baseTypeQuery %>">
+        Pending
+      </a>
+    </li>
+    <% } %>
+
+    <!-- PAY DONE -->
     <li>
       <a class="dropdown-item <%= statusParam == 5 ? 'active' : '' %>"
-         href="/cab-orders/5">
+         href="/cab-orders/5<%= baseTypeQuery %>">
         Pay Done
       </a>
     </li>
 
+    <!-- USER CANCEL -->
     <li>
       <a class="dropdown-item <%= statusParam == 6 ? 'active' : '' %>"
-         href="/cab-orders/6">
+         href="/cab-orders/6<%= baseTypeQuery %>">
         Cancelled by User
       </a>
     </li>
 
+    <!-- DRIVER CANCEL -->
     <li>
       <a class="dropdown-item <%= statusParam == 7 ? 'active' : '' %>"
-         href="/cab-orders/7">
+         href="/cab-orders/7<%= baseTypeQuery %>">
         Cancelled by Driver
+      </a>
+    </li>
+
+    <!-- SYSTEM CANCEL -->
+    <li>
+      <a class="dropdown-item <%= statusParam == 8 ? 'active' : '' %>"
+         href="/cab-orders/8<%= baseTypeQuery %>">
+        Cancelled by System
       </a>
     </li>
 
   </ul>
 </div>
-
 
   <input
     type="text"
@@ -237,6 +310,13 @@
 </div>
 
 <!-- ================= TABLE ================= -->
+
+
+
+
+
+
+
 <div class="card-body">
 <div class="table-responsive">
 
@@ -249,17 +329,26 @@
   <th>Driver</th>
   <th>Pickup</th>
   <th>Drop</th>
+  <th>Vehicle Name</th>
   <th>Amount</th>
+  <% if (orderType == 2) { %>
+    <th>Schedule Time</th>
+  <% } %>
   <th>Status</th>
-   <% if (statusParam == 6 || statusParam == 7) { %>
+
+  <% if (statusParam == 6 || statusParam == 7) { %>
     <th>Cancel Reason</th>
   <% } %>
+
   <th>Date</th>
+
+  
 </tr>
 </thead>
 
 <tbody>
 <% if (orders.length > 0) { %>
+
   <% orders.forEach(o => { %>
     <tr>
       <td><%= o.id %></td>
@@ -270,35 +359,97 @@
       <td><%= o.pickup_location %></td>
       <td><%= o.drop_location %></td>
 
+     <td><%= o.vehicle_name ? o.vehicle_name : "NA" %></td>
+      
       <td>₹ <%= o.final_amount || o.estimated_amount %></td>
 
-      <td>
-        <% if (o.order_status == 5) { %>
-          <span class="badge bg-success">Pay Done</span>
-        <% } else if (o.order_status == 6) { %>
-          <span class="badge bg-danger">Cancelled by User</span>
-        <% } else if (o.order_status == 7) { %>
-          <span class="badge bg-warning">Cancelled by Driver</span>
-        <% } %>
-      </td>
 
-  <% if (statusParam == 6 || statusParam == 7) { %>
+<% if (orderType == 2) { %>
+  <td>
+    <% if (o.schedule_time) { 
+         const now = new Date(current_date_time);
+         const schedule = new Date(o.schedule_time);
+         const isExpired = now > schedule;
+    %>
+
+      <span style="font-weight:bold; color:<%= isExpired ? 'red' : 'green' %>;">
+        <%= o.schedule_time %>
+      </span>
+
+    <% } else { %>
+      -
+    <% } %>
+  </td>
+<% } %>
+
+
+
+      <!-- STATUS -->
+     <td class="text-center">
+  <% 
+    let statusText = '';
+    let statusClass = '';
+
+    if (o.order_status == 0) {
+      statusText = 'Pending Ride';
+      statusClass = 'bg-secondary';
+    } else if (o.order_status == 5) {
+      statusText = 'Pay Done';
+      statusClass = 'bg-success';
+    } else if (o.order_status == 6) {
+      statusText = 'Cancelled by User';
+      statusClass = 'bg-danger';
+    } else if (o.order_status == 7) {
+      statusText = 'Cancelled by Driver';
+      statusClass = 'bg-warning';
+    } else if (o.order_status == 8) {
+      statusText = 'Cancelled by System';
+      statusClass = 'bg-primary';
+    }
+  %>
+
+  <span class="badge <%= statusClass %>"
+        style="
+          display:inline-block;
+          min-width:170px;
+          text-align:center;
+          padding:8px 12px;
+          font-size:13px;
+          border-radius:20px;
+        ">
+    <%= statusText %>
+  </span>
+</td>
+
+
+      <!-- CANCEL REASON -->
+      <% if (statusParam == 6 || statusParam == 7) { %>
         <td style="font-size:12px; white-space:normal;">
           <%= o.cancel_reason || '-' %>
         </td>
       <% } %>
-      
-      
+
+      <!-- DATE -->
       <td><%= o.created_at %></td>
+     
+     
+
     </tr>
   <% }) %>
+
 <% } else { %>
+
   <tr>
-    <td colspan="9" class="text-center">No orders found</td>
+    <td colspan="<%= 9 + ((statusParam == 6 || statusParam == 7) ? 1 : 0) + (orderType == 2 ? 1 : 0) %>" 
+        class="text-center">
+        No orders found
+    </td>
   </tr>
+
 <% } %>
 </tbody>
 </table>
+
 </div>
 
 <!-- ================= PAGINATION ================= -->

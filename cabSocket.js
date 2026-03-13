@@ -2,21 +2,44 @@ import { Server } from "socket.io";
 import db from "./config/database.js";
 
 let io;
+let isInitialized = false;
 
 // =====================================================
-// INIT SOCKET
+// INIT SOCKET – SHARE ENGINE WITH socket.js
 // =====================================================
-export const initCabSocket = (httpServer) => {
+export const initCabSocket = (httpServer, sharedIO = null) => {
 
-  io = new Server(httpServer, {
-    path: "/socket/live",
-    cors: {
-      origin: "*",
-      methods: ["GET", "POST"],
-      credentials: true
-    },
-    allowEIO3: true
-  });
+  if (isInitialized) {
+    console.log("⚠️ CabSocket already initialized");
+    return io;
+  }
+
+  isInitialized = true;
+
+  // 🔥 REUSE EXISTING SOCKET ENGINE
+  if (sharedIO) {
+    io = sharedIO;
+  } else {
+    io = new Server(httpServer, {
+      path: "/socket/live",
+
+      // 🛡️ prevent ws conflict
+      wsEngine: false,
+
+      cors: {
+        origin: "*",
+        methods: ["GET", "POST"],
+        credentials: true
+      },
+
+      // 🔥 ONLY CONNECTION STABILITY SETTINGS
+      pingInterval: 20000,
+      pingTimeout: 60000,
+      transports: ["websocket", "polling"],
+
+      allowEIO3: true
+    });
+  }
 
   io.on("connection", (socket) => {
     console.log("✅ Cab Socket connected:", socket.id);
@@ -33,7 +56,6 @@ export const initCabSocket = (httpServer) => {
 
         console.log(`🚖 Driver joined room: ${room}`);
 
-        // 🔥 CHECK ACTIVE RIDE FIRST
         const [activeRows] = await db.query(
           `
           SELECT id
@@ -46,14 +68,12 @@ export const initCabSocket = (httpServer) => {
           [String(driverId)]
         );
 
-        // ❌ IF DRIVER BUSY → SEND EMPTY LIST
         if (activeRows.length > 0) {
           io.to(room).emit("SYNC_RIDES", []);
           console.log(`⛔ Driver ${driverId} busy → EMPTY`);
           return;
         }
 
-        // ✅ DRIVER FREE → SEND AVAILABLE RIDES
         await sendFullRideListToDriver(driverId);
 
       } catch (err) {
@@ -70,12 +90,11 @@ export const initCabSocket = (httpServer) => {
 };
 
 // =====================================================
-// 🔹 SEND FULL RIDE LIST (REFRESH SAFE)
+// SEND FULL RIDE LIST
 // =====================================================
 async function sendFullRideListToDriver(driverId) {
   if (!io) return;
 
-  // 🔥 DOUBLE SAFETY CHECK
   const [activeRows] = await db.query(
     `
     SELECT id
@@ -93,7 +112,6 @@ async function sendFullRideListToDriver(driverId) {
     return;
   }
 
-  // ===== MAIN QUERY (MOST IMPORTANT PART) =====
   const [rows] = await db.query(
     `
     SELECT 
@@ -116,12 +134,14 @@ async function sendFullRideListToDriver(driverId) {
     `📦 SYNC_RIDES sent to driver ${driverId}:`,
     rows.length
   );
+  
+  console.log("all ride", rows);
 
   io.to(`driver_${driverId}`).emit("SYNC_RIDES", rows);
 }
 
 // =====================================================
-// 🔹 EMIT NEW RIDE (FREE DRIVERS ONLY)
+// EMIT NEW RIDE
 // =====================================================
 export const emitNewRideToDrivers = async (driverIds) => {
   if (!io || !Array.isArray(driverIds)) return;
@@ -132,7 +152,7 @@ export const emitNewRideToDrivers = async (driverIds) => {
 };
 
 // =====================================================
-// 🔹 INSTANT NEW RIDE
+// INSTANT NEW RIDE
 // =====================================================
 export const emitInstantRide = async (driverIds, payload) => {
 
@@ -142,15 +162,19 @@ export const emitInstantRide = async (driverIds, payload) => {
     io.to(`driver_${id}`).emit("NEW_RIDE", payload);
   }
 
-  // FULL REFRESH LIKE OLD SYSTEM
   await emitNewRideToDrivers(driverIds);
 };
 
-
+// =====================================================
+// REMOVE RIDE
+// =====================================================
 export const emitRemoveRide = async (rideId) => {
   if (!io || !rideId) return;
+
   let rideIds = Array.isArray(rideId) ? rideId : [rideId];
+
   const rooms = io.sockets.adapter.rooms;
+
   for (const [roomName] of rooms) {
     if (!roomName.startsWith("driver_")) continue;
 

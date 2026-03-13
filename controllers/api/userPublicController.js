@@ -422,6 +422,7 @@ export const userRegister = [
 
 export async function userProfile(req, res) {
   const userId = req.params.id;
+  const fcm_token = req.query.fcm_token; // optional
 
   if (!userId) {
     return res.status(400).json({
@@ -433,6 +434,15 @@ export async function userProfile(req, res) {
   }
 
   try {
+
+    // 🔹 Optional FCM update (no breaking change)
+    if (fcm_token) {
+      await db.query(
+        `UPDATE users SET fcm_token = ?, updated_at = NOW() WHERE id = ?`,
+        [fcm_token, userId]
+      );
+    }
+
     const sql = `
       SELECT 
         id,
@@ -490,7 +500,6 @@ export async function userProfile(req, res) {
 
 
 
-
 export async function profileEdit(req, res) {
 
   const body = req.body || {};
@@ -515,27 +524,7 @@ export async function profileEdit(req, res) {
   }
 
  
-  if (email !== undefined) {
-
-    if (email.trim() === "") {
-      return res.status(400).json({
-        success: false,
-        message: "email is required",
-        data: null,
-        errors: null
-      });
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid email format",
-        data: null,
-        errors: null
-      });
-    }
-  }
+  
 
   // ================================
   //   NAME VALIDATION
@@ -559,63 +548,19 @@ export async function profileEdit(req, res) {
         errors: null
       });
     }
-
-    if (name.length < 3) {
-      return res.status(400).json({
-        success: false,
-        message: "name must be at least 3 characters",
-        data: null,
-        errors: null
-      });
-    }
   }
 
   // ================================
   //   LAST_NAME VALIDATION
   // ================================
-  if (last_name !== undefined) {
 
-    if (last_name.trim() === "") {
-      return res.status(400).json({
-        success: false,
-        message: "last_name is required",
-        data: null,
-        errors: null
-      });
-    }
-
-    if (!/^[A-Za-z ]+$/.test(last_name)) {
-      return res.status(400).json({
-        success: false,
-        message: "last_name must contain only alphabets and spaces",
-        data: null,
-        errors: null
-      });
-    }
-
-    if (last_name.length < 3) {
-      return res.status(400).json({
-        success: false,
-        message: "last_name must be at least 3 characters",
-        data: null,
-        errors: null
-      });
-    }
-  }
 
   // ================================
   //   CITY VALIDATION
   // ================================
   if (city !== undefined) {
 
-    if (city.trim() === "") {
-      return res.status(400).json({
-        success: false,
-        message: "city is required",
-        data: null,
-        errors: null
-      });
-    }
+    
 
     if (!/^[A-Za-z ]+$/.test(city)) {
       return res.status(400).json({
