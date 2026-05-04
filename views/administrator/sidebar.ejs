@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <% 
   // If activeMenu not sent, set default empty
   var activeMenu = typeof activeMenu !== "undefined" ? activeMenu : ""; 
@@ -67,3 +68,271 @@
     </ul>
   </aside>
 </div>
+=======
+<%
+  const path = typeof activePath !== "undefined" ? activePath : "";
+  const parts = path.split("/").filter(Boolean);
+
+  const routeName  = parts[0] || "";
+  const routeParam = parts[1] || "";
+%>
+
+<div class="main-sidebar sidebar-style-2">
+  <aside id="sidebar-wrapper">
+    <div class="sidebar-brand">
+      <a href="#">
+        <img alt="image" src="/assets/img/user.png" class="header-logo" />
+        <span class="logo-name">Admin</span>
+      </a>
+    </div>
+
+    <ul class="sidebar-menu">
+
+      <!-- Dashboard -->
+      <li class="<%= routeName === 'dashboard' ? 'active' : '' %>">
+        <a href="/dashboard" class="nav-link">
+          <i data-feather="monitor"></i>
+          <span>Dashboard</span>
+        </a>
+      </li>
+
+      <!-- Users -->
+      <li class="<%= routeName === 'all-users' ? 'active' : '' %>">
+        <a href="/all-users" class="nav-link">
+          <i data-feather="users"></i>
+          <span>Users</span>
+        </a>
+      </li>
+      
+      
+       <!-- Users -->
+      <li class="<%= routeName === 'UserPayments' ? 'active' : '' %>">
+        <a href="/UserPayments" class="nav-link">
+          <i data-feather="users"></i>
+          <span>Wallet Recharge</span>
+        </a>
+      </li>
+
+      <li class="menu-header">Handyman Section</li>
+
+      <!-- Job Applications -->
+      <li class="<%= routeName === 'job-applications' ? 'active' : '' %>">
+        <a href="/job-applications" class="nav-link">
+          <i data-feather="file-text"></i>
+          <span>Applications</span>
+        </a>
+      </li>
+
+      <!-- Categories -->
+      <li class="<%= routeName === 'categories' ? 'active' : '' %>">
+        <a href="/categories" class="nav-link">
+          <i data-feather="layers"></i>
+          <span>Categories</span>
+        </a>
+      </li>
+
+      <!-- Subcategories -->
+      <li class="<%= routeName === 'subcategories' ? 'active' : '' %>">
+        <a href="/subcategories" class="nav-link">
+          <i data-feather="grid"></i>
+          <span>Subcategories</span>
+        </a>
+      </li>
+
+      <!-- Coupons -->
+      <li class="<%= routeName === 'coupons' ? 'active' : '' %>">
+        <a href="/coupons" class="nav-link">
+          <i data-feather="tag"></i>
+          <span>Coupons</span>
+        </a>
+      </li>
+
+      <!-- Services -->
+      <li class="<%= routeName === 'service' && routeParam === '1' ? 'active' : '' %>">
+        <a href="/service/1" class="nav-link">
+          <i data-feather="grid"></i>
+          <span>Services</span>
+        </a>
+      </li>
+
+      <!-- Serviceman -->
+      <li class="<%= routeName === 'serviceman' ? 'active' : '' %>">
+        <a href="/serviceman" class="nav-link">
+          <i data-feather="users"></i>
+          <span>Serviceman</span>
+        </a>
+      </li>
+
+      <!-- Bank Details (Serviceman) -->
+      <li class="<%= routeName === 'bank-details' && routeParam === '1' ? 'active' : '' %>">
+        <a href="/bank-details/1" class="nav-link">
+          <i data-feather="credit-card"></i>
+          <span>Bank Details</span>
+        </a>
+      </li>
+
+      <!-- Bank Update Request (Serviceman) -->
+      <li class="<%= routeName === 'bank-update-request' && routeParam === '1' ? 'active' : '' %>">
+        <a href="/bank-update-request/1" class="nav-link">
+          <i data-feather="refresh-cw"></i>
+          <span>Bank Update Request</span>
+        </a>
+      </li>
+
+      <!-- Service Payments -->
+      <li class="<%= routeName === 'service_payments' ? 'active' : '' %>">
+        <a href="/service_payments" class="nav-link">
+          <i data-feather="credit-card"></i>
+          <span>Service Payments</span>
+        </a>
+      </li>
+
+      <!-- Serviceman Withdraw -->
+      <li class="<%= routeName === 'serviceman-withdraw-request' ? 'active' : '' %>">
+        <a href="/serviceman-withdraw-request" class="nav-link">
+          <i data-feather="refresh-cw"></i>
+          <span>Withdraw Request</span>
+        </a>
+      </li>
+
+     <li class="<%= routeName === 'create_service_zone' ? 'active' : '' %>">
+        <a href="/create_service_zone" class="nav-link">
+          <i data-feather="map"></i>
+           Service Zone
+        </a>
+      </li>
+      
+      
+      
+      <li class="menu-header">Ride Booking Section</li>
+      
+      <!-- Cab Orders -->
+<li class="<%= routeName === 'cab-orders' ? 'active' : '' %>">
+  <a href="/cab-orders" class="nav-link">
+    <i data-feather="clipboard"></i>
+    <span>Ride Orders</span>
+  </a>
+</li>
+
+
+      <!-- All Drivers -->
+      <li class="<%= routeName === 'all-drivers' ? 'active' : '' %>">
+        <a href="/all-drivers" class="nav-link">
+          <i data-feather="users"></i>
+          <span>All Drivers</span>
+        </a>
+      </li>
+
+      <!-- Driver Bank Details -->
+      <li class="<%= routeName === 'bank-details' && routeParam === '2' ? 'active' : '' %>">
+        <a href="/bank-details/2" class="nav-link">
+          <i data-feather="credit-card"></i>
+          <span>Driver Bank Details</span>
+        </a>
+      </li>
+
+      <!-- Driver Bank Update -->
+      <li class="<%= routeName === 'bank-update-request' && routeParam === '2' ? 'active' : '' %>">
+        <a href="/bank-update-request/2" class="nav-link">
+          <i data-feather="refresh-cw"></i>
+          <span>Bank Update Request</span>
+        </a>
+      </li>
+
+      <!-- Ride Payments -->
+      <li class="<%= routeName === 'all_payments' ? 'active' : '' %>">
+        <a href="/all_payments" class="nav-link">
+          <i data-feather="credit-card"></i>
+          <span>Ride Payments</span>
+        </a>
+      </li>
+
+      <!-- Driver Withdraw -->
+      <li class="<%= routeName === 'driver-withdraw-request' ? 'active' : '' %>">
+        <a href="/driver-withdraw-request/2" class="nav-link">
+          <i data-feather="refresh-cw"></i>
+          <span>Driver Withdraw Request</span>
+        </a>
+      </li>
+
+      <!-- Vehicle -->
+      <li class="<%= routeName === 'vehicle-list' ? 'active' : '' %>">
+        <a href="/vehicle-list" class="nav-link">
+          <i data-feather="truck"></i>
+          <span>Vehicle List</span>
+        </a>
+      </li>
+
+      <li class="<%= routeName === 'brand-list' ? 'active' : '' %>">
+        <a href="/brand-list" class="nav-link">
+          <i data-feather="tag"></i>
+          <span>Brand List</span>
+        </a>
+      </li>
+
+      <li class="<%= routeName === 'model-list' ? 'active' : '' %>">
+        <a href="/model-list" class="nav-link">
+          <i data-feather="layers"></i>
+          <span>Model List</span>
+        </a>
+      </li>
+
+      <li class="<%= routeName === 'vehicle-amount-list' ? 'active' : '' %>">
+        <a href="/vehicle-amount-list" class="nav-link">
+          <i data-feather="dollar-sign"></i>
+          <span>Vehicle Amount List</span>
+        </a>
+      </li>
+
+      <li class="<%= routeName === 'settings' ? 'active' : '' %>">
+        <a href="/settings" class="nav-link">
+          <i data-feather="settings"></i>
+          <span>Settings</span>
+        </a>
+      </li>
+      
+       <li class="<%= routeName === 'create_zone' ? 'active' : '' %>">
+        <a href="/create_zone" class="nav-link">
+          <i data-feather="map"></i>
+           Ride Zone
+        </a>
+      </li>
+      
+      
+      <li class="<%= routeName === 'send-notification' ? 'active' : '' %>">
+        <a href="/send-notification" class="nav-link">
+          <i data-feather="map"></i>
+           Send Notification
+        </a>
+      </li>
+
+
+
+      <li class="<%= routeName === 'invoice-settings' ? 'active' : '' %>">
+        <a href="/invoice-settings" class="nav-link">
+          <i data-feather="map"></i>
+           Invoice Details
+        </a>
+      </li>
+
+
+
+      <!-- Logout -->
+      <li>
+        <a href="/logout" class="nav-link">
+          <i data-feather="log-out"></i>
+          <span>Logout</span>
+        </a>
+      </li>
+
+    </ul>
+  </aside>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const active = document.querySelector(".sidebar-menu li.active");
+  active?.scrollIntoView({ block: "center" });
+});
+</script>
+>>>>>>> 49d7cd4 (initial push from server)

@@ -1,0 +1,281 @@
+
+  <style>
+    body {
+      background: #f4f6f9;
+    }
+    .card {
+      border-radius: 12px;
+    }
+    .card-header {
+      border-radius: 12px 12px 0 0;
+    }
+    .entity-list-item:hover {
+      background: #eef2ff;
+    }
+    .text-right {
+      text-align: right;
+    }
+  </style>
+
+<div class="main-content container-fluid mt-4">
+  <div class="card shadow-sm">
+    <div class="card-header bg-primary text-white">
+      <h5 class="mb-0">Send Notification</h5>
+    </div>
+
+    <div class="card-body">
+      <form method="POST" action="/notification/send" id="notificationForm">
+
+        <div class="row">
+          <!-- LEFT -->
+          <div class="col-sm-6">
+
+            <!-- ENTITY TYPE -->
+            <div class="mb-4">
+              <label class="form-label fw-semibold">Select Type</label>
+              <select
+                class="form-select form-select-sm shadow-sm"
+                id="entityType"
+                name="entity_type"
+                required
+              >
+                <option value="" selected disabled>-- Select --</option>
+                <option value="1">User (Cab)</option>
+                <option value="2">User (Service)</option>
+                <option value="3">Driver</option>
+                <option value="4">Serviceman</option>
+                <option value="5">All</option>
+              </select>
+            </div>
+
+            <!-- RECEIVERS -->
+            <div class="mb-4 d-none" id="entityBox">
+              <label class="form-label fw-semibold">Select Receivers</label>
+
+              <input
+                type="text"
+                id="searchInput"
+                class="form-control form-control-sm mb-2"
+                placeholder="Search by name or mobile..."
+              >
+
+              <div class="form-check mb-2 d-none" id="selectAllBox">
+                <input class="form-check-input" type="checkbox" id="selectAll">
+                <label class="form-check-label fw-semibold" for="selectAll">
+                  Select All
+                </label>
+              </div>
+
+              <div
+                class="border rounded p-2 bg-light"
+                style="max-height:200px;overflow-y:auto"
+                id="entityList"
+              >
+                <div class="text-muted small">Select type to load data</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- RIGHT -->
+          <div class="col-sm-6">
+
+            <!-- TITLE -->
+            <div class="mb-4">
+              <label class="form-label fw-semibold">Title</label>
+              <input
+                type="text"
+                class="form-control shadow-sm"
+                name="title"
+                id="titleInput"
+                required
+              >
+              <div class="form-text" id="titleHelpText">
+                Maximum 10 words allowed
+              </div>
+              <div class="text-danger small d-none" id="titleError">
+                Title exceeds 10 words
+              </div>
+            </div>
+
+            <!-- TEXT -->
+            <div class="mb-4">
+              <label class="form-label fw-semibold">Message</label>
+              <textarea
+                class="form-control shadow-sm"
+                name="text"
+                id="textInput"
+                rows="6"
+                required
+              ></textarea>
+              <div class="form-text" id="textHelpText">
+                Maximum 45 words allowed
+              </div>
+              <div class="text-danger small d-none" id="textError">
+                Message exceeds 45 words
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- BUTTON -->
+        <div class="row">
+          <div class="col-12 text-right">
+            <button type="submit" class="btn btn-primary px-4">
+              <i class="bi bi-send"></i> Send
+            </button>
+            <a href="/send-notification" class="btn btn-outline-secondary px-4 ms-2">
+              Reset
+            </a>
+          </div>
+        </div>
+
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  /* ===== DATA FROM SERVER ===== */
+  const users = <%- JSON.stringify(users) %>;
+  const drivers = <%- JSON.stringify(drivers) %>;
+  const servicemen = <%- JSON.stringify(servicemen) %>;
+
+  /* ===== ELEMENTS ===== */
+  const entityType = document.getElementById("entityType");
+  const entityBox = document.getElementById("entityBox");
+  const entityList = document.getElementById("entityList");
+  const selectAll = document.getElementById("selectAll");
+  const selectAllBox = document.getElementById("selectAllBox");
+  const searchInput = document.getElementById("searchInput");
+
+  const titleInput = document.getElementById("titleInput");
+  const textInput = document.getElementById("textInput");
+  const titleError = document.getElementById("titleError");
+  const textError = document.getElementById("textError");
+  const titleHelpText = document.getElementById("titleHelpText");
+  const textHelpText = document.getElementById("textHelpText");
+
+  let currentData = [];
+  let currentType = null;
+
+  /* ===== WORD COUNT ===== */
+  function countWords(text) {
+    if (!text) return 0;
+    return text.trim().split(/\s+/).filter(Boolean).length;
+  }
+
+  function validateTitle() {
+    const ok = countWords(titleInput.value) <= 10;
+    titleError.classList.toggle("d-none", ok);
+    titleHelpText.classList.toggle("d-none", !ok);
+    return ok;
+  }
+
+  function validateText() {
+    const ok = countWords(textInput.value) <= 45;
+    textError.classList.toggle("d-none", ok);
+    textHelpText.classList.toggle("d-none", !ok);
+    return ok;
+  }
+
+  titleInput.addEventListener("input", validateTitle);
+  textInput.addEventListener("input", validateText);
+
+  /* ===== ENTITY TYPE CHANGE ===== */
+  entityType.addEventListener("change", () => {
+    currentType = entityType.value;
+    searchInput.value = "";
+    selectAll.checked = false;
+
+    if (currentType === "5") {
+      entityBox.classList.add("d-none");
+      return;
+    }
+
+    entityBox.classList.remove("d-none");
+    selectAllBox.classList.remove("d-none");
+
+    if (currentType === "1" || currentType === "2") currentData = users;
+    if (currentType === "3") currentData = drivers;
+    if (currentType === "4") currentData = servicemen;
+
+    renderList(currentData);
+  });
+
+  /* ===== RENDER LIST (FIXED) ===== */
+  function renderList(data) {
+    entityList.innerHTML = "";
+
+    if (!data.length) {
+      entityList.innerHTML = `<div class="text-muted">No data found</div>`;
+      return;
+    }
+
+    data.forEach(item => {
+      const name =
+        (currentType === "1" || currentType === "2")
+          ? `${item.name} ${item.last_name}`
+          : `${item.first_name} ${item.last_name}`;
+
+      // 🔑 UNIQUE ID (VERY IMPORTANT)
+      const checkboxId = `entity_${currentType}_${item.id}`;
+
+      entityList.innerHTML += `
+        <div class="form-check entity-list-item py-2 border-bottom">
+          <input
+            class="form-check-input entityCheck"
+            type="checkbox"
+            name="entity_id[]"
+            value="${item.id}"
+            id="${checkboxId}"
+          >
+          <label
+            class="form-check-label ms-2"
+            for="${checkboxId}"
+            style="cursor:pointer"
+          >
+            ${name} (${item.mobile})
+          </label>
+        </div>
+      `;
+    });
+  }
+
+  /* ===== SEARCH ===== */
+  searchInput.addEventListener("input", () => {
+    const keyword = searchInput.value.toLowerCase();
+
+    const filtered = currentData.filter(item => {
+      const name =
+        (item.name || item.first_name || "") +
+        " " +
+        (item.last_name || "");
+
+      return (
+        name.toLowerCase().includes(keyword) ||
+        String(item.mobile).includes(keyword)
+      );
+    });
+
+    selectAll.checked = false;
+    renderList(filtered);
+  });
+
+  /* ===== SELECT ALL ===== */
+  selectAll.addEventListener("change", () => {
+    document
+      .querySelectorAll(".entityCheck")
+      .forEach(cb => (cb.checked = selectAll.checked));
+  });
+
+  /* ===== FORM SUBMIT ===== */
+  document
+    .getElementById("notificationForm")
+    .addEventListener("submit", e => {
+      if (!validateTitle() || !validateText()) {
+        e.preventDefault();
+      }
+    });
+</script>
+
+

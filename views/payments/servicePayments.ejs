@@ -1,0 +1,449 @@
+<style>
+th, td { 
+  border: 1px solid #ddd; 
+  padding: 8px; 
+  text-align: center; 
+  white-space: nowrap; 
+  vertical-align: middle; 
+}
+
+/* PAGINATION STYLE (USERS PAGE SAME) */
+.pagination-container {
+  margin-top: 25px;
+  padding: 12px 10px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid #ddd;
+  gap: 12px;
+}
+
+.pagination-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.pagination-left select {
+  padding: 5px 8px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+
+.pagination-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.pg-btn {
+  padding: 6px 12px;
+  border: 1px solid #0d6efd;
+  color: #0d6efd;
+  border-radius: 4px;
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.pg-btn.active,
+.pg-btn:hover {
+  background: #0d6efd;
+  color: #fff;
+}
+
+.pg-input {
+  width: 45px;
+  text-align: center;
+  padding: 5px;
+  border: 1px solid #aaa;
+  border-radius: 4px;
+}
+
+button,
+.btn,
+.form-control,
+.form-select,
+.dropdown-toggle,
+.dropdown-menu {
+  border-radius: 0 !important;
+ }
+ 
+/* 🔽 DROPDOWN MENU (BLACK THEME) */
+.dropdown-menu {
+  background-color: #000 !important;
+  border: 1px solid #333 !important;
+}
+
+/* Dropdown items */
+.dropdown-menu .dropdown-item {
+  color: #fff !important;
+}
+
+.dropdown-menu .dropdown-item:hover {
+  background-color: #222 !important;
+  color: #fff !important;
+}
+
+.dropdown-menu .dropdown-item.active,
+.dropdown-menu .dropdown-item:active {
+  background-color: #444 !important;
+  color: #fff !important;
+}
+
+/* 🔹 DROPDOWN BUTTON (VISIBLE BORDER + GREEN TEXT) */
+.dropdown-toggle {
+  color: #28a745 !important;        /* green text */
+  font-weight: bold !important;
+  background-color: #fff !important;
+  border: 1px solid #28a745 !important; /* ✅ FIXED BORDER */
+  border-radius: 0 !important;      /* no radius */
+}
+
+/* Hover / focus */
+.dropdown-toggle:hover,
+.dropdown-toggle:focus {
+  color: #28a745 !important;
+  background-color: #fff !important;
+  border: 1px solid red !important;
+}
+
+</style>
+
+<% const activePaymetBy = paymet_by ? parseInt(paymet_by) : null; %>
+
+<div class="main-content">
+  <section class="section">
+
+    <div class="card">
+
+<!-- HEADER (USERS STYLE – FINAL) -->
+<div class="card-header">
+  <div class="row align-items-center g-1">
+
+    <!-- TITLE -->
+    <div class="col-auto">
+      <h6 class="mb-0">Payments</h6>
+    </div>
+
+    <!-- PAYMENT TYPE DROPDOWN -->
+    <div class="col-auto">
+      <div class="dropdown">
+
+        <button class="btn btn-outline-secondary btn-sm dropdown-toggle"
+                type="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false">
+          <%= activePaymetBy == 1 ? 'Online' :
+              activePaymetBy == 2 ? 'Offline (Cash)' :
+              activePaymetBy == 3 ? 'Wallet Payment' :
+              activePaymetBy == 4 ? 'Self Wallet Add' :
+              activePaymetBy == 5 ? 'Due Wallet' :
+              'All Payment Types' %>
+        </button>
+
+        <ul class="dropdown-menu">
+
+          <li>
+            <a class="dropdown-item <%= !activePaymetBy ? 'active' : '' %>"
+               href="/service_payments">
+              All Payment Types
+            </a>
+          </li>
+
+          <li><hr class="dropdown-divider"></li>
+
+          <li>
+            <a class="dropdown-item <%= activePaymetBy == 1 ? 'active' : '' %>"
+               href="/service_payments/1">
+              Online
+            </a>
+          </li>
+
+          <li>
+            <a class="dropdown-item <%= activePaymetBy == 2 ? 'active' : '' %>"
+               href="/service_payments/2">
+              Offline (Cash)
+            </a>
+          </li>
+
+          <li>
+            <a class="dropdown-item <%= activePaymetBy == 3 ? 'active' : '' %>"
+               href="/service_payments/3">
+              Wallet Payment
+            </a>
+          </li>
+
+
+          <li>
+            <a class="dropdown-item <%= activePaymetBy == 5 ? 'active' : '' %>"
+               href="/service_payments/5">
+              Due Wallet
+            </a>
+          </li>
+
+        </ul>
+      </div>
+    </div>
+
+    <!-- SEARCH -->
+    <div class="col-auto">
+      <input
+        type="text"
+        id="tableSearch"
+        placeholder="Search..."
+        class="form-control form-control-sm"
+        style="width:180px;"
+      />
+    </div>
+
+    <!-- FROM DATE -->
+    <div class="col-auto">
+      <input
+        type="date"
+        name="startDate"
+        value="<%= startDate || '' %>"
+        class="form-control form-control-sm"
+      />
+    </div>
+
+    <!-- TO DATE -->
+    <div class="col-auto">
+      <input
+        type="date"
+        name="endDate"
+        value="<%= endDate || '' %>"
+        class="form-control form-control-sm"
+      />
+    </div>
+
+    <!-- FILTER + RESET -->
+    <div class="col-auto d-flex gap-2">
+
+      <!-- FILTER -->
+      <button type="submit" class="btn btn-primary btn-sm">
+        Filter
+      </button>
+
+      <!-- RESET -->
+      <a href="/service_payments" class="btn btn-secondary btn-sm">
+        Reset
+      </a>
+
+    </div>
+
+  </div>
+</div>
+
+
+    
+   
+
+
+      <!-- TABLE -->
+      <div class="card-body">
+        <div class="table-responsive">
+
+          <table class="table table-bordered table-striped">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>User / Serviceman ID</th>
+      <th>Serviceman</th>
+      <th>Mobile</th>
+      <th>Amount</th>
+      <th>Platform Fee</th>
+      <th>Final Amount</th>
+      <th>Payment Type</th>
+      <th>Transaction ID</th>
+      <th>Status</th>
+      <th>Created At</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% if (transactions.length > 0) { %>
+      <% transactions.forEach(tx => { %>
+        <tr>
+          <td><%= tx.id %></td>
+
+          <td><%= tx.user_id %></td>
+
+<td>
+  <% if (tx.serviceman_profile_photo) { %>
+    <div
+      style="
+        width:40px;
+        height:40px;
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        overflow:hidden;
+        border-radius:6px;
+        background:#f1f1f1;
+        cursor:pointer;
+      "
+    >
+      <img
+        src="<%= BASE_URL + '/' + tx.serviceman_profile_photo %>"
+        onclick="openImageModal('<%= BASE_URL + '/' + tx.serviceman_profile_photo %>')"
+        alt="Serviceman"
+        style="
+          width:100%;
+          height:100%;
+          object-fit:cover;
+          display:block;
+        "
+      >
+    </div>
+
+    <div style="font-size:12px; margin-top:4px;">
+      <%= tx.serviceman_name || 'N/A' %>
+    </div>
+  <% } else { %>
+    —
+  <% } %>
+</td>
+
+
+          <!-- 📞 MOBILE -->
+          <td>
+            <%= tx.serviceman_mobile || '-' %>
+          </td>
+
+          <!-- 💰 AMOUNTS -->
+          <td>₹<%= Number(tx.amount || 0).toFixed(2) %></td>
+          <td><%= tx.platform_fee || '-' %></td>
+          <td>₹<%= Number(tx.final_amount || 0).toFixed(2) %></td>
+
+          <!-- 💳 PAYMENT TYPE -->
+          <td>
+            <%= tx.payment_type == 1 ? 'Online' :
+                tx.payment_type == 2 ? 'Offline (Cash)' :
+                tx.payment_type == 3 ? 'Wallet Payment' :
+                tx.payment_type == 4 ? 'Self Wallet Add' :
+                tx.payment_type == 5 ? 'Due Wallet' :
+                'Unknown' %>
+          </td>
+
+          <!-- 🧾 TRANSACTION -->
+          <td><%= tx.transaction_id || 'N/A' %></td>
+
+          <!-- 📌 STATUS -->
+          <td>
+            <span class="badge
+              <%= tx.status == 1 ? 'bg-success' :
+                  tx.status == 0 ? 'bg-warning text-dark' :
+                  'bg-danger' %>">
+              <%= tx.status == 1 ? 'Success' :
+                  tx.status == 0 ? 'Pending' :
+                  'Failed' %>
+            </span>
+          </td>
+
+          <!-- 🕒 DATE -->
+          <td><%= tx.created_at %></td>
+        </tr>
+      <% }) %>
+    <% } else { %>
+      <tr>
+        <td colspan="11" class="text-center">No data found</td>
+      </tr>
+    <% } %>
+  </tbody>
+</table>
+
+        </div>
+
+        <!-- 🔽 PAGINATION (SCREENSHOT TYPE) -->
+        <div class="pagination-container">
+
+          <div class="pagination-left">
+            <span>Items per page:</span>
+
+            <select onchange="changePerPage(this.value)">
+              <option value="8"  <%= perPage == 8 ? 'selected' : '' %>>8</option>
+              <option value="10" <%= perPage == 10 ? 'selected' : '' %>>10</option>
+              <option value="15" <%= perPage == 15 ? 'selected' : '' %>>15</option>
+              <option value="20" <%= perPage == 20 ? 'selected' : '' %>>20</option>
+            </select>
+
+            <span>
+              <%= (page - 1) * perPage + 1 %> –
+              <%= Math.min(page * perPage, total) %>
+              of <%= total %> items
+            </span>
+          </div>
+
+          <div class="pagination-right">
+
+            <a href="?page=1" class="pg-btn">«</a>
+
+            <a href="?page=<%= page > 1 ? page - 1 : 1 %>"
+               class="pg-btn">Previous</a>
+
+            <input type="text" readonly value="<%= page %>" class="pg-input">
+            <span>of <%= totalPages %></span>
+
+            <a href="?page=<%= page < totalPages ? page + 1 : totalPages %>"
+               class="pg-btn">Next</a>
+
+            <a href="?page=<%= totalPages %>" class="pg-btn">»</a>
+
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+
+  </section>
+</div>
+
+<script>
+function changePerPage(val){
+  const url = new URL(window.location.href);
+  url.searchParams.set("perPage", val);
+  url.searchParams.set("page", 1);
+  window.location.href = url.toString();
+}
+</script>
+
+
+
+
+
+
+
+
+
+<!-- IMAGE MODAL -->
+<div id="imageModal" style="
+  display:none; position:fixed;
+  top:0; left:0; width:100%; height:100%;
+  background:rgba(0,0,0,0.7);
+  justify-content:center; align-items:center;
+  z-index:9999;
+">
+  <span onclick="closeModal()"
+        style="position:absolute; top:20px; right:30px;
+               font-size:35px; color:white; cursor:pointer;">
+    &times;
+  </span>
+  <img id="modalImage" style="max-width:80%; max-height:80%; border-radius:10px;">
+</div>
+
+
+<script>
+function openImageModal(src){
+  document.getElementById("modalImage").src = src;
+  document.getElementById("imageModal").style.display = "flex";
+}
+function closeModal(){
+  document.getElementById("imageModal").style.display = "none";
+}
+
+</script>

@@ -1,0 +1,677 @@
+<style>
+  .file-box {
+    width: 50px;
+    height: 50px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    overflow: hidden;
+    background: #f1f1f1;
+    margin-right: 6px;
+    cursor: pointer;
+    vertical-align: middle;
+  }
+
+  .file-box img {
+    display: block;
+  }
+
+  .file-thumb {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* ===========================
+     RESPONSIVE PAGINATION
+  =========================== */
+
+  .pagination-container {
+    margin-top: 25px;
+    padding: 12px 10px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid #ddd;
+    gap: 12px;
+  }
+
+  .pagination-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .pagination-left select {
+    padding: 5px 8px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+  }
+
+  .pagination-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .pg-btn {
+    padding: 6px 12px;
+    border: 1px solid #007bff;
+    color: #007bff;
+    border-radius: 4px;
+    text-decoration: none;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .pg-btn:hover {
+    background: #007bff;
+    color: #fff;
+  }
+
+  .pg-input {
+    width: 45px;
+    text-align: center;
+    padding: 5px;
+    border: 1px solid #aaa;
+    border-radius: 4px;
+  }
+
+  /* MOBILE */
+  @media(max-width: 600px){
+    .pagination-container {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .pagination-right,
+    .pagination-left {
+      width: 100%;
+      justify-content: space-between;
+    }
+  }
+
+  /* FILTER + HEADER */
+  .card-header {
+    gap: 10px;
+  }
+
+  .filter-form {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  @media (max-width: 600px) {
+    .card-header {
+      flex-direction: column;
+      align-items: flex-start !important;
+    }
+
+    #tableSearch {
+      width: 100% !important;
+      margin: 0 !important;
+    }
+
+    .filter-form input {
+      width: 48% !important;
+    }
+
+    .filter-form button,
+    .filter-form a {
+      width: 100%;
+    }
+  }
+
+  .card-header .form-control {
+    border-radius: 0 !important;
+  }
+  
+
+.file-box.no-file {
+  background: #000;                 /* black background */
+  display: flex;
+  align-items: center;              /* vertical center */
+  justify-content: center;           /* horizontal center */
+}
+
+/* X icon exact midpoint */
+.file-box.no-file .x-icon {
+  font-size: 22px;
+  color: #ff4d4d;
+  line-height: 1;
+  display: block;
+}
+
+</style>
+
+<style>
+/* Button styling like input (NO radius) */
+.service-dropdown-btn {
+  min-width:150px;
+  text-align: left;
+  border-radius: 0 !important;
+  height:30px; /* same as input */
+}
+
+/* Dropdown menu also sharp */
+.service-dropdown-menu {
+  min-width: 260px;
+  max-height: 240px;
+  overflow: auto;
+  border-radius: 0 !important;
+}
+
+/* Red + bold text */
+.service-text {
+  color: #dc3545; /* bootstrap danger red */
+  font-weight: 600;
+}
+</style>
+
+
+
+<div class="main-content">
+<section class="section">
+<div class="card">
+
+
+
+
+
+
+
+
+
+<div class="card-header d-flex  align-items-center flex-wrap gap-2">
+
+  <!-- LEFT : TITLE -->
+  <h4 class="mb-0">Serviceman List</h4>
+
+  <!-- CENTER : STATUS FILTER -->
+  <div class="d-flex gap-2 flex-wrap">
+    <a href="/serviceman"
+       class="btn btn-sm <%= !status ? 'btn-primary' : 'btn-secondary' %>"
+       style="border-radius:0;">
+      All
+    </a>
+
+    <a href="/serviceman?status=1"
+       class="btn btn-sm <%= status == 1 ? 'btn-primary' : 'btn-secondary' %>"
+       style="border-radius:0;">
+      Active
+    </a>
+
+    <a href="/serviceman?status=0"
+       class="btn btn-sm <%= status == 0 ? 'btn-primary' : 'btn-secondary' %>"
+       style="border-radius:0;">
+      Inactive
+    </a>
+  </div>
+
+  <!-- RIGHT : SEARCH + DATE + FILTER -->
+  <form class="filter-form d-flex align-items-center  gap-2 flex-wrap" method="GET">
+
+
+
+<div class="dropdown">
+  <button
+    class="btn btn-outline-secondary btn-sm dropdown-toggle service-dropdown-btn"
+    type="button"
+    data-bs-toggle="dropdown"
+  >
+    <span class="service-text">
+      Filter By Skills
+      <% if (selectedCategories.length) { %>
+        (<%= selectedCategories.length %>)
+      <% } %>
+    </span>
+  </button>
+
+  <ul class="dropdown-menu service-dropdown-menu p-2">
+    <% categories.forEach(cat => { %>
+      <li class="dropdown-item">
+        <label class="d-flex align-items-center gap-2 mb-0">
+          <input
+            type="checkbox"
+            name="categories"
+            value="<%= cat.id %>"
+            <%= selectedCategories.includes(String(cat.id)) ? 'checked' : '' %>
+          />
+          <span><%= cat.name %></span>
+        </label>
+      </li>
+    <% }) %>
+  </ul>
+</div>
+
+
+
+
+
+    <!-- 🔍 SEARCH -->
+    <input
+      type="text"
+      name="search"
+      value="<%= search || '' %>"
+      placeholder="Search name / mobile / service"
+      class="form-control"
+      style="width:220px;"
+    />
+
+    <!-- DATE FILTER -->
+    <input
+      type="date"
+      name="from"
+      value="<%= from || '' %>"
+      class="form-control"
+      style="width:150px;"
+    />
+
+    <input
+      type="date"
+      name="to"
+      value="<%= to || '' %>"
+      class="form-control"
+      style="width:150px;"
+    />
+
+    <!-- STATUS PRESERVE -->
+    <% if (status !== undefined && status !== "") { %>
+      <input type="hidden" name="status" value="<%= status %>">
+    <% } %>
+
+    <!-- SUBMIT -->
+    <button type="submit" class="btn btn-primary btn-sm" style="border-radius:0;">
+      Filter
+    </button>
+
+    <!-- RESET -->
+    <% if (isFiltered) { %>
+      <a href="/serviceman" class="btn btn-secondary btn-sm" style="border-radius:0;">
+        Reset
+      </a>
+    <% } %>
+
+  </form>
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- TABLE -->
+<div class="card-body">
+<div class="table-responsive">
+<table class="table table-bordered table-striped">
+
+<thead>
+<tr>
+  <th>ID</th>
+  <th>Name</th>
+  <th>Mobile</th>
+  <th>Wallet</th>
+  <th>Gender</th>
+  <th>Login Status</th>
+  <th>Online Status</th>
+  <th>Profile Photo</th>
+  
+  
+  
+  
+
+  <th>Aadhaar Front</th>
+  <th>Aadhaar Fack</th>
+  <th>Profile Photo</th>
+  
+  
+  <th>Skill Certificate</th>
+  <th>Skill</th>
+  <th class="date-col">Date</th>
+  <th>Delete</th>
+</tr>
+</thead>
+
+<tbody>
+<% if(servicemen.length>0){ %>
+<% servicemen.forEach(s=>{ %>
+<tr>
+  <td><%= s.id %></td>
+  <td><%= s.first_name %> <%= s.last_name||'' %></td>
+  <td><%= s.mobile %></td>
+  <td><%= s.wallet %></td>
+  <td><%= s.gender||'-' %></td>
+
+  <!-- STATUS -->
+  <td style="white-space:nowrap;">
+    <select onchange="changeStatus('<%= s.id %>',this.value)"
+      style="
+        width:110px;
+        padding:3px 6px;
+        font-size:13px;
+        border-radius:3px;
+        cursor:pointer;
+        border:1px solid <%= s.login_status==1?'#28a745':'#dc3545' %>;
+        color:<%= s.login_status==1?'#28a745':'#dc3545' %>;
+        font-weight:600;">
+      <option value="1" <%= s.login_status==1?'selected':'' %>>Active</option>
+      <option value="0" <%= s.login_status==0?'selected':'' %>>Inactive</option>
+    </select>
+
+    <% if(s.login_status==0 && s.reject_reasion){ %>
+      <div style="margin-top:4px;font-size:11px;color:#dc3545;font-weight:500;">
+        Reason: <%= s.reject_reasion %>
+      </div>
+    <% } %>
+  </td>
+
+
+  <td class="date-col">
+  <% if (s.online_status == 1) { %>
+    <span class="fw-bold text-success d-inline-flex align-items-center gap-1">
+      <i class="bi bi-wifi fw-bold"></i> Online
+    </span>
+  <% } else { %>
+    <span class="fw-bold text-danger d-inline-flex align-items-center gap-1">
+      <i class="bi bi-wifi-off fw-bold"></i> Offline
+    </span>
+  <% } %>
+</td>
+
+   
+
+  <!-- IMAGE -->
+  <td>
+    <% if(s.profile_photo){ %>
+      <div class="file-box">
+        <img src="/<%= s.profile_photo %>" class="file-thumb"
+             onclick="openImageModal('/<%= s.profile_photo %>')">
+      </div>
+    <% } else { %> — <% } %>
+  </td>
+  
+  
+  
+  
+
+
+   <td>
+    <% if(s.aadhaar_front){ %>
+      <div class="file-box">
+        <img src="/<%= s.aadhaar_front %>" class="file-thumb"
+             onclick="openImageModal('/<%= s.aadhaar_front %>')">
+      </div>
+    <% } else { %> — <% } %>
+  </td>
+
+
+
+
+
+   <td>
+    <% if(s.aadhaar_back){ %>
+      <div class="file-box">
+        <img src="/<%= s.aadhaar_back %>" class="file-thumb"
+             onclick="openImageModal('/<%= s.aadhaar_back %>')">
+      </div>
+    <% } else { %> — <% } %>
+  </td>
+
+
+   <td>
+    <% if(s.profile_photo){ %>
+      <div class="file-box">
+        <img src="/<%= s.profile_photo %>" class="file-thumb"
+             onclick="openImageModal('/<%= s.profile_photo %>')">
+      </div>
+    <% } else { %> — <% } %>
+  </td>
+
+
+<td>
+  <% if (s.experience_certificate) { %>
+    <div class="file-box">
+      <img src="/<%= s.experience_certificate %>"
+           class="file-thumb"
+           onclick="openImageModal('/<%= s.experience_certificate %>')">
+    </div>
+  <% } else { %>
+    <div class="file-box no-file">
+      <i class="bi bi-x-lg x-icon"></i>
+    </div>
+  <% } %>
+</td>
+
+
+
+
+ <td class="date-col"><%= s.service_name %></td>
+ 
+  <!-- DATE -->
+  <td class="date-col"><%= s.created_at %></td>
+  
+  
+ 
+  
+     <td>
+    <button onclick="deleteServiceman('<%= s.id %>')" class="btn btn-danger btn-sm">
+  Delete   <%= s.id %>
+</button>
+
+     </td>
+                    
+                    
+</tr>
+<% }) %>
+<% } else { %>
+<tr><td colspan="8" class="text-center">No data found</td></tr>
+<% } %>
+</tbody>
+
+</table>
+</div>
+
+
+
+<!-- PAGINATION -->
+<% if (totalPages > 1) { %>
+<div class="pagination-container">
+
+  <!-- LEFT SIDE -->
+  <div class="pagination-left">
+    <span>
+      Showing
+      <strong><%= ((page - 1) * perPage) + 1 %></strong>
+      -
+      <strong><%= Math.min(page * perPage, total) %></strong>
+      of
+      <strong><%= total %></strong>
+    </span>
+
+    <select onchange="changePerPage(this.value)">
+      <option value="8"  <%= perPage==8?'selected':'' %>>8</option>
+      <option value="15" <%= perPage==15?'selected':'' %>>15</option>
+      <option value="25" <%= perPage==25?'selected':'' %>>25</option>
+      <option value="50" <%= perPage==50?'selected':'' %>>50</option>
+    </select>
+  </div>
+
+  <!-- RIGHT SIDE -->
+  <div class="pagination-right">
+
+    <% if (page > 1) { %>
+      <a class="pg-btn" href="?page=<%= page-1 %>&perPage=<%= perPage %><%= from ? '&from='+from : '' %><%= to ? '&to='+to : '' %><%= status!==undefined ? '&status='+status : '' %>">
+        Prev
+      </a>
+    <% } %>
+
+    <input class="pg-input" type="number" min="1" max="<%= totalPages %>"
+      value="<%= page %>"
+      onchange="goToPage(this.value)" />
+
+    <span>/ <%= totalPages %></span>
+
+    <% if (page < totalPages) { %>
+      <a class="pg-btn" href="?page=<%= page+1 %>&perPage=<%= perPage %><%= from ? '&from='+from : '' %><%= to ? '&to='+to : '' %><%= status!==undefined ? '&status='+status : '' %>">
+        Next
+      </a>
+    <% } %>
+
+  </div>
+
+</div>
+<% } %>
+
+
+
+
+
+
+</div>
+
+
+
+
+
+
+
+
+</div>
+</section>
+</div>
+
+
+
+
+
+
+<!-- IMAGE MODAL -->
+<div id="imageModal" style="
+  display:none;position:fixed;
+  top:0;left:0;width:100%;height:100%;
+  background:rgba(0,0,0,0.7);
+  justify-content:center;align-items:center;
+  z-index:9999;">
+  <span onclick="closeModal()" style="position:absolute;top:20px;right:30px;font-size:35px;color:#fff;cursor:pointer;">&times;</span>
+  <img id="modalImage" style="max-width:80%;max-height:80%;border-radius:10px;">
+</div>
+
+
+
+
+
+
+
+<script>
+function deleteServiceman(id){
+  swal({
+    title: "Are you sure?",
+    text: "This will permanently delete serviceman & documents!",
+    icon: "warning",
+    buttons: true,
+    dangerMode: true
+  }).then((ok)=>{
+    if(ok){
+      window.location.href = `/delete-serviceman/${id}`;
+    }
+  });
+}
+</script>
+
+
+
+
+
+
+
+
+
+
+<!-- SweetAlert CDN -->
+<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+
+<script>
+function openImageModal(src){
+  modalImage.src=src;
+  imageModal.style.display="flex";
+}
+function closeModal(){
+  imageModal.style.display="none";
+}
+
+tableSearch.addEventListener("keyup",function(){
+  let v=this.value.toLowerCase();
+  document.querySelectorAll("tbody tr").forEach(r=>{
+    r.style.display=r.innerText.toLowerCase().includes(v)?"":"none";
+  });
+});
+
+/* SAME AS USERS */
+function changeStatus(id,newStatus){
+  let txt=newStatus==1
+    ?"You want to activate this serviceman?"
+    :"You want to deactivate this serviceman?";
+
+  swal({
+    title:"Are you sure?",
+    text:txt,
+    icon:"warning",
+    buttons:true,
+    dangerMode:true
+  }).then(ok=>{
+    if(!ok){ location.reload(); return; }
+
+    if(newStatus==0){
+      swal({
+        title:"Reason Required",
+        text:"Please enter reason:",
+        content:"input",
+        buttons:true
+      }).then(reason=>{
+        if(!reason){
+          swal("Reason is required!",{icon:"error"});
+          location.reload(); return;
+        }
+        location.href=`/serviceman-status-update/${id}?status=0&reason=${encodeURIComponent(reason)}`;
+      });
+    } else {
+      location.href=`/serviceman-status-update/${id}?status=1`;
+    }
+  });
+}
+</script>
+
+
+
+
+
+<script>
+function changePerPage(val){
+  const url = new URL(window.location.href);
+  url.searchParams.set("perPage", val);
+  url.searchParams.set("page", 1);
+  window.location.href = url.toString();
+}
+
+function goToPage(p){
+  if(!p) return;
+  const url = new URL(window.location.href);
+  url.searchParams.set("page", p);
+  window.location.href = url.toString();
+}
+</script>

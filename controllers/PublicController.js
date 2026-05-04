@@ -1,4 +1,133 @@
 import db from "../config/database.js";
+<<<<<<< HEAD
+=======
+import fs from "fs";
+import path from "path";
+
+
+
+export const allUsers = async (req, res) => {
+  try {
+    const perPage = parseInt(req.query.perPage) || 8;
+    const page = parseInt(req.query.page) || 1;
+    const offset = (page - 1) * perPage;
+
+    const { from, to, status, search } = req.query;
+
+    let where = "WHERE 1 ";
+    let values = [];
+
+    // DATE FILTER
+    if (from && to) {
+      where += "AND DATE(created_at) BETWEEN ? AND ? ";
+      values.push(from, to);
+    }
+
+    // STATUS FILTER
+    if (status === "1") {
+      where += "AND status = 1 ";
+    } else if (status === "0") {
+      where += "AND status = 0 ";
+    }
+
+    // 🔍 NAME / PHONE SEARCH (FIXED)
+    if (search && search.trim() !== "") {
+      where += "AND (name LIKE ? OR phone LIKE ?) ";
+      const keyword = `%${search.trim()}%`;
+      values.push(keyword, keyword);
+    }
+
+    // COUNT
+    const [[{ total }]] = await db.query(
+      `SELECT COUNT(*) AS total FROM users ${where}`,
+      values
+    );
+
+    // DATA
+    const [rows] = await db.query(
+      `SELECT * FROM users
+       ${where}
+       ORDER BY id DESC
+       LIMIT ? OFFSET ?`,
+      [...values, perPage, offset]
+    );
+
+    return res.render("users/allUsers", {
+      title: "Users List",
+      users: rows,
+      total,
+      page,
+      perPage,
+      totalPages: Math.ceil(total / perPage),
+      from,
+      to,
+      status,
+      search,
+      isFiltered: Boolean(from || to || search), // ✅ better UX
+    });
+
+  } catch (err) {
+    console.error("allUsers error:", err);
+    return res.render("users/allUsers", {
+      title: "Users List",
+      users: [],
+      total: 0,
+      page: 1,
+      perPage: 8,
+      totalPages: 1,
+      error: "Something went wrong!"
+    });
+  }
+};
+
+
+
+
+export const updateUserStatus = async (req, res) => {
+  try {
+    const id = req.params.id;
+    const status = parseInt(req.query.status);
+    const reason = req.query.reason || null;
+
+    if (!id || isNaN(status)) {
+      req.session.error = "Invalid request.";
+      return res.redirect("/all-users");
+    }
+
+    let sql = "";
+    let params = [];
+
+    // Changing to Active
+    if (status === 1) {
+      sql = "UPDATE users SET status = ?, reason = NULL WHERE id = ?";
+      params = [1, id];
+
+      req.session.success = "User activated successfully.";
+    }
+
+    // Changing to Inactive
+    else if (status === 0) {
+      sql = "UPDATE users SET status = ?, reason = ? WHERE id = ?";
+      params = [0, reason, id];
+
+      req.session.success = "User deactivated successfully.";
+    }
+
+    await db.query(sql, params);
+
+    return res.redirect("/all-users");
+
+  } catch (err) {
+    console.log("Status Update Error:", err);
+    req.session.error = "Something went wrong while updating status.";
+    return res.redirect("/all-users");
+  }
+};
+
+
+
+
+>>>>>>> 49d7cd4 (initial push from server)
 
 export const jobApplication = async (req, res) => {
   try {
@@ -62,6 +191,7 @@ export const jobApplication = async (req, res) => {
 
 
 
+<<<<<<< HEAD
 export const allUsers = async (req, res) => {
   try {
     const perPage = parseInt(req.query.perPage) || 8;
@@ -169,6 +299,8 @@ export const updateUserStatus = async (req, res) => {
 
 
 
+=======
+>>>>>>> 49d7cd4 (initial push from server)
 export const allCategories = async (req, res) => {
   try {
     const perPage = parseInt(req.query.perPage) || 8;
@@ -245,16 +377,58 @@ export const updateCategoryStatus = async (req, res) => {
 
 
 
+<<<<<<< HEAD
 // 1) SUBCATEGORIES PAGE LOAD (EJS)
 export const subcategoriesPage = async (req, res) => {
   try {
     // all categories for dropdown
+=======
+// SUBCATEGORIES PAGE LOAD (EJS)
+export const subcategoriesPage = async (req, res) => {
+  try {
+    const statusCode = req.params.status; // 👈 route param (0 / 1 / undefined)
+
+    let where = "WHERE 1 ";
+    let values = [];
+
+    /*
+      ROUTE STATUS MAP
+      ----------------
+      /subcategories     -> all
+      /subcategories/1   -> active
+      /subcategories/0   -> inactive
+    */
+    if (statusCode === "1") {
+      where += "AND status = 1 ";
+    } else if (statusCode === "0") {
+      where += "AND status = 0 ";
+    }
+
+    /* ===============================
+       SUBCATEGORIES LIST
+    =============================== */
+    const [subcategories] = await db.query(
+      `
+      SELECT *
+      FROM subcategories
+      ${where}
+      ORDER BY id DESC
+      `,
+      values
+    );
+
+    /* ===============================
+       ACTIVE CATEGORIES (DROPDOWN)
+       dropdown hamesha active hi rahega
+    =============================== */
+>>>>>>> 49d7cd4 (initial push from server)
     const [categories] = await db.query(
       "SELECT id, name FROM categories WHERE status = 1 ORDER BY name ASC"
     );
 
     return res.render("categories/subcategories", {
       title: "Subcategories",
+<<<<<<< HEAD
       categories
     });
 
@@ -262,12 +436,69 @@ export const subcategoriesPage = async (req, res) => {
     console.log("PAGE LOAD ERROR:", err);
     return res.render("categories/subcategories", {
       title: "Subcategories",
+=======
+      subcategories,
+      categories,
+      activeTab: statusCode ?? "all" // 👈 UI highlight ke liye
+    });
+
+  } catch (err) {
+    console.log("SUBCATEGORY PAGE LOAD ERROR:", err);
+
+    return res.render("categories/subcategories", {
+      title: "Subcategories",
+      subcategories: [],
+>>>>>>> 49d7cd4 (initial push from server)
       categories: [],
       error: "Something went wrong!"
     });
   }
 };
 
+<<<<<<< HEAD
+=======
+export const updateSubcategory = async (req, res) => {
+  try {
+
+    const { id, category_id, name, old_image } = req.body;
+
+    let imagePath = old_image;
+
+    if (req.file) {
+
+      if (old_image) {
+        const oldPath = path.join("public", old_image);
+
+        if (fs.existsSync(oldPath)) {
+          fs.unlinkSync(oldPath);
+        }
+      }
+
+      imagePath = `subcategories/${req.file.filename}`;
+    }
+
+    await db.query(
+      `UPDATE subcategories
+       SET
+       category_id = IFNULL(NULLIF(?, ''), category_id),
+       name = IFNULL(NULLIF(?, ''), name),
+       image = IFNULL(NULLIF(?, ''), image)
+       WHERE id = ?`,
+      [category_id, name, imagePath, id]
+    );
+
+    req.session.success = "Subcategory updated successfully!";
+    return res.redirect("/subcategories");
+
+  } catch (err) {
+
+    console.log("SUBCATEGORY UPDATE ERROR:", err);
+
+    req.session.error = "Something went wrong!";
+    return res.redirect("/subcategories");
+  }
+};
+>>>>>>> 49d7cd4 (initial push from server)
 
 export const subcategoriesListAjax = async (req, res) => {
   try {
@@ -392,6 +623,56 @@ export const addCategory = async (req, res) => {
 
 
 
+<<<<<<< HEAD
+=======
+export const updateCategory = async (req, res) => {
+  try {
+
+    const { id, name, old_image } = req.body;
+
+    let imagePath = old_image;
+
+    // if new image uploaded
+    if (req.file) {
+
+      // old image delete
+      if (old_image) {
+        const oldPath = path.join("public", old_image);
+
+        if (fs.existsSync(oldPath)) {
+          fs.unlinkSync(oldPath);
+        }
+      }
+
+      // new image path
+      imagePath = `categories/${req.file.filename}`;
+    }
+
+    // UPDATE QUERY
+    await db.query(
+      `UPDATE categories
+       SET 
+       name = IFNULL(NULLIF(?, ''), name),
+       image = IFNULL(NULLIF(?, ''), image)
+       WHERE id = ?`,
+      [name, imagePath, id]
+    );
+
+    req.session.success = "Category updated successfully!";
+    return res.redirect("/categories");
+
+  } catch (err) {
+
+    console.log("CATEGORY UPDATE ERROR:", err);
+
+    req.session.error = "Something went wrong!";
+    return res.redirect("/categories");
+
+  }
+};
+
+
+>>>>>>> 49d7cd4 (initial push from server)
 export const addSubcategory = async (req, res) => {
   try {
     const { category_id, name } = req.body;
@@ -426,3 +707,216 @@ export const addSubcategory = async (req, res) => {
     return res.redirect("/subcategories");
   }
 };
+<<<<<<< HEAD
+=======
+
+
+
+
+
+
+
+export const allSettings = async (req, res) => {
+  try {
+    const [rows] = await db.query(
+      `SELECT id, name, admin_label, value, created_at, updated_at
+       FROM settings
+       ORDER BY id ASC`
+    );
+
+    return res.render("settings/allSettings", {
+      title: "Settings",
+      settings: rows
+    });
+
+  } catch (err) {
+    console.log("Settings Fetch Error:", err);
+
+    return res.render("settings/allSettings", {
+      title: "Settings",
+      settings: [],
+      error: "Something went wrong!"
+    });
+  }
+};
+
+
+
+
+export const updateSetting = async (req, res) => {
+  try {
+    let { id, value } = req.body;
+
+    if (!id || value === undefined) {
+      req.session.error = "Invalid setting data.";
+      return res.redirect("/settings");
+    }
+
+    // STEP 1: value ko string banao
+    value = String(value).trim();
+
+    /* ===============================
+       ID = 7 → EMAIL VALIDATION
+    ================================ */
+    if (Number(id) === 8) {
+      const emailRegex =
+        /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+      if (!emailRegex.test(value)) {
+        req.session.error = "Invalid email address.";
+        return res.redirect("/settings");
+      }
+
+      await db.query(
+        `
+        UPDATE settings
+        SET value = ?, updated_at = NOW()
+        WHERE id = ?
+        `,
+        [value, id]
+      );
+
+      req.session.success = "Email updated successfully.";
+      return res.redirect("/settings");
+    }
+
+    /* ===============================
+       ID = 8 → MOBILE VALIDATION
+    ================================ */
+    if (Number(id) === 9) {
+      const mobileRegex = /^[6-9][0-9]{9}$/; // India 10 digit mobile
+
+      if (!mobileRegex.test(value)) {
+        req.session.error = "Invalid mobile number. Enter 10 digit number.";
+        return res.redirect("/settings");
+      }
+
+      await db.query(
+        `
+        UPDATE settings
+        SET value = ?, updated_at = NOW()
+        WHERE id = ?
+        `,
+        [value, id]
+      );
+
+      req.session.success = "Mobile number updated successfully.";
+      return res.redirect("/settings");
+    }
+
+    /* ===============================
+       OTHER IDS → NUMERIC VALIDATION
+    ================================ */
+
+    // saare % hatao
+    value = value.replace(/%/g, "").trim();
+
+    if (value === "" || isNaN(value)) {
+      req.session.error = "Invalid numeric value.";
+      return res.redirect("/settings");
+    }
+
+    const finalValue = Number(value);
+
+    await db.query(
+      `
+      UPDATE settings
+      SET value = ?, updated_at = NOW()
+      WHERE id = ?
+      `,
+      [finalValue, id]
+    );
+
+    req.session.success = "Setting updated successfully.";
+    return res.redirect("/settings");
+
+  } catch (err) {
+    console.error("Settings Update Error:", err);
+    req.session.error = "Something went wrong while updating setting.";
+    return res.redirect("/settings");
+  }
+};
+
+
+
+
+
+
+
+export const invoiceSettings = async (req, res) => {
+  try {
+    const [rows] = await db.query(
+      "SELECT * FROM invoice_settings ORDER BY id DESC"
+    );
+
+    return res.render("invoice/adminviewinvoice", {
+      pageTitle: "Invoice Settings",
+      settings: rows,
+
+      // 👉 SESSION BASED MESSAGE
+      messageSuccess: req.session.success || null,
+      messageError: req.session.error || null
+    });
+
+  } catch (error) {
+    console.error("Invoice Settings Fetch Error:", error);
+
+    req.session.error = "Unable to fetch invoice settings";
+    res.redirect("/invoice-settings");
+  }
+};
+
+
+
+
+export const updateInvoiceSetting = async (req, res) => {
+  try {
+    const { id } = req.params;
+    let data = req.body;
+
+    console.log("🟡 UPDATE ID:", id);
+    console.log("🟢 BODY:", data);
+
+    if (!id) {
+      req.session.error = "Invalid request.";
+      return res.redirect("/invoice-settings");
+    }
+
+    // ID remove
+    delete data.id;
+
+    // 👉 BASIC VALIDATION LIKE YOUR SETTING
+    if (data.website_link) {
+      const urlRegex =
+        /^(https?:\/\/)[^\s$.?#].[^\s]*$/;
+
+      if (!urlRegex.test(data.website_link)) {
+        req.session.error = "Invalid website URL.";
+        return res.redirect("/invoice-settings");
+      }
+    }
+
+    await db.query(
+      `UPDATE invoice_settings SET ? WHERE id = ?`,
+      [data, id]
+    );
+
+    req.session.success = "Invoice setting updated successfully.";
+    return res.redirect("/invoice-settings");
+
+  } catch (error) {
+    console.error("❌ UPDATE ERROR:", error);
+
+    req.session.error =
+      "Something went wrong while updating invoice setting.";
+
+    return res.redirect("/invoice-settings");
+  }
+};
+
+
+
+
+
+
+>>>>>>> 49d7cd4 (initial push from server)

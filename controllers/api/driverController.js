@@ -3,6 +3,10 @@ import db from "../../config/database.js";
 /* =========================================================
    HELPER: BUILD UPDATE OBJECT (PARTIAL UPDATE SAFE)
 ========================================================= */
+<<<<<<< HEAD
+=======
+
+>>>>>>> 49d7cd4 (initial push from server)
 function buildUpdateObject(data, files, folder) {
   const update = {};
 
@@ -21,6 +25,10 @@ function buildUpdateObject(data, files, folder) {
   // 🔹 Personal Information
   setIfExists("platform_type", data.platform_type);
   setIfExists("vehicle_type", data.vehicle_type);
+<<<<<<< HEAD
+=======
+  setIfExists("vehicle_category", data.vehicle_category);
+>>>>>>> 49d7cd4 (initial push from server)
   setIfExists("vehicle_name", data.vehicle_name);
   setIfExists("first_name", data.first_name);
   setIfExists("last_name", data.last_name);
@@ -52,7 +60,11 @@ function buildUpdateObject(data, files, folder) {
   setFileIfExists("fitness_certificate");
   setFileIfExists("pollution_certificate");
   setFileIfExists("insurance_certificate");
+<<<<<<< HEAD
   setFileIfExists("police_certificate");
+=======
+  setFileIfExists("police_certificate"); 
+>>>>>>> 49d7cd4 (initial push from server)
 
   // 🔹 Vehicle Info
   setIfExists("vehicle_info_status", data.vehicle_info_status);
@@ -63,6 +75,14 @@ function buildUpdateObject(data, files, folder) {
   setIfExists("vehicle_color", data.vehicle_color);
   setIfExists("vehicle_plate_number", data.vehicle_plate_number);
   setIfExists("vehicle_production_year", data.vehicle_production_year);
+<<<<<<< HEAD
+=======
+
+  // ✅ NEW ADD (fuel type)
+  setIfExists("vehicle_fuel_type_id", data.vehicle_fuel_type_id);
+  setIfExists("vehicle_fuel_type_name", data.vehicle_fuel_type_name);
+
+>>>>>>> 49d7cd4 (initial push from server)
   setFileIfExists("vehicle_photo");
 
   // 🔹 Vehicle Documents
@@ -79,12 +99,20 @@ function buildUpdateObject(data, files, folder) {
 /* =========================================================
    CONTROLLER
 ========================================================= */
+<<<<<<< HEAD
+=======
+
+>>>>>>> 49d7cd4 (initial push from server)
 export const driverRegister = async (req, res) => {
   try {
     const data = req.body;
     const files = req.files || {};
     const folder = "DriverDocuments";
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> 49d7cd4 (initial push from server)
     const {
       id,
       personal_information_status,
@@ -112,6 +140,10 @@ export const driverRegister = async (req, res) => {
       if (!data.device_id) missing.push("device_id");
       if (!data.fcm_token) missing.push("fcm_token");
       if (!getFile("profile_photo")) missing.push("profile_photo");
+<<<<<<< HEAD
+=======
+
+>>>>>>> 49d7cd4 (initial push from server)
       if (missing.length) {
         return res.status(400).json({
           message: "Personal information fields are required",
@@ -119,12 +151,52 @@ export const driverRegister = async (req, res) => {
         });
       }
 
+<<<<<<< HEAD
       if (!id) {
+=======
+      const [[vehicleRow]] = await db.query(
+        "SELECT vehicle_category FROM vehicle WHERE id = ? LIMIT 1",
+        [data.vehicle_type]
+      );
+
+      if (!vehicleRow) {
+        return res.status(400).json({
+          message: "Invalid vehicle_type"
+        });
+      }
+
+      data.vehicle_category = vehicleRow.vehicle_category;
+
+      if (!id) {
+        const [[existing]] = await db.query(
+          "SELECT id FROM driver_registration WHERE mobile = ? LIMIT 1",
+          [data.mobile]
+        );
+
+        if (existing) {
+          await db.query(
+            "UPDATE driver_registration SET ? WHERE id = ?",
+            [buildUpdateObject(data, files, folder), existing.id]
+          );
+
+          return res.status(200).json({
+            message: "Personal information saved successfully",
+            platform_type: 2,
+            id: existing.id,
+            vehicle_category: data.vehicle_category
+          });
+        }
+
+>>>>>>> 49d7cd4 (initial push from server)
         const [result] = await db.query(
           `INSERT INTO driver_registration
            (
              platform_type,
              vehicle_type,
+<<<<<<< HEAD
+=======
+             vehicle_category,
+>>>>>>> 49d7cd4 (initial push from server)
              vehicle_name,
              date_of_birth,
              first_name,
@@ -136,10 +208,18 @@ export const driverRegister = async (req, res) => {
              personal_information_status,
              created_at
            )
+<<<<<<< HEAD
            VALUES (?,?,?,?,?,?,?,?,?,?,1,NOW())`,
           [
             data.platform_type,
             data.vehicle_type,
+=======
+           VALUES (?,?,?,?,?,?,?,?,?,?,?,1,NOW())`,
+          [
+            data.platform_type,
+            data.vehicle_type,
+            data.vehicle_category,
+>>>>>>> 49d7cd4 (initial push from server)
             data.vehicle_name,
             data.date_of_birth,
             data.first_name,
@@ -154,6 +234,7 @@ export const driverRegister = async (req, res) => {
         return res.status(200).json({
           message: "Personal information saved successfully",
           platform_type: 2,
+<<<<<<< HEAD
           id: result.insertId
         });
       }
@@ -224,12 +305,17 @@ export const driverRegister = async (req, res) => {
         return res.status(400).json({
           message: "Vehicle information fields are required",
           missing_fields: missing
+=======
+          id: result.insertId,
+          vehicle_category: data.vehicle_category
+>>>>>>> 49d7cd4 (initial push from server)
         });
       }
     }
 
     /* ================= VEHICLE DOCUMENTS ================= */
     if (vehicle_documents_status == 1) {
+<<<<<<< HEAD
       const missing = [];
       if (!getFile("vehicle_permit_part_a")) missing.push("vehicle_permit_part_a");
       if (!getFile("vehicle_permit_part_b")) missing.push("vehicle_permit_part_b");
@@ -245,6 +331,31 @@ export const driverRegister = async (req, res) => {
     }
 
     /* ================= UPDATE (STEP 2–6) ================= */
+=======
+
+      const [[driverRow]] = await db.query(
+        "SELECT vehicle_category FROM driver_registration WHERE id = ? LIMIT 1",
+        [id]
+      );
+
+      if (driverRow?.vehicle_category != 2) {
+        const missing = [];
+        if (!getFile("vehicle_permit_part_a")) missing.push("vehicle_permit_part_a");
+        if (!getFile("vehicle_permit_part_b")) missing.push("vehicle_permit_part_b");
+        if (!getFile("vehicle_registration_front"))
+          missing.push("vehicle_registration_front");
+
+        if (missing.length) {
+          return res.status(400).json({
+            message: "Vehicle documents fields are required",
+            missing_fields: missing
+          });
+        }
+      }
+    }
+
+    /* ================= UPDATE ================= */
+>>>>>>> 49d7cd4 (initial push from server)
     if (!id) {
       return res.status(400).json({ message: "id is required for this step" });
     }
@@ -254,6 +365,14 @@ export const driverRegister = async (req, res) => {
       [buildUpdateObject(data, files, folder), id]
     );
 
+<<<<<<< HEAD
+=======
+    const [[finalRow]] = await db.query(
+      "SELECT vehicle_category FROM driver_registration WHERE id = ?",
+      [id]
+    );
+
+>>>>>>> 49d7cd4 (initial push from server)
     let message = "Step submitted successfully";
     if (driver_licence_status == 1)
       message = "Driver licence details submitted successfully";
@@ -266,7 +385,15 @@ export const driverRegister = async (req, res) => {
     else if (vehicle_documents_status == 1)
       message = "Vehicle documents submitted successfully";
 
+<<<<<<< HEAD
     return res.status(200).json({ message, id });
+=======
+    return res.status(200).json({
+      message,
+      id,
+      vehicle_category: finalRow?.vehicle_category
+    });
+>>>>>>> 49d7cd4 (initial push from server)
 
   } catch (error) {
     console.log("driverRegister Error:", error);
@@ -280,10 +407,16 @@ export const driverRegister = async (req, res) => {
 
 
 
+<<<<<<< HEAD
 
 export const getDriverProfile = async (req, res) => {
   try {
     const { id, current_latitude, current_longitude } = req.body;
+=======
+export const getDriverProfile = async (req, res) => {
+  try {
+    const { id, current_latitude, current_longitude, fcm_token } = req.body;
+>>>>>>> 49d7cd4 (initial push from server)
 
     // 🔹 BASIC VALIDATION
     const missing = [];
@@ -309,6 +442,19 @@ export const getDriverProfile = async (req, res) => {
       [current_latitude, current_longitude, id]
     );
 
+<<<<<<< HEAD
+=======
+    // 🔹 OPTIONAL FCM TOKEN UPDATE (NEW LOGIC ONLY)
+    if (fcm_token) {
+      await db.query(
+        `UPDATE driver_registration
+         SET fcm_token = ?, updated_at = NOW()
+         WHERE id = ?`,
+        [fcm_token, id]
+      );
+    }
+
+>>>>>>> 49d7cd4 (initial push from server)
     // 🔹 FETCH PROFILE
     const [rows] = await db.query(
       `SELECT
@@ -325,6 +471,11 @@ export const getDriverProfile = async (req, res) => {
         profile_photo,
         device_id,
         fcm_token,
+<<<<<<< HEAD
+=======
+        online_status,
+        vehicle_category,
+>>>>>>> 49d7cd4 (initial push from server)
 
         personal_information_status,
         personal_information_reject_reason,
@@ -355,6 +506,10 @@ export const getDriverProfile = async (req, res) => {
         vehicle_info_status,
         vehicle_info_reject_reason,
         brand_id,
+<<<<<<< HEAD
+=======
+        vehicle_type as vehicle_id,
+>>>>>>> 49d7cd4 (initial push from server)
         brand_name,
         model_id,
         model_name,
@@ -369,6 +524,12 @@ export const getDriverProfile = async (req, res) => {
         vehicle_permit_part_b,
         vehicle_registration_front,
         vehicle_registration_back,
+<<<<<<< HEAD
+=======
+        
+        vehicle_fuel_type_id,
+        vehicle_fuel_type_name,
+>>>>>>> 49d7cd4 (initial push from server)
 
         current_latitude,
         current_longitude,
@@ -386,7 +547,10 @@ export const getDriverProfile = async (req, res) => {
       });
     }
 
+<<<<<<< HEAD
     // ✅ EXACT SAME STYLE AS YOUR EXAMPLE
+=======
+>>>>>>> 49d7cd4 (initial push from server)
     const data = {
       ...rows[0],
 
@@ -484,7 +648,10 @@ export const getDriverProfile = async (req, res) => {
 
 
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 49d7cd4 (initial push from server)
 export const getBrandByVehicle = async (req, res) => {
   try {
     const { vehicle_id } = req.body;

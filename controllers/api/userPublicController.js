@@ -7,6 +7,7 @@ let Current_time;
 
 
 export const jobRequestValidationRules = [
+<<<<<<< HEAD
 
   body("user_id")
     .notEmpty().withMessage("user_id is required")
@@ -18,11 +19,20 @@ export const jobRequestValidationRules = [
     .custom(value => {
       if (![1, 2].includes(Number(value))) {
         throw new Error("usertype must be either 1 or 2.");
+=======
+  body("usertype")
+    .notEmpty().withMessage("User type is required")
+    .isInt().withMessage("User type must be a number")
+    .custom(value => {
+      if (![1, 2].includes(Number(value))) {
+        throw new Error("User type must be either 1 or 2");
+>>>>>>> 49d7cd4 (initial push from server)
       }
       return true;
     }),
 
   body("city")
+<<<<<<< HEAD
     .notEmpty().withMessage("city is required"),
 
   body("first_name")
@@ -50,18 +60,55 @@ export const jobRequestValidationRules = [
   body("skill_type").custom((value, { req }) => {
     if (!req.files || !req.files["profile_photo"]) {
       throw new Error("Profile photo is required.");
+=======
+    .notEmpty().withMessage("City is required"),
+
+  body("first_name")
+    .notEmpty().withMessage("First name is required"),
+
+  body("last_name")
+    .notEmpty().withMessage("Last name is required"),
+
+  body("email")
+    .notEmpty().withMessage("Email is required")
+    .isEmail().withMessage("Please enter a valid email address"),
+
+  body("mobile")
+    .notEmpty().withMessage("Mobile number is required")
+    .matches(/^[0-9]{10,12}$/).withMessage("Please enter a valid mobile number"),
+
+  body("designation")
+    .notEmpty().withMessage("Designation is required"),
+
+  body("skill_type")
+    .notEmpty().withMessage("Skill type is required")
+    .isInt().withMessage("Skill type must be a number"),
+
+  // Profile photo required
+  body("skill_type").custom((value, { req }) => {
+    if (!req.files || !req.files["profile_photo"]) {
+      throw new Error("Profile photo is required");
+>>>>>>> 49d7cd4 (initial push from server)
     }
     return true;
   }),
 
+<<<<<<< HEAD
   // Special: multiple file rule
+=======
+  // Work proof rule
+>>>>>>> 49d7cd4 (initial push from server)
   body("skill_type").custom((value, { req }) => {
     const type = Number(value);
 
     if (type === 1) return true;
 
     if (!req.files || !req.files["designation_file"]) {
+<<<<<<< HEAD
       throw new Error("Please upload your work proof unless you don’t know any skill.");
+=======
+      throw new Error("Please upload your work proof if you have a skill");
+>>>>>>> 49d7cd4 (initial push from server)
     }
 
     return true;
@@ -70,7 +117,11 @@ export const jobRequestValidationRules = [
 
 export const JobRequest = [
   ...jobRequestValidationRules,
+<<<<<<< HEAD
   
+=======
+
+>>>>>>> 49d7cd4 (initial push from server)
   async (req, res) => {
     const errors = validationResult(req);
 
@@ -99,13 +150,26 @@ export const JobRequest = [
 
       const folderName = "JobFiles";
 
+<<<<<<< HEAD
       // Save profile photo path
       let profile_photo = null;
       if (req.files["profile_photo"]) {
+=======
+      // ✅ user_id optional
+      const finalUserId = user_id ? Number(user_id) : null;
+
+      /* =========================
+         FILE HANDLING
+      ========================= */
+
+      let profile_photo = null;
+      if (req.files?.["profile_photo"]) {
+>>>>>>> 49d7cd4 (initial push from server)
         profile_photo =
           `${folderName}/` + req.files["profile_photo"][0].filename;
       }
 
+<<<<<<< HEAD
       let police_certificate = null;
       if (req.files["police_verification_certificate"]) {
         police_certificate =
@@ -115,11 +179,16 @@ export const JobRequest = [
 
       let designationFiles = [];
       if (req.files["designation_file"]) {
+=======
+      let designationFiles = [];
+      if (req.files?.["designation_file"]) {
+>>>>>>> 49d7cd4 (initial push from server)
         designationFiles = req.files["designation_file"].map(file => {
           return `${folderName}/` + file.filename;
         });
       }
 
+<<<<<<< HEAD
       const sql = `
         INSERT INTO job_request 
         (user_id, usertype, city, first_name, last_name, email, mobile, designation, profile_photo, police_verification_certificate, skill_type, designation_file, created_at, status)
@@ -128,6 +197,20 @@ export const JobRequest = [
 
       const [result] = await db.query(sql, [
         user_id,
+=======
+      /* =========================
+         INSERT QUERY
+      ========================= */
+
+      const sql = `
+        INSERT INTO job_request 
+        (user_id, usertype, city, first_name, last_name, email, mobile, designation, profile_photo, skill_type, designation_file, created_at, status)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
+      `;
+
+      const [result] = await db.query(sql, [
+        finalUserId,
+>>>>>>> 49d7cd4 (initial push from server)
         usertype,
         city,
         first_name,
@@ -136,7 +219,10 @@ export const JobRequest = [
         mobile,
         designation,
         profile_photo,
+<<<<<<< HEAD
         police_certificate,
+=======
+>>>>>>> 49d7cd4 (initial push from server)
         skill_type,
         JSON.stringify(designationFiles),
         req.Current_time
@@ -161,9 +247,12 @@ export const JobRequest = [
 ];
 
 
+<<<<<<< HEAD
 
 
 
+=======
+>>>>>>> 49d7cd4 (initial push from server)
 export async function loginPolicy(req, res) {
   const policyId = req.params.id;
   if (!policyId) {
@@ -422,6 +511,10 @@ export const userRegister = [
 
 export async function userProfile(req, res) {
   const userId = req.params.id;
+<<<<<<< HEAD
+=======
+  const fcm_token = req.query.fcm_token; // optional
+>>>>>>> 49d7cd4 (initial push from server)
 
   if (!userId) {
     return res.status(400).json({
@@ -433,6 +526,18 @@ export async function userProfile(req, res) {
   }
 
   try {
+<<<<<<< HEAD
+=======
+
+    // 🔹 Optional FCM update (no breaking change)
+    if (fcm_token) {
+      await db.query(
+        `UPDATE users SET fcm_token = ?, updated_at = NOW() WHERE id = ?`,
+        [fcm_token, userId]
+      );
+    }
+
+>>>>>>> 49d7cd4 (initial push from server)
     const sql = `
       SELECT 
         id,
@@ -490,7 +595,10 @@ export async function userProfile(req, res) {
 
 
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 49d7cd4 (initial push from server)
 export async function profileEdit(req, res) {
 
   const body = req.body || {};
@@ -515,6 +623,7 @@ export async function profileEdit(req, res) {
   }
 
  
+<<<<<<< HEAD
   if (email !== undefined) {
 
     if (email.trim() === "") {
@@ -536,6 +645,9 @@ export async function profileEdit(req, res) {
       });
     }
   }
+=======
+  
+>>>>>>> 49d7cd4 (initial push from server)
 
   // ================================
   //   NAME VALIDATION
@@ -559,6 +671,7 @@ export async function profileEdit(req, res) {
         errors: null
       });
     }
+<<<<<<< HEAD
 
     if (name.length < 3) {
       return res.status(400).json({
@@ -568,11 +681,14 @@ export async function profileEdit(req, res) {
         errors: null
       });
     }
+=======
+>>>>>>> 49d7cd4 (initial push from server)
   }
 
   // ================================
   //   LAST_NAME VALIDATION
   // ================================
+<<<<<<< HEAD
   if (last_name !== undefined) {
 
     if (last_name.trim() === "") {
@@ -602,12 +718,16 @@ export async function profileEdit(req, res) {
       });
     }
   }
+=======
+
+>>>>>>> 49d7cd4 (initial push from server)
 
   // ================================
   //   CITY VALIDATION
   // ================================
   if (city !== undefined) {
 
+<<<<<<< HEAD
     if (city.trim() === "") {
       return res.status(400).json({
         success: false,
@@ -616,6 +736,9 @@ export async function profileEdit(req, res) {
         errors: null
       });
     }
+=======
+    
+>>>>>>> 49d7cd4 (initial push from server)
 
     if (!/^[A-Za-z ]+$/.test(city)) {
       return res.status(400).json({
@@ -762,6 +885,7 @@ function timeAgo(dateString) {
 
 
 
+<<<<<<< HEAD
 export async function getNotificationByType(req, res) {
   try {
     const type = Number(req.params.type);
@@ -771,6 +895,29 @@ export async function getNotificationByType(req, res) {
         success: false,
         message: "Invalid type. Allowed: 1 = Offer, 2 = Announcement",
         data: null
+=======
+
+
+
+
+export async function getNotificationByType(req, res) {
+  try {
+    const role_type = Number(req.params.type);      
+    const entity_id = Number(req.query.entity_id); 
+
+    // 🔎 validations
+    if (![1, 2, 3, 4].includes(role_type)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid type. Allowed: 1=User Cab, 2=User Service, 3=Driver, 4=Serviceman"
+      });
+    }
+
+    if (!entity_id) {
+      return res.status(400).json({
+        success: false,
+        message: "entity_id is required"
+>>>>>>> 49d7cd4 (initial push from server)
       });
     }
 
@@ -780,6 +927,7 @@ export async function getNotificationByType(req, res) {
         title,
         text,
         created_at
+<<<<<<< HEAD
       FROM user_notification
       WHERE type = ?
       ORDER BY id DESC
@@ -789,6 +937,21 @@ export async function getNotificationByType(req, res) {
 
     // 👇 final output without created_at but with time_ago
     const data = rows.map((item) => ({
+=======
+      FROM notifications
+      WHERE 
+        entity_type = 5
+        OR (entity_type = ? AND entity_id = ?)
+      ORDER BY id DESC
+    `;
+
+    const [rows] = await db.query(sql, [
+      role_type,
+      entity_id
+    ]);
+
+    const data = rows.map(item => ({
+>>>>>>> 49d7cd4 (initial push from server)
       id: item.id,
       title: item.title,
       text: item.text,
@@ -798,11 +961,19 @@ export async function getNotificationByType(req, res) {
     return res.status(200).json({
       success: true,
       message: "Notifications fetched successfully",
+<<<<<<< HEAD
       data: data
     });
 
   } catch (error) {
     console.log("Notification Error:", error);
+=======
+      data
+    });
+
+  } catch (error) {
+    console.error("Notification Error:", error);
+>>>>>>> 49d7cd4 (initial push from server)
     return res.status(500).json({
       success: false,
       message: "Internal Server Error",
@@ -812,6 +983,14 @@ export async function getNotificationByType(req, res) {
 }
 
 
+<<<<<<< HEAD
+=======
+
+
+
+
+
+>>>>>>> 49d7cd4 (initial push from server)
 export async function userBanner(req, res) {
   try {
     const BASE_URL = process.env.BASE_URL || "";
@@ -1529,3 +1708,138 @@ export const deleteSavedAddressByType = async (req, res) => {
   }
 };
 
+<<<<<<< HEAD
+=======
+
+
+
+
+export const getPolicyByType = async (req, res) => {
+  try {
+    const type = Number(req.params.type);
+
+    // ✅ validation
+    if (![1,2,3,4,5,6,7].includes(type)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid policy type. Allowed: 1=Privacy Policy, 2=Terms & Conditions"
+      });
+    }
+
+    const [rows] = await db.query(
+      `
+      SELECT 
+        id,
+        name,
+        type,
+        description,
+        created_at,
+        updated_at
+      FROM policies
+      WHERE type = ?
+      LIMIT 1
+      `,
+      [type]
+    );
+
+    if (!rows.length) {
+      return res.status(404).json({
+        success: false,
+        message: "Policy not found"
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Policy fetched successfully",
+      data: rows[0]
+    });
+
+  } catch (error) {
+    console.error("Get Policy Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message
+    });
+  }
+};
+
+
+
+export const letter_hours = async (req, res) => {
+  try {
+    const [rows] = await db.query(`
+      SELECT value
+      FROM settings
+      WHERE id = 10
+      LIMIT 1
+    `);
+
+    if (!rows.length) {
+      return res.status(404).json({
+        success: false
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      letter_hours: rows[0].value
+    });
+
+  } catch (error) {
+    console.error("Letter Hours API Error:", error);
+    return res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+};
+
+export const getHelpSupport = async (req, res) => {
+  try {
+    const [rows] = await db.query(
+      `
+      SELECT id, value
+      FROM settings
+      WHERE id IN (8, 9)
+      `
+    );
+
+    if (!rows.length) {
+      return res.status(404).json({
+        success: false,
+        message: "Support details not found"
+      });
+    }
+
+    const data = {
+      email: null,
+      support_mobile: null
+    };
+
+    rows.forEach(row => {
+      if (row.id === 8) {
+        data.email = row.value;
+      }
+      if (row.id === 9) {
+        data.support_mobile = row.value;
+      }
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Help & support details fetched successfully",
+      data
+    });
+
+  } catch (error) {
+    console.error("Help Support API Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+      error: error.message
+    });
+  }
+};
+>>>>>>> 49d7cd4 (initial push from server)

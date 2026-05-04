@@ -1,0 +1,107 @@
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<div class="main-content">
+
+  <div class="col-12 mb-3">
+    <a href="/create_zone?tab=list" class="btn btn-secondary">
+      ← Back to Zone List
+    </a>
+  </div>
+
+  <div class="col-12">
+    <div class="card p-3">
+      <h4>Edit Zone</h4>
+
+      <form method="POST" action="/zones/update/<%= editZone.id %>">
+
+        <!-- Zone Name -->
+        <div class="mb-3">
+          <label class="fw-bold">Zone Name</label>
+          <input type="text"
+                 name="zone_name"
+                 class="form-control"
+                 required
+                 value="<%= editZone.zone_name %>">
+        </div>
+
+        <!-- Map -->
+        <div id="map"
+             style="width:100%; height:400px; border-radius:10px;">
+        </div>
+
+        <!-- Hidden Coords -->
+        <input type="hidden"
+               id="coords"
+               name="zone_coordinates"
+               value='<%= editZone.coordinates %>'>
+
+        <!-- Buttons -->
+        <button type="submit" class="btn btn-success mt-3">
+          Update Zone
+        </button>
+
+        <a href="/create_zone?tab=list"
+           class="btn btn-secondary mt-3 ms-2">
+          Cancel
+        </a>
+
+      </form>
+    </div>
+  </div>
+
+</div>
+
+<!-- 🔹 MAP + POLYGON EDIT SCRIPT -->
+<script>
+let polygon = null;
+let editCoords = <%- editZone.coordinates %>;
+
+function initMap() {
+
+  const map = new google.maps.Map(document.getElementById("map"), {
+    zoom: 12,
+    center: { lat: 26.8467, lng: 80.9462 }
+  });
+
+  // Draw existing polygon
+  polygon = new google.maps.Polygon({
+    paths: editCoords,
+    editable: true,
+    map: map
+  });
+
+  // Fit map to polygon
+  const bounds = new google.maps.LatLngBounds();
+  editCoords.forEach(p => bounds.extend(p));
+  map.fitBounds(bounds);
+
+  // Update coords on edit
+  google.maps.event.addListener(
+    polygon.getPath(),
+    'set_at',
+    saveCoords
+  );
+  google.maps.event.addListener(
+    polygon.getPath(),
+    'insert_at',
+    saveCoords
+  );
+
+  saveCoords();
+
+  function saveCoords() {
+    const coordinates = polygon.getPath().getArray().map(p => ({
+      lat: p.lat(),
+      lng: p.lng()
+    }));
+    document.getElementById("coords").value =
+      JSON.stringify(coordinates);
+  }
+}
+</script>
+
+
+<script async
+  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCm7ErTUTWLiTIT9KvG9bziUokOEt5wCBI&libraries=places&callback=initMap">
+</script>

@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8" />
+
+<!-- Bootstrap CSS -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+
+<!-- Bootstrap Icons -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet"/>
+
+<style>
+  /* ========== PAGE BREAK STYLES ========== */
+  .page-break {
+    page-break-after: always;
+    break-after: page;
+  }
+  
+  .no-break-inside {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  
+  body {
+    font-family: Arial, Helvetica, sans-serif;
+    background: #fff;
+    padding: 0;
+    margin: 0;
+    font-size: 13px;
+  }
+
+  .invoice {
+    background: #fff;
+    width: 100%;
+    margin: 0;
+    padding: 24px;
+    box-sizing: border-box;
+  }
+
+  @media print {
+    body {
+      background: #fff !important;
+      padding: 0 !important;
+    }
+    
+    .invoice {
+      padding: 24px !important;
+      margin: 0 !important;
+      max-width: 100% !important;
+    }
+    
+    .page-break {
+      padding-top: 20px;
+      border-top: 1px solid #ddd;
+    }
+  }
+
+  .section-title {
+    font-weight: 600;
+    margin: 22px 0 10px;
+  }
+
+  .row-item {
+    border-bottom: 1px solid #e5e5e5;
+    padding: 8px 0;
+  }
+
+  .total-box {
+    background: #fafafa;
+    padding: 18px 0;
+    margin: 20px -24px;
+    text-align: center;
+  }
+
+  .total-box .amount {
+    font-size: 28px;
+    font-weight: bold;
+  }
+
+  .bill-box {
+    background: #fafafa;
+    padding: 16px;
+    border-radius: 6px;
+  }
+
+  .bill-total {
+    font-size: 16px;
+    font-weight: bold;
+  }
+
+  .bill-note {
+    font-size: 11px;
+    color: #777;
+  }
+
+  .footer {
+    text-align: center;
+    font-size: 11px;
+    color: #777;
+    margin-top: 30px;
+  }
+
+  .payment-summary h5 {
+    font-size: 25px;
+    font-weight: 600;
+  }
+
+  .payment-summary span {
+    font-size: 18px;
+  }
+
+  .payment-summary img {
+    max-height: 40px;
+  }
+</style>
+</head>
+
+<body>
+
+<div class="invoice">
+
+<!-- ================= PAGE 1 ================= -->
+<div class="page-1 no-break-inside">
+
+<!-- PAYMENT SUMMARY -->
+<div class="row align-items-start mb-3 payment-summary">
+  <div class="col-sm-10">
+    <h5 class="fw-bold mb-3">Payment Summary</h5>
+  </div>
+  <div class="col-sm-2 d-flex justify-content-end">
+    <% if (companyLogo) { %>
+      <img src="<%= companyLogo %>" />
+    <% } %>
+  </div>
+  <div class="col-sm-12">
+    <div class="d-flex justify-content-between">
+      <span>Ride ID</span>
+      <span class="fw-semibold">2026RNO<%= ride.id %></span>
+    </div>
+    <div class="d-flex justify-content-between mt-1">
+      <span>Time of Ride</span>
+      <span><%= new Date(ride.created_at).toLocaleString() %></span>
+    </div>
+  </div>
+</div>
+
+<!-- TOTAL -->
+<div class="total-box">
+  <div>Total</div>
+  <div class="amount">₹ <%= Number(ride.final_amount).toFixed(2) %></div>
+</div>
+
+<!-- RIDE DETAILS -->
+<div class="mt-3" style="background:#fafafa; padding:5px 18px; border-radius:6px;">
+  <div class="section-title mb-2">Ride Details</div>
+  <div class="d-flex justify-content-between py-1">
+    <span style="color:#666;"><i class="bi bi-geo-fill text-success"></i> Pickup Location</span>
+    <span style="text-align:right; max-width:60%;"><%= ride.pickup_location %></span>
+  </div>
+  <div class="d-flex justify-content-between py-1">
+    <span style="color:#666;"><i class="bi bi-geo-fill text-danger"></i> Drop Location</span>
+    <span style="text-align:right; max-width:60%;"><%= ride.drop_location %></span>
+  </div>
+  <div class="d-flex justify-content-between py-1">
+    <span style="color:#666;">Distance</span>
+    <span style="font-weight:600;"><%= ride.distance_km %> km</span>
+  </div>
+</div>
+
+<!-- BILL DETAILS -->
+<%
+  const totalAmount = Number(ride.final_amount);
+  const bookingFee = Number(invoice.gst_percentage || 0);
+  const rideChargeForBill = totalAmount - bookingFee;
+%>
+
+<div class="section-title">Bill Details</div>
+<div class="bill-box">
+  <div style="font-size:16px; font-weight:700;">Bill Details</div>
+  <div class="d-flex justify-content-between mb-2 mt-1">
+    <span>Ride Charge</span>
+    <span>₹ <%= rideChargeForBill.toFixed(2) %></span>
+  </div>
+  <div class="d-flex justify-content-between mb-2">
+    <span>Booking Fees & Convenience Charges</span>
+    <span>₹ <%= bookingFee.toFixed(2) %></span>
+  </div>
+  <hr/>
+  <div class="d-flex justify-content-between bill-total">
+    <span>Total Amount</span>
+    <span>₹ <%= totalAmount.toFixed(2) %></span>
+  </div>
+  <div class="bill-note">(Inclusive of Taxes)</div>
+</div>
+
+<!-- PAYMENT METHOD -->
+<div class="bill-box mt-3">
+  <%
+  let payText = "Online";
+  if (ride.pay_mode == 1) payText = "Online";
+  else if (ride.pay_mode == 2) payText = "Offline";
+  else if (ride.pay_mode == 3) payText = "Wallet";
+  %>
+  <div class="d-flex justify-content-between bill-total">
+    <span>You Paid Using (<%= payText %>)</span>
+    <span>₹ <%= totalAmount.toFixed(2) %></span>
+  </div>
+</div>
+
+</div> <!-- End Page 1 -->
+
+<!-- ================= PAGE BREAK ================= -->
+<div class="page-break"></div>
+
+<!-- ================= PAGE 2 ================= -->
+<div class="page-2 no-break-inside">
+
+<div class="mt-3" style="background:#fafafa; padding:14px 18px; border-radius:6px;">
+  <!-- HEADER -->
+  <div class="d-flex justify-content-between align-items-start mb-3">
+    <div>
+      <div style="font-size:16px; font-weight:700;">Tax Invoice</div>
+      <div style="font-size:12px; color:#9e9e9e;">2026RNO<%= ride.id %></div>
+    </div>
+    <% if (companyLogo) { %>
+      <img src="<%= companyLogo %>" style="height:26px;">
+    <% } %>
+  </div>
+
+  <% const row = (label, value, bold=false) => { %>
+    <div class="d-flex justify-content-between py-1">
+      <span style="color:#666; font-size:13px;"><%= label %></span>
+      <span style="font-size:13px; text-align:right; max-width:60%; <%= bold ? 'font-weight:600;' : '' %>">
+        <%= value %>
+      </span>
+    </div>
+  <% } %>
+
+  <%= row('Invoice No.', `2026RNO${ride.id}`, true) %>
+  <%= row('Invoice Date', new Date(ride.created_at).toLocaleString('en-IN', {
+      day:'2-digit',
+      month:'short',
+      year:'numeric',
+      hour:'numeric',
+      minute:'2-digit',
+      hour12:true
+    }), true) %>
+  <%= row('State', state, true) %>
+
+  <div class="d-flex justify-content-between py-1">
+    <span style="color:#666; font-size:13px;">Tax Category</span>
+    <span style="font-size:13px; text-align:right; max-width:60%;">
+      Other local transportation services of passengers n.e.c. (996419)
+    </span>
+  </div>
+
+  <div style="border-bottom:1px solid #eaeaea; margin:8px 0;"></div>
+
+  <%= row('Place of Supply', state, true) %>
+  <%= row('GST Number', invoice.gst_number || 'N/A', true) %>
+  <%= row('Vehicle Number', ride.vehicle_plate_number, true) %>
+  <%= row('Captain Name', ride.driver_name, true) %>
+  
+  <div style="border-bottom:1px solid #eaeaea; margin:8px 0;"></div>
+  
+  <%= row('Customer Name', ride.user_name, true) %>
+
+  <div class="mt-2">
+    <div style="color:#666; font-size:13px;">Customer Pick Up Address</div>
+    <div style="font-size:12px; color:#9e9e9e; margin-top:2px; max-width:70%;">
+      <%= ride.pickup_location %>
+    </div>
+  </div>
+</div>
+
+<!-- GST CALCULATION SECTION -->
+<%
+  const total = Number(ride.final_amount || 0);
+  const CGST_PER = Number(invoice.cgst_percentage || 0);
+  const SGST_PER = Number(invoice.sgst_percentage || 0);
+  const IGST_PER = Number(invoice.igst_percentage || 0);
+  const TOTAL_GST_PER = CGST_PER + SGST_PER + IGST_PER;
+  const base = Number((total * 100 / (100 + TOTAL_GST_PER)).toFixed(2));
+  const cgstAmt = Number((base * CGST_PER / 100).toFixed(2));
+  const sgstAmt = Number((base * SGST_PER / 100).toFixed(2));
+  const igstAmt = Number((base * IGST_PER / 100).toFixed(2));
+  const finalRideCharge = Number((base + cgstAmt + sgstAmt + igstAmt).toFixed(2));
+%>
+
+<div class="mt-3" style="background:#fafafa; padding:14px 18px; border-radius:6px;">
+  <div style="font-size:16px; font-weight:700;" class="mb-2">Bill Details</div>
+  <div class="d-flex justify-content-between py-1">
+    <span>Captain Fee</span>
+    <span>₹ <%= base.toFixed(2) %></span>
+  </div>
+  <div class="d-flex justify-content-between py-1">
+    <span>CGST (<%= CGST_PER %>%)</span>
+    <span>₹ <%= cgstAmt.toFixed(2) %></span>
+  </div>
+  <div class="d-flex justify-content-between py-1">
+    <span>SGST (<%= SGST_PER %>%)</span>
+    <span>₹ <%= sgstAmt.toFixed(2) %></span>
+  </div>
+  <div class="d-flex justify-content-between py-1">
+    <span>IGST (<%= IGST_PER %>%)</span>
+    <span>₹ <%= igstAmt.toFixed(2) %></span>
+  </div>
+  <hr/>
+  <div class="d-flex justify-content-between py-1">
+    <span style="font-weight:700;">Ride Charge</span>
+    <span style="font-weight:700;">₹ <%= finalRideCharge.toFixed(2) %></span>
+  </div>
+  <div style="font-size:11px; color:#777;">(Inclusive of Taxes)</div>
+</div>
+
+<!-- DISCLAIMER -->
+<div class="text-center mt-3"
+     style="font-size:12px; color:#999; line-height:1.4; max-width:90%; margin:0 auto;">
+  <div style="margin-bottom:4px;">
+    This document is issued by Transport Service Provider and not by <%= invoice.company_name %>.
+  </div>
+  <div>
+    <%= invoice.company_name %> acts only as an Electronic Commerce Operator for the transportation services.
+  </div>
+</div>
+
+</div> <!-- End Page 2 -->
+
+<!-- ================= PAGE BREAK ================= -->
+<div class="page-break"></div>
+
+<!-- ================= PAGE 3 ================= -->
+<div class="page-3 no-break-inside">
+
+<!-- QR SECTION -->
+<div class="mt-3" style="background:#fafafa; padding:16px 18px; border-radius:6px;">
+  <div class="row">
+    <!-- LEFT PART -->
+    <div class="col-8">
+      <div style="font-size:15px; font-weight:700;"><%= invoice.company_name %></div>
+      <div style="font-size:12px; color:#888; margin-top:3px; white-space:pre-line;">
+        <%= invoice.company_address %>
+      </div>
+      <div style="font-size:14px; font-weight:700; margin-top:10px;"><%= ride.user_name %></div>
+      <div style="font-size:12px; color:#888; margin-top:3px;"><%= ride.pickup_location %></div>
+    </div>
+    <!-- RIGHT PART - QR -->
+    <div class="col-4 text-end">
+      <% if (invoice.website_link) { %>
+        <img 
+          src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=<%= qrLink %>"
+          style="width:150px; height:150px;"
+        />
+      <% } %>
+    </div>
+  </div>
+
+  <!-- Invoice Meta -->
+  <div class="mt-3">
+    <div class="d-flex justify-content-between py-1">
+      <span style="color:#666;">Invoice No.</span>
+      <span style="font-weight:600;">2026RNO<%= ride.id %></span>
+    </div>
+    <div class="d-flex justify-content-between py-1">
+      <span style="color:#666;">Invoice Date</span>
+      <span style="font-weight:600;">
+        <%= new Date(ride.created_at).toLocaleString('en-IN') %>
+      </span>
+    </div>
+    <div class="d-flex justify-content-between py-1">
+      <span style="color:#666;">Tax Category</span>
+      <span>Other services n.e.c. (999799)</span>
+    </div>
+    <div class="d-flex justify-content-between py-1">
+      <span style="color:#666;">Place of Supply</span>
+      <span style="font-weight:600;"><%= state %></span>
+    </div>
+    <div class="d-flex justify-content-between py-1">
+      <span style="color:#666;">GST</span>
+      <span style="font-weight:600;"><%= invoice.gst_number || 'N/A' %></span>
+    </div>
+  </div>
+</div>
+
+<!-- FINAL BILL DETAILS -->
+<%
+  const booking = Number(invoice.booking_fee || 0);
+  const gstPercent = Number(invoice.gst_percentage || 0);
+  const totalGSTAmount = Number((booking * gstPercent / 100).toFixed(2));
+  const cgstAmount = Number((totalGSTAmount / 2).toFixed(2));
+  const sgstAmount = Number((totalGSTAmount / 2).toFixed(2));
+  const finalTotal = Number((booking + cgstAmount + sgstAmount).toFixed(2));
+%>
+
+<div class="mt-3" style="background:#fafafa; padding:16px 18px; border-radius:6px;">
+  <div style="font-size:16px; font-weight:700;" class="mb-2">Bill Details</div>
+  <div class="d-flex justify-content-between py-1">
+    <span>Booking Fee</span>
+    <span>₹ <%= booking.toFixed(2) %></span>
+  </div>
+  <hr/>
+  <div class="d-flex justify-content-between py-1">
+    <span>CGST (<%= gstPercent / 2 %>%)</span>
+    <span>₹ <%= cgstAmount.toFixed(2) %></span>
+  </div>
+  <div class="d-flex justify-content-between py-1">
+    <span>SGST (<%= gstPercent / 2 %>%)</span>
+    <span>₹ <%= sgstAmount.toFixed(2) %></span>
+  </div>
+  <div class="d-flex justify-content-between py-1">
+    <span>IGST (0%)</span>
+    <span>₹ 0.00</span>
+  </div>
+  <hr/>
+  <div class="d-flex justify-content-between py-1">
+    <span style="font-size:16px; font-weight:700;">Final Amount</span>
+    <span style="font-size:16px; font-weight:700;">₹ <%= finalTotal.toFixed(2) %></span>
+  </div>
+  <div style="font-size:11px; color:#777;">(Inclusive of Taxes)</div>
+</div>
+
+<!-- FINAL MESSAGE -->
+<div class="mt-3 text-center"
+     style="background:#fafafa; padding:14px 18px; border-radius:6px; font-size:12px; color:#999;">
+  This is a system generated invoice and hence no signature required
+  <div style="font-size:14px; font-weight:700; color:#333; margin-top:4px;">
+    Thank you <%= ride.user_name %>
+  </div>
+</div>
+
+</div> <!-- End Page 3 -->
+
+</div> <!-- End invoice -->
+
+</body>
+</html>

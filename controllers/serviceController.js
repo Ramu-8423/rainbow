@@ -41,6 +41,10 @@ export const allServisesa = async (req, res) => {
         s.rating,
         s.faqs,
         s.status,
+<<<<<<< HEAD
+=======
+        s.top_servises_status,
+>>>>>>> 49d7cd4 (initial push from server)
         s.created_at,
 
         c.id AS category_id,
@@ -82,8 +86,12 @@ export const allServisesa = async (req, res) => {
       `
     );
 
+<<<<<<< HEAD
     // ✅ LOG
     console.log("ROWS =>", rows);
+=======
+
+>>>>>>> 49d7cd4 (initial push from server)
 
     return res.render("Service/allservises", {
       title: "All Services",
@@ -106,7 +114,11 @@ export const allServisesa = async (req, res) => {
   } catch (err) {
     console.log("Services Fetch Error:", err);
     req.session.error = "Something went wrong!";
+<<<<<<< HEAD
     return res.redirect(`/servises/${req.params.id}`);
+=======
+    return res.redirect(`/service/${req.params.id}`);
+>>>>>>> 49d7cd4 (initial push from server)
   }
 };
 
@@ -204,12 +216,109 @@ export async function storeService(req, res) {
 
     // ✅ SUCCESS
     req.session.success = "Service added successfully!";
+<<<<<<< HEAD
     return res.redirect(`/servises/${status ?? 1}`);
+=======
+    return res.redirect(`/service/${status ?? 1}`);
+>>>>>>> 49d7cd4 (initial push from server)
 
   } catch (err) {
     console.log("STORE SERVICE ERROR:", err);
     req.session.error = "Something went wrong!";
+<<<<<<< HEAD
     return res.redirect(`/servises/${status ?? 1}`);
+=======
+    return res.redirect(`/service/${status ?? 1}`);
+  }
+}
+
+
+
+
+export async function updateService(req, res) {
+  try {
+    const {
+      service_id,
+      title,
+      description,
+      price,
+      status,
+      faqs,
+      old_image,
+      faq_q,
+      faq_a
+    } = req.body;
+
+    /* ---------------- IMAGE ---------------- */
+    const folderName = "serviceImage";
+    let imagePath = old_image || null;
+
+    if (req.file) {
+      imagePath = `${folderName}/${req.file.filename}`;
+    }
+
+    /* ---------------- FAQS ---------------- */
+    let faqsArray = [];
+
+    // Case 1: frontend sends JSON string
+    if (faqs && faqs.trim() !== "") {
+      try {
+        const parsed = JSON.parse(faqs);
+        if (Array.isArray(parsed)) {
+          faqsArray = parsed;
+        }
+      } catch {}
+    }
+
+    // Case 2: frontend sends faq_q[] & faq_a[]
+    if (
+      faqsArray.length === 0 &&
+      Array.isArray(faq_q) &&
+      Array.isArray(faq_a)
+    ) {
+      faq_q.forEach((q, i) => {
+        if (q && faq_a[i]) {
+          faqsArray.push({
+            id: i + 1,
+            question: q,
+            answer: faq_a[i]
+          });
+        }
+      });
+    }
+
+    const faqsJson = JSON.stringify(faqsArray);
+
+    /* ---------------- UPDATE DB ---------------- */
+    await db.query(
+      `
+      UPDATE services SET
+        title = ?,
+        description = ?,
+        image = ?,
+        price = ?,
+        faqs = ?,
+        status = ?
+      WHERE id = ?
+      `,
+      [
+        title,
+        description,
+        imagePath,
+        price,
+        faqsJson,
+        status,
+        service_id
+      ]
+    );
+
+    req.session.success = "Service updated successfully!";
+    return res.redirect(`/service/${status}`);
+
+  } catch (err) {
+    req.session.error = "Something went wrong!";
+    return res.redirect("back");
+>>>>>>> 49d7cd4 (initial push from server)
   }
 }
 
@@ -243,7 +352,11 @@ export async function updateServiceStatus(req, res) {
         : "Service deactivated successfully!";
 
     // 🔁 redirect same listing
+<<<<<<< HEAD
     return res.redirect(`/servises/${status}`);
+=======
+    return res.redirect(`/service/${status}`);
+>>>>>>> 49d7cd4 (initial push from server)
 
   } catch (err) {
     console.log("SERVICE STATUS UPDATE ERROR:", err);
@@ -253,6 +366,66 @@ export async function updateServiceStatus(req, res) {
 }
 
 
+<<<<<<< HEAD
+=======
+
+export async function updateTopServicesStatus(req, res) {
+  try {
+    const { id } = req.params;
+    const { top_services_status } = req.query;
+
+    if (!id || top_services_status === undefined) {
+      req.session.error = "Invalid request!";
+      return res.redirect(`/service/0`);
+    }
+
+    // 🔎 If activating as Top Service
+    if (top_services_status == 1) {
+
+      const [rows] = await db.query(
+        `
+        SELECT COUNT(*) as total
+        FROM services
+        WHERE top_servises_status = 1
+        AND id != ?
+        `,
+        [id]
+      );
+
+      if (rows[0].total >= 6) {
+        req.session.error =
+          "Maximum 6 services can be selected as Top Services!";
+        return res.redirect(`/service/1`);
+      }
+    }
+
+    await db.query(
+      `
+      UPDATE services
+      SET top_servises_status = ?
+      WHERE id = ?
+      `,
+      [top_services_status, id]
+    );
+
+    req.session.success =
+      top_services_status == 1
+        ? "Service added to Top Services successfully!"
+        : "Service removed from Top Services successfully!";
+
+    // ✅ Same redirect style as service status
+    return res.redirect(`/service/1`);
+
+  } catch (err) {
+    console.log("TOP SERVICE STATUS UPDATE ERROR:", err);
+    req.session.error = "Something went wrong!";
+    return res.redirect(`/service/0`);
+  }
+}
+
+
+
+>>>>>>> 49d7cd4 (initial push from server)
 export async function deleteService(req, res) {
   try {
     const { id } = req.params;
@@ -270,7 +443,11 @@ export async function deleteService(req, res) {
 
     req.session.success = "Service deleted successfully!";
 
+<<<<<<< HEAD
     return res.redirect(`/servises/${status}`);
+=======
+    return res.redirect(`/service/${status}`);
+>>>>>>> 49d7cd4 (initial push from server)
 
   } catch (err) {
     console.log("SERVICE DELETE ERROR:", err);

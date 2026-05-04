@@ -1,32 +1,158 @@
 import express from "express";
+<<<<<<< HEAD
 import { loginPage, loginSubmit, dashboard ,logout, editProfile, updateProfile} from "../controllers/AuthController.js";
+=======
+import { loginPage, redirectIfLoggedIn, loginSubmit, dashboard ,logout, editProfile, updateProfile} from "../controllers/AuthController.js";
+
+>>>>>>> 49d7cd4 (initial push from server)
 
 import { 
     jobApplication,
     allUsers,
     updateUserStatus,
     allCategories,
+<<<<<<< HEAD
     updateCategoryStatus,
     subcategoriesPage,
     subcategoriesListAjax,
     subcategoryStatusUpdate,
     addCategory,
     addSubcategory
+=======
+    updateCategory,
+    updateCategoryStatus,
+    subcategoriesPage,
+    updateSubcategory,
+    subcategoriesListAjax,
+    subcategoryStatusUpdate,
+    addCategory,
+    addSubcategory,
+    allSettings,
+    updateSetting,
+    invoiceSettings,
+    updateInvoiceSetting
+>>>>>>> 49d7cd4 (initial push from server)
 } from "../controllers/PublicController.js";
 
 
 import { 
+<<<<<<< HEAD
+=======
+driver_controller,
+driverView,
+updateDriverStatus,
+approveAllDocuments,
+driverLoginStatus,
+deleteDriver,
+liveTrackingPage
+} from "../controllers/driverController.js";
+
+
+import { 
+allServiceman,
+updateServicemanStatus,
+deleteServiceman
+} from "../controllers/serviceManController.js";
+
+
+
+import {
+updateRideStatusFromPage
+} from "../controllers/LiveOrderCancel.js";
+
+
+import { 
+cabOrdersController
+} from "../controllers/cabOrdersController.js";
+
+
+
+import { 
+sendNotification,
+postNotification
+} from "../controllers/notificationController.js";
+
+
+import { 
+allPayments,
+allServicePayments,
+UserPayments
+} from "../controllers/PaymentController.js";
+
+import { 
+createZone,
+insertZone,
+deleteZone,
+editZonePage,
+updateZone,
+createServiceZone,
+insertServiceZone,
+deleteServiceZone,
+editServiceZonePage,
+updateServiceZone
+} from "../controllers/ZoneController.js";
+
+
+import { 
+couponList,
+addCoupon,
+deleteCoupon,
+updateCouponStatus
+} from "../controllers/CouponController.js";
+
+import { 
+>>>>>>> 49d7cd4 (initial push from server)
 getBankDetails,
 getBankUpdateRequests,
 updateRequestStatus
 } from "../controllers/BankController.js";
 
+<<<<<<< HEAD
 
 import { 
 allServisesa,
 getSubcategoriesByCategory,
 storeService,
 updateServiceStatus,
+=======
+import { 
+DriverWithdrawRequest,
+updateWithdrawRequest,
+ServicemanWithdrawRequest,
+updateServicemanWithdrawRequest
+} from "../controllers/withdrawController.js";
+
+
+import { 
+vehicleList,
+addVehicle,
+updateVehicleStatus,
+brandList,
+updateBrandStatus,
+addBrand,
+updateBrand,
+updateVehicle,
+modelList,
+getBrandsByVehicle,
+getModelsByFilter,
+addModel,
+updateModel,
+updateModelStatus,
+vehicleAmountList,
+vehicleAmountAdd,
+vehicleAmountUpdate,
+vehicleAmountDelete
+} from "../controllers/vehicleController.js";
+
+
+import { 
+allServisesa,
+updateService,
+getSubcategoriesByCategory,
+storeService,
+updateServiceStatus,
+updateTopServicesStatus,
+>>>>>>> 49d7cd4 (initial push from server)
 deleteService
 } from "../controllers/serviceController.js";
 
@@ -34,7 +160,11 @@ import { uploadImageDynamic } from "../middleware/upload.js";
 
 const router = express.Router();
 
+<<<<<<< HEAD
 router.get("/login", loginPage);
+=======
+router.get("/", redirectIfLoggedIn, loginPage);
+>>>>>>> 49d7cd4 (initial push from server)
 router.post("/login", loginSubmit);
 router.get("/logout", logout);
 router.get("/dashboard", dashboard);
@@ -51,10 +181,23 @@ router.get("/user-status-update/:id", updateUserStatus);
 
 
 router.get("/categories", allCategories);
+<<<<<<< HEAD
 router.get("/category-status-update/:id", updateCategoryStatus);
 
 
 router.get("/subcategories", subcategoriesPage);     
+=======
+router.post(
+  "/category-update",
+  uploadImageDynamic("categories").single("image"),
+  updateCategory
+);
+router.get("/category-status-update/:id", updateCategoryStatus);
+
+
+router.get("/subcategories", subcategoriesPage);
+router.get("/subcategories/:status", subcategoriesPage);     
+>>>>>>> 49d7cd4 (initial push from server)
 router.get("/subcategories-list", subcategoriesListAjax); 
 router.get("/subcategory-status-update/:id", subcategoryStatusUpdate);
 
@@ -70,6 +213,16 @@ router.post(
   addSubcategory
 );
 
+<<<<<<< HEAD
+=======
+router.post(
+  "/subcategory-update",
+  uploadImageDynamic("subcategories").single("image"),
+  updateSubcategory
+);
+
+
+>>>>>>> 49d7cd4 (initial push from server)
 
 router.get("/bank-details/:type", getBankDetails);
 router.get("/bank-update-request/:type", getBankUpdateRequests);
@@ -79,7 +232,17 @@ router.get(
 );
 
 
+<<<<<<< HEAD
 router.get("/servises/:id", allServisesa);
+=======
+router.get("/service/:id", allServisesa);
+router.post(
+  "/ajax/edit-service",
+  uploadImageDynamic("serviceImage").single("image"),
+  updateService
+);
+
+>>>>>>> 49d7cd4 (initial push from server)
 
 
 router.get("/ajax/subcategories/:category_id", getSubcategoriesByCategory);
@@ -95,9 +258,125 @@ router.get(
   updateServiceStatus
 );
 
+<<<<<<< HEAD
+=======
+
+router.get(
+  "/top_services_status/:id",
+  updateTopServicesStatus
+);
+
+
+>>>>>>> 49d7cd4 (initial push from server)
 router.get(
   "/service-delete/:id",
   deleteService
 );
 
+<<<<<<< HEAD
+=======
+
+router.get("/all-drivers", driver_controller);
+router.get("/all-drivers/:id", driver_controller);
+
+router.get("/driver-view/:id", driverView);
+router.get("/driver-status-update/:id", updateDriverStatus);
+router.post("/driver-approve-all", approveAllDocuments);
+router.get("/driver-login-status-update/:id", driverLoginStatus);
+
+
+router.get("/vehicle-list", vehicleList);
+router.get("/vehicle-status-update/:id",updateVehicleStatus);
+router.post("/vehicle-add",uploadImageDynamic("cabbooking/vehicle_image").single("image"),addVehicle);
+router.post("/vehicle-update",uploadImageDynamic("cabbooking/vehicle_image").single("image"),updateVehicle);
+
+
+router.get("/brand-list", brandList);
+router.get("/brand-status-update/:id", updateBrandStatus);
+router.post("/brand-add", addBrand);
+router.post("/brand-update", updateBrand);
+
+
+
+router.get("/model-list", modelList);
+router.get("/ajax/brands-by-vehicle/:vehicle_id", getBrandsByVehicle);
+router.get("/ajax/models-filter", getModelsByFilter);
+router.post("/model-add", addModel);
+router.post("/model-update", updateModel);
+router.get("/model-status-update/:id",updateModelStatus);
+
+
+router.get("/vehicle-amount-list", vehicleAmountList);
+router.post("/vehicle-amount-add", vehicleAmountAdd);
+router.post("/vehicle-amount-update", vehicleAmountUpdate);
+router.get("/vehicle-amount-delete/:id", vehicleAmountDelete);
+
+
+router.get("/serviceman", allServiceman);
+router.get("/serviceman-status-update/:id", updateServicemanStatus);
+
+router.get("/settings", allSettings);
+router.post("/settings/update", updateSetting);
+
+
+router.get("/driver-withdraw-request", DriverWithdrawRequest);      
+router.get("/driver-withdraw-request/:status", DriverWithdrawRequest);
+router.get("/update-withdraw-request/:id", updateWithdrawRequest);
+
+
+// LIST
+router.get("/serviceman-withdraw-request", ServicemanWithdrawRequest);
+router.get("/serviceman-withdraw-request/:status", ServicemanWithdrawRequest);
+router.get("/update-serviceman-withdraw-request/:id", updateServicemanWithdrawRequest);
+
+router.get("/coupons", couponList);
+router.post("/coupon-add", addCoupon);
+router.get("/coupon-delete/:id", deleteCoupon);
+router.get("/coupon-status-update/:id", updateCouponStatus);
+
+
+router.get("/create_zone", createZone);
+router.post("/zones/create", insertZone);
+router.post("/zones/delete/:id", deleteZone);
+router.get("/zones/edit/:id", editZonePage);
+router.post("/zones/update/:id", updateZone);
+
+
+router.get("/create_service_zone", createServiceZone);
+router.post("/service_zones/create", insertServiceZone);
+router.post("/service_zones/delete/:id", deleteServiceZone);
+router.get("/service_zones/edit/:id", editServiceZonePage);
+router.post("/service_zones/update/:id", updateServiceZone);
+
+
+router.get("/all_payments", allPayments);
+router.get("/UserPayments", UserPayments);
+router.get("/all_payments/:payment_type", allPayments);
+
+
+router.get("/service_payments", allServicePayments);
+router.get("/service_payments/:payment_type", allServicePayments);
+
+
+
+router.get("/driver-delete/:id", deleteDriver);
+router.get("/cabLiveOrdersRoutes", liveTrackingPage);
+
+
+router.get("/cab-orders", cabOrdersController);
+
+router.get("/cab-orders/:status", cabOrdersController);
+router.get("/send-notification", sendNotification);
+router.post("/notification/send", postNotification);
+
+
+router.get("/invoice-settings", invoiceSettings);
+router.post("/invoice-settings/edit/:id", updateInvoiceSetting);
+
+
+
+router.post("/update-ride-status", updateRideStatusFromPage);
+router.get("/delete-serviceman/:id", deleteServiceman);
+
+>>>>>>> 49d7cd4 (initial push from server)
 export default router;

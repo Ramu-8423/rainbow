@@ -5,6 +5,7 @@ import { getIO } from "../../socket.js";
 import { FCMHelper } from "../../middleware/fcmHelper.js";
 import { parseIST, nowIST } from "../../utils/dateParser.js";
 
+<<<<<<< HEAD
 export async function generateUniqueOTP(db) {
   while (true) {
     const otp = Math.floor(1000 + Math.random() * 9000);
@@ -302,6 +303,11 @@ function calculateDistanceInMeters(lat1, lon1, lat2, lon2) {
 }
 
 export async function acceptOrder(req, res) {
+=======
+
+
+export async function ignoreOrder(req, res) {
+>>>>>>> 49d7cd4 (initial push from server)
   const { order_id, serviceman_id } = req.body;
 
   if (!order_id || !serviceman_id) {
@@ -312,7 +318,144 @@ export async function acceptOrder(req, res) {
   }
 
   try {
+<<<<<<< HEAD
     // 🔹 Order fetch (with lat/lng)
+=======
+    const [order] = await db.query(
+      `SELECT available_service_man, ignore_service_man 
+       FROM service_order WHERE id = ?`,
+      [order_id]
+    );
+
+    if (!order.length) {
+      return res.status(404).json({
+        success: false,
+        message: "Order not found"
+      });
+    }
+
+    // ✅ Parse safely
+    let available = JSON.parse(order[0].available_service_man || "[]");
+    let ignored = JSON.parse(order[0].ignore_service_man || "[]");
+
+    // ✅ Ensure number type consistency
+    const smId = Number(serviceman_id);
+
+    // ➤ Remove from available
+    available = available.filter(id => Number(id) !== smId);
+
+    // ➤ Add to ignore (no duplicate)
+    if (!ignored.map(Number).includes(smId)) {
+      ignored.push(smId);
+    }
+
+    let newStatus = 0;
+
+    // 🔥 If no one left → close order
+    if (available.length === 0) {
+      newStatus = 7;
+    }
+
+    await db.query(
+      `UPDATE service_order SET 
+        available_service_man = ?,
+        ignore_service_man = ?,
+        service_status = CASE WHEN ? = 7 THEN 7 ELSE service_status END
+       WHERE id = ?`,
+      [
+        JSON.stringify(available),
+        JSON.stringify(ignored),
+        newStatus,
+        order_id
+      ]
+    );
+
+    const io = getIO();
+
+    // ✅ 🎯 ONLY that serviceman ko remove karo
+    io.to(`serviceman_${smId}`).emit("order_removed", {
+      order_id
+    });
+
+    // ✅ Agar sabne ignore kar diya → sabko close
+    if (newStatus === 7) {
+      io.emit("order_closed", {
+        order_id,
+        status: 7
+      });
+    }
+
+    return res.json({
+      success: true,
+      message: "Order ignored successfully",
+      status: newStatus === 7 ? "closed" : "updated"
+    });
+
+  } catch (error) {
+    console.log("Ignore Order Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error"
+    });
+  }
+}
+
+
+
+// ✅ SAME GOOGLE FUNCTION
+// ❌ REMOVE THIS FUNCTION COMPLETELY
+// getRoadDistanceKm()
+
+export async function acceptOrder(req, res) {
+  const { order_id, serviceman_id, distance } = req.body;
+
+  if (!order_id) {
+    return res.status(400).json({
+      success: false,
+      message: "order_id is required"
+    });
+  }
+  
+  if (!serviceman_id) {
+    return res.status(400).json({
+      success: false,
+      message: "serviceman_id is required"
+    });
+  }
+  
+  if (distance === undefined || distance === null) {
+    return res.status(400).json({
+      success: false,
+      message: "distance is required"
+    });
+  }
+  
+  console.log("distanceAAAAAAAAAAA", distance);
+
+  try {
+      
+      
+      const [[servicemanRow]] = await db.query(
+        "SELECT online_status FROM serviceman WHERE id = ? LIMIT 1",
+        [serviceman_id]
+      );
+    
+      if (!servicemanRow) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid serviceman_id"
+        });
+      }
+    
+      if (servicemanRow.online_status != 1) {
+        return res.status(400).json({
+          success: false,
+          message: "Serviceman is offline, cannot accept order"
+        });
+      }
+      
+    // 🔹 Order fetch
+>>>>>>> 49d7cd4 (initial push from server)
     const [orderCheck] = await db.query(
       `
       SELECT 
@@ -355,7 +498,11 @@ export async function acceptOrder(req, res) {
       });
     }
 
+<<<<<<< HEAD
     // 🔹 Serviceman fetch (with lat/lng)
+=======
+    // 🔹 Serviceman fetch
+>>>>>>> 49d7cd4 (initial push from server)
     const [sm] = await db.query(
       `
       SELECT 
@@ -380,6 +527,7 @@ export async function acceptOrder(req, res) {
 
     const serviceman = sm[0];
 
+<<<<<<< HEAD
     // 🧮 DISTANCE CALCULATION (meters)
     const distanceMeters = calculateDistanceInMeters(
       Number(serviceman.current_latitude),
@@ -389,12 +537,22 @@ export async function acceptOrder(req, res) {
     );
 
     console.log("📍 Distance (meters):", distanceMeters);
+=======
+    // 🔥 FIX: "14.0 km" → 14.0
+    const distanceMeters = parseFloat(distance) || 0;
+
+    console.log("📍 Distance:", distanceMeters);
+>>>>>>> 49d7cd4 (initial push from server)
 
     const fullName =
       (serviceman.first_name || "") +
       (serviceman.last_name ? " " + serviceman.last_name : "");
 
+<<<<<<< HEAD
     // 🔹 UPDATE order (status + serviceman + distance)
+=======
+    // 🔹 UPDATE
+>>>>>>> 49d7cd4 (initial push from server)
     await db.query(
       `
       UPDATE service_order
@@ -415,7 +573,11 @@ export async function acceptOrder(req, res) {
       ]
     );
 
+<<<<<<< HEAD
     // 🔔 User notification
+=======
+    // 🔔 Notification
+>>>>>>> 49d7cd4 (initial push from server)
     const [userRow] = await db.query(
       "SELECT fcm_token FROM users WHERE id = ? LIMIT 1",
       [existing.user_id]
@@ -430,12 +592,22 @@ export async function acceptOrder(req, res) {
           order_id: String(order_id),
           serviceman_name: fullName,
           serviceman_mobile: serviceman.mobile,
+<<<<<<< HEAD
           distance: distanceMeters.toFixed(2)
+=======
+          distance: distanceMeters.toFixed(2), // ✅ now safe
+          type: "accept_service",
+          role: "user"
+>>>>>>> 49d7cd4 (initial push from server)
         }
       );
     }
 
+<<<<<<< HEAD
     // 🔹 SOCKET EVENTS
+=======
+    // 🔹 SOCKET
+>>>>>>> 49d7cd4 (initial push from server)
     const io = getIO();
     io.emit("order_removed", { order_id });
 
@@ -460,11 +632,14 @@ export async function acceptOrder(req, res) {
     });
   }
 }
+<<<<<<< HEAD
 
 
 
 
 
+=======
+>>>>>>> 49d7cd4 (initial push from server)
 export async function changeOrderStatus(req, res) {
   if (!req.body || Object.keys(req.body).length === 0) {
     return res.status(400).json({ success: false, message: "Request body is missing" });
@@ -602,13 +777,19 @@ export async function changeOrderStatus(req, res) {
 
         }
 
+<<<<<<< HEAD
         // 🔹 STATUS 4 UPDATE
+=======
+>>>>>>> 49d7cd4 (initial push from server)
         await db.query(
           "UPDATE service_order SET service_status = 4 WHERE id = ?",
           [order_id]
         );
 
+<<<<<<< HEAD
         // 🔹 COUPON USED MARK (ADDED)
+=======
+>>>>>>> 49d7cd4 (initial push from server)
         if (order.coupon_id) {
           await db.query(
             `UPDATE coupons_used 
@@ -666,14 +847,20 @@ export async function changeOrderStatus(req, res) {
           [createdAt, createdAt, paying_id]
         );
 
+<<<<<<< HEAD
 
         // 🔹 STATUS 4 UPDATE
+=======
+>>>>>>> 49d7cd4 (initial push from server)
         await db.query(
           "UPDATE service_order SET service_status = 4 WHERE id = ?",
           [order_id]
         );
 
+<<<<<<< HEAD
         // 🔹 COUPON USED MARK (ADDED)
+=======
+>>>>>>> 49d7cd4 (initial push from server)
         if (order.coupon_id) {
           await db.query(
             `UPDATE coupons_used 
@@ -690,7 +877,10 @@ export async function changeOrderStatus(req, res) {
         });
       }
 
+<<<<<<< HEAD
       // fallback
+=======
+>>>>>>> 49d7cd4 (initial push from server)
       await db.query(
         "UPDATE service_order SET service_status = 3 WHERE id = ?",
         [order_id]
@@ -712,7 +902,10 @@ export async function changeOrderStatus(req, res) {
         [order_id]
       );
 
+<<<<<<< HEAD
       // 🔹 COUPON USED MARK (ADDED)
+=======
+>>>>>>> 49d7cd4 (initial push from server)
       if (order.coupon_id) {
         await db.query(
           `UPDATE coupons_used 
@@ -745,6 +938,53 @@ export async function changeOrderStatus(req, res) {
         [status, cancel_reason, order_id]
       );
 
+<<<<<<< HEAD
+=======
+      // 🌱🌱🌱 ONLY ADDITION START 🌱🌱🌱
+
+      if (status === 5 && order.serviceman_id) {
+        const [sm] = await db.query(
+          "SELECT fcm_token FROM serviceman WHERE id = ? LIMIT 1",
+          [order.serviceman_id]
+        );
+
+        if (sm.length && sm[0].fcm_token) {
+          await FCMHelper.sendNotification(
+            sm[0].fcm_token,
+            "Service Cancelled",
+            "User has cancelled the service request",
+            {
+              type: "cancle_service",
+              role: "serviceman",
+              order_id: String(order_id)
+            }
+          );
+        }
+      }
+
+      if (status === 6 && order.user_id) {
+        const [us] = await db.query(
+          "SELECT fcm_token FROM users WHERE id = ? LIMIT 1",
+          [order.user_id]
+        );
+
+        if (us.length && us[0].fcm_token) {
+          await FCMHelper.sendNotification(
+            us[0].fcm_token,
+            "Service Cancelled",
+            "Serviceman has cancelled your service request",
+            {
+              type: "cancle_service",
+              role: "users",
+              order_id: String(order_id)
+            }
+          );
+        }
+      }
+
+      // 🌱🌱🌱 ONLY ADDITION END 🌱🌱🌱
+
+>>>>>>> 49d7cd4 (initial push from server)
       return res.json({
         success: true,
         message: "Order cancelled",
@@ -773,6 +1013,423 @@ export async function changeOrderStatus(req, res) {
 }
 
 
+<<<<<<< HEAD
+=======
+
+export async function generateUniqueOTP(db) {
+  while (true) {
+    const otp = Math.floor(1000 + Math.random() * 9000);
+    const [rows] = await db.query(
+      "SELECT id FROM service_order WHERE orderOtp = ? LIMIT 1",
+      [otp]
+    );
+    if (rows.length === 0) return otp;
+  }
+}
+
+
+function isPointInPolygon(point, polygon) {
+  const x = point.lng;
+  const y = point.lat;
+
+  let inside = false;
+
+  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+    const xi = polygon[i].lng, yi = polygon[i].lat;
+    const xj = polygon[j].lng, yj = polygon[j].lat;
+
+    const intersect =
+      ((yi > y) !== (yj > y)) &&
+      (x < ((xj - xi) * (y - yi)) / (yj - yi) + xi);
+
+    if (intersect) inside = !inside;
+  }
+
+  return inside;
+}
+
+
+
+export const serviceOrder = [
+ body().custom((value, { req }) => {
+    const { service_address, service_latitude, service_longitude } = req.body;
+
+    if (
+      !service_address?.toString().trim() ||
+      !service_latitude?.toString().trim() ||
+      !service_longitude?.toString().trim()
+    ) {
+      throw new Error("Service address is required");
+    }
+
+    return true;
+  }),
+
+  body("service_datetime")
+    .notEmpty()
+    .withMessage("Service datetime is required"),
+
+  body("user_id")
+    .notEmpty()
+    .withMessage("User id is required"),
+
+  body("service_id")
+    .notEmpty()
+    .withMessage("Service id is required"),
+
+  body("quantity")
+    .notEmpty()
+    .withMessage("Quantity is required"),
+
+  body("amount")
+    .notEmpty()
+    .withMessage("Amount is required"),
+
+  body("coupon_discount")
+    .notEmpty()
+    .withMessage("Coupon discount is required"),
+
+
+  body("final_amount")
+    .notEmpty()
+    .withMessage("Final amount is required"),
+
+  body("pay_mode")
+    .notEmpty()
+    .withMessage("Pay mode is required")
+    .isIn([1, 2, 3])
+    .withMessage("Pay mode must be 1 (online), 2 (offline) or 3 (wallet)"),
+
+  async (req, res) => {
+
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: errors.array()[0].msg // only first error
+      });
+    }
+
+    try {
+
+      const {
+        service_address,
+        service_latitude,
+        service_longitude,
+        service_datetime,
+        user_id,
+        serviceman_id,
+        service_id,          
+        amount,
+        coupon_discount,
+        gst_charges,
+        final_amount,
+        pay_mode,
+        quantity,
+        coupon_id,
+        description
+      } = req.body;
+
+      const createdAt = nowIST();
+      const otp = await generateUniqueOTP(db);
+
+
+   // ===========ZONE CONCEPT START ==============
+    // 🔹 LOCATION SERVICE CHECK
+    const userLat = Number(service_latitude);
+    const userLng = Number(service_longitude);
+    
+    // Fetch all zones
+    const [zones] = await db.query(
+      "SELECT id, zone_name, coordinates FROM zones WHERE zone_type = 1"
+    );
+    
+    let serviceAvailable = false;
+    let matchedZone = null;
+    
+    for (const zone of zones) {
+      let polygon;
+    
+      try {
+        polygon = JSON.parse(zone.coordinates);
+      } catch (err) {
+        continue; // skip invalid JSON
+      }
+    
+      if (!Array.isArray(polygon) || polygon.length < 3) continue;
+    
+      const isInside = isPointInPolygon(
+        { lat: userLat, lng: userLng },
+        polygon
+      );
+    
+      if (isInside) {
+        serviceAvailable = true;
+        matchedZone = zone.zone_name;
+        break;
+      }
+    }
+    
+    if (!serviceAvailable) {
+      return res.status(400).json({
+        success: false,
+        message: "Service not available for this location"
+      });
+    }
+    
+    
+    // =========ZONE CONCEPT END ===============
+
+
+      // 🔹 USER FETCH
+      const [user] = await db.query(
+        "SELECT name, last_name, phone, wallet FROM users WHERE id = ? LIMIT 1",
+        [user_id]
+      );
+
+      if (!user.length) {
+        return res.status(404).json({
+          success: false,
+          message: "User not found"
+        });
+      }
+
+      // 🔹 WALLET CHECK
+      if (Number(pay_mode) === 3) {
+        const walletBalance = Number(user[0].wallet || 0);
+        if (walletBalance < Number(final_amount)) {
+          return res.status(400).json({
+            success: false,
+            message: "Insufficient balance in your wallet"
+          });
+        }
+      }
+
+      const first = user[0].name || "";
+      const last = user[0].last_name || "";
+      const user_name = last.trim() ? `${first} ${last}` : first;
+      const user_mobile = user[0].phone;
+
+      // 🔹 SERVICE FETCH (SINGLE)
+      const [service] = await db.query(
+        "SELECT title, category_id, status FROM services WHERE id = ? LIMIT 1",
+        [service_id]
+      );
+
+      if (!service.length) {
+        return res.status(404).json({
+          success: false,
+          message: "Service not found"
+        });
+      }
+
+      if (service[0].status === 0) {
+        return res.status(400).json({
+          success: false,
+          message: "This service is not available now"
+        });
+      }
+
+      const service_name = service[0].title;
+      const category_id = service[0].category_id;
+
+      // 🔹 SERVICE RADIUS
+      const [setting] = await db.query(
+        "SELECT value FROM settings WHERE name = 'service_radius_km' LIMIT 1"
+      );
+
+      const radius_km = setting.length ? Number(setting[0].value) : 5;
+
+      // 🔥 MAIN CHANGE: JSON ARRAY MATCH
+      const [allServicemenDistance] = await db.query(
+        `
+        SELECT 
+          id,
+          current_latitude,
+          current_longitude,
+          (
+            6371 * ACOS(
+              COS(RADIANS(?)) * COS(RADIANS(current_latitude)) *
+              COS(RADIANS(current_longitude) - RADIANS(?)) +
+              SIN(RADIANS(?)) * SIN(RADIANS(current_latitude))
+            )
+          ) AS distance
+        FROM serviceman
+        WHERE 
+          JSON_CONTAINS(service_category, JSON_ARRAY(?))
+          AND login_status = 1
+          AND online_status = 1
+        ORDER BY distance ASC
+        `,
+        [
+          service_latitude,
+          service_longitude,
+          service_latitude,
+          Number(category_id)
+        ]
+      );
+
+      const servicemen = allServicemenDistance.filter(
+        s => s.distance <= radius_km
+      );
+
+      const available_service_man = servicemen.map(s => s.id);
+
+      // 🔹 INSERT ORDER
+      const sql = `
+        INSERT INTO service_order 
+        (
+          service_address, service_latitude, service_longitude,
+          user_id, user_name, user_mobile,
+          serviceman_id,
+          amount, coupon_discount, gst_charges, final_amount,
+          service_id, service_name,
+          pay_mode, coupon_id,
+          service_datetime,
+          available_service_man,
+          service_status,
+          quantity,
+          created_at, updated_at, orderOtp, description
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `;
+
+      const [result] = await db.query(sql, [
+        service_address,
+        service_latitude,
+        service_longitude,
+        user_id,
+        user_name,
+        user_mobile,
+        serviceman_id || null,
+        amount,
+        coupon_discount,
+        gst_charges,
+        final_amount,
+        service_id,
+        service_name,
+        pay_mode,
+        coupon_id || null,
+        service_datetime,
+        JSON.stringify(available_service_man),
+        0,
+        quantity,
+        createdAt,
+        createdAt,
+        otp,
+        description
+      ]);
+
+      // 🔹 PAYING TABLE
+      if (Number(pay_mode) === 3) {
+        const [setting] = await db.query(
+          "SELECT value FROM settings WHERE name = 'platform_fee' LIMIT 1"
+        );
+
+        const percent = setting.length ? Number(setting[0].value) : 0;
+        const fee = (Number(final_amount) * percent) / 100;
+        const final_amount_after_due = Number(final_amount) - fee;
+
+        await db.query(
+          `INSERT INTO paying 
+           (service_order_id, user_id, amount, final_amount, payment_type, status, platform_fee) 
+           VALUES (?, ?, ?, ?, 3, 0, ?)`,
+          [
+            result.insertId,
+            user_id,
+            final_amount,
+            final_amount_after_due,
+            `${percent}% - ₹${fee.toFixed(2)}`
+          ]
+        );
+      }
+
+      sendOrderToServicemen(servicemen, {
+          order_id: result.insertId,
+          service_name,
+          customer_name: user_name,
+          customer_mobile: user_mobile,
+          amount,
+          final_amount,
+          service_address,
+          service_latitude,
+          service_longitude,
+          quantity,
+          time: service_datetime
+        });
+
+
+      // 🔹 FCM NOTIFICATION
+      
+    //   if (available_service_man.length > 0) {
+    //     const [tokens] = await db.query(
+    //       "SELECT id, fcm_token FROM serviceman WHERE id IN (?)",
+    //       [available_service_man]
+    //     );
+
+    //     for (const sm of tokens) {
+    //       if (!sm.fcm_token) continue;
+
+    //       await FCMHelper.sendNotification(
+    //         sm.fcm_token,
+    //         "New Service Request",
+    //         `${service_name} requested at ${service_address}`,
+    //         {
+    //           order_id: String(result.insertId),
+    //           service_name,
+    //           customer_name: user_name,
+    //           customer_mobile: user_mobile,
+    //           amount: String(amount),
+    //           final_amount: String(final_amount),
+    //           service_address,
+    //           service_latitude: String(service_latitude),
+    //           service_longitude: String(service_longitude),
+    //           time: service_datetime,
+    //           type: "new_service",
+    //           role: "serviceman"
+    //         }
+    //       );
+    //     }
+    //   }
+
+      return res.status(201).json({
+        success: true,
+        message: "Service order created successfully",
+        order_id: result.insertId,
+        available_service_man
+      });
+
+    } catch (err) {
+      console.log("Service Order Error:", err);
+      return res.status(500).json({
+        success: false,
+        message: "Internal Server Error",
+        error: err.message
+      });
+    }
+  }
+];
+
+
+function calculateDistanceInMeters(lat1, lon1, lat2, lon2) {
+  const toRad = (v) => (v * Math.PI) / 180;
+  const distance =
+    6371 * Math.acos(
+      Math.cos(toRad(lat1)) *
+        Math.cos(toRad(lat2)) *
+        Math.cos(toRad(lon2) - toRad(lon1)) +
+      Math.sin(toRad(lat1)) *
+        Math.sin(toRad(lat2))
+    );
+
+  return distance;
+}
+
+
+
+
+>>>>>>> 49d7cd4 (initial push from server)
 export async function myActiveOrders(req, res) {
 
   if (!req.body || Object.keys(req.body).length === 0) {
@@ -1156,3 +1813,8 @@ export async function getServicemanRatings(req, res) {
   }
 }
 
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> 49d7cd4 (initial push from server)

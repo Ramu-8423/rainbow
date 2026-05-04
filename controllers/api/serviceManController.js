@@ -13,20 +13,65 @@ export const servicemanRegisterValidation = [
   body("last_name")
     .notEmpty().withMessage("last_name is required"),
 
+<<<<<<< HEAD
   body("email")
     .notEmpty().withMessage("email is required")
     .isEmail().withMessage("Invalid email format"),
 
   body("address")
     .notEmpty().withMessage("address is required"),
+=======
+     body("city")
+     .notEmpty().withMessage("city is required"),
+
+
+//   body("address")
+//     .notEmpty().withMessage("address is required"),
+>>>>>>> 49d7cd4 (initial push from server)
 
   body("mobile")
     .notEmpty().withMessage("mobile is required")
     .matches(/^[0-9]{10,12}$/).withMessage("Invalid mobile number"),
 
+<<<<<<< HEAD
   body("service_category")
     .notEmpty().withMessage("service_category is required")
     .isInt().withMessage("service_category must be number"),
+=======
+  // 🔥 MODIFIED PART (ARRAY ACCEPT करेगा)
+  body("service_category")
+    .notEmpty().withMessage("service_category is required")
+    .custom((value, { req }) => {
+      let parsed;
+
+      // agar string me array aaya ho
+      if (typeof value === "string") {
+        try {
+          parsed = JSON.parse(value);
+        } catch (e) {
+          throw new Error("service_category must be a valid array");
+        }
+      } else {
+        parsed = value;
+      }
+
+      // array check
+      if (!Array.isArray(parsed) || parsed.length === 0) {
+        throw new Error("service_category must be a non-empty array");
+      }
+
+      // array ke andar sirf numbers hone chahiye
+      const allNumbers = parsed.every(v => Number.isInteger(Number(v)));
+      if (!allNumbers) {
+        throw new Error("service_category array must contain only numbers");
+      }
+
+      // controller ke liye parsed array save kar do
+      req.body.service_category = parsed;
+
+      return true;
+    }),
+>>>>>>> 49d7cd4 (initial push from server)
 
   body("device_id")
     .notEmpty().withMessage("device_id is required"),
@@ -36,7 +81,11 @@ export const servicemanRegisterValidation = [
 
   body("gender")
     .notEmpty().withMessage("fcm_token is required"),
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> 49d7cd4 (initial push from server)
   body("current_latitude")
     .notEmpty().withMessage("current_latitude is required"),
 
@@ -77,14 +126,23 @@ export const servicemanRegisterValidation = [
     const skill = Number(value);
     if (skill === 0) {
       if (!req.files || !req.files["experience_certificate"]) {
+<<<<<<< HEAD
         throw new Error("Experience certificate is required unless you choose 'I don't have any skill");
+=======
+        throw new Error(
+          "Experience certificate is required unless you choose 'I don't have any skill"
+        );
+>>>>>>> 49d7cd4 (initial push from server)
       }
     }
     return true;
   })
 ];
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 49d7cd4 (initial push from server)
 export const servicemanRegister = [
   ...servicemanRegisterValidation,
 
@@ -106,6 +164,10 @@ export const servicemanRegister = [
         last_name,
         email,
         address,
+<<<<<<< HEAD
+=======
+        city,
+>>>>>>> 49d7cd4 (initial push from server)
         mobile,
         service_category,
         skill_status,
@@ -118,6 +180,7 @@ export const servicemanRegister = [
 
       const currentDate = nowIST();
 
+<<<<<<< HEAD
       const [emailCheck] = await db.query(
         "SELECT id FROM serviceman WHERE LOWER(email) = LOWER(?) LIMIT 1",
         [email]
@@ -131,6 +194,25 @@ export const servicemanRegister = [
         });
       }
 
+=======
+    
+
+
+     const [mobileCheck] = await db.query(
+        "SELECT id FROM serviceman WHERE mobile = ? LIMIT 1",
+        [mobile]
+      );
+
+      if (mobileCheck.length > 0) {
+        return res.status(409).json({
+          success: false,
+          message: "This mobile number is already registered.",
+          errors: null
+        });
+      }
+      
+      
+>>>>>>> 49d7cd4 (initial push from server)
       const folder = "ServicemanFiles";
 
       const profile_photo = req.files["profile_photo"]
@@ -154,11 +236,19 @@ export const servicemanRegister = [
 
       const sql = `
         INSERT INTO serviceman 
+<<<<<<< HEAD
         (first_name, last_name, email, address, mobile, service_category,
          profile_photo, aadhaar_front, aadhaar_back, skill_status, experience_certificate,
          device_id, fcm_token, gender, current_latitude, current_longitude,
          login_status, created_at, updated_at)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?)
+=======
+        (first_name, last_name, email, address, city, mobile, service_category,
+         profile_photo, aadhaar_front, aadhaar_back, skill_status, experience_certificate,
+         device_id, fcm_token, gender, current_latitude, current_longitude,
+         login_status, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?,?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?)
+>>>>>>> 49d7cd4 (initial push from server)
       `;
 
       const [result] = await db.query(sql, [
@@ -166,6 +256,10 @@ export const servicemanRegister = [
         last_name,
         email,
         address,
+<<<<<<< HEAD
+=======
+        city,
+>>>>>>> 49d7cd4 (initial push from server)
         mobile,
         service_category,
         profile_photo,
@@ -175,7 +269,11 @@ export const servicemanRegister = [
         experience_certificate,
         device_id,
         fcm_token,
+<<<<<<< HEAD
         gender,                         // ⭐ added
+=======
+        gender,                        
+>>>>>>> 49d7cd4 (initial push from server)
         current_latitude,
         current_longitude,
         currentDate,
@@ -311,10 +409,14 @@ export async function servicemanLogin(req, res) {
 
 
 
+<<<<<<< HEAD
 
 
 export async function servicemanProfile(req, res) {
     
+=======
+export async function servicemanProfile(req, res) {
+>>>>>>> 49d7cd4 (initial push from server)
   if (!req.body || Object.keys(req.body).length === 0) {
     return res.status(400).json({
       success: false,
@@ -324,10 +426,15 @@ export async function servicemanProfile(req, res) {
     });
   }
 
+<<<<<<< HEAD
   // Safe destructure
   const { serviceman_id, current_latitude, current_longitude } = req.body;
 
   // Required validations
+=======
+  const { serviceman_id, current_latitude, current_longitude } = req.body;
+
+>>>>>>> 49d7cd4 (initial push from server)
   if (!serviceman_id) {
     return res.status(400).json({
       success: false,
@@ -349,7 +456,13 @@ export async function servicemanProfile(req, res) {
   try {
     const BASE_URL = process.env.BASE_URL || "";
 
+<<<<<<< HEAD
     // STEP 4: Update only location
+=======
+    /* =========================
+       UPDATE LOCATION
+    ========================= */
+>>>>>>> 49d7cd4 (initial push from server)
     await db.query(
       `
       UPDATE serviceman 
@@ -367,7 +480,13 @@ export async function servicemanProfile(req, res) {
       ]
     );
 
+<<<<<<< HEAD
     // STEP 5: Fetch updated serviceman profile
+=======
+    /* =========================
+       FETCH PROFILE
+    ========================= */
+>>>>>>> 49d7cd4 (initial push from server)
     const [rows] = await db.query(
       `
       SELECT 
@@ -395,7 +514,10 @@ export async function servicemanProfile(req, res) {
         current_latitude,
         current_longitude,
         profile_photo,
+<<<<<<< HEAD
         online_status,
+=======
+>>>>>>> 49d7cd4 (initial push from server)
         gender
       FROM serviceman
       WHERE id = ?
@@ -415,6 +537,7 @@ export async function servicemanProfile(req, res) {
 
     const data = rows[0];
 
+<<<<<<< HEAD
     // STEP 6: Fetch service name from subcategories
     let serviceName = null;
     if (data.service_category) {
@@ -429,6 +552,47 @@ export async function servicemanProfile(req, res) {
     data.service_name = serviceName;
 
     // Image URLs
+=======
+    /* =========================
+       SERVICE NAME LOGIC (IMPORTANT FIX)
+    ========================= */
+    let serviceName = null;
+    let serviceIds = [];
+
+    // handle JSON string or array
+    try {
+      if (typeof data.service_category === "string") {
+        serviceIds = JSON.parse(data.service_category);
+      } else if (Array.isArray(data.service_category)) {
+        serviceIds = data.service_category;
+      } else if (data.service_category) {
+        // single id case
+        serviceIds = [data.service_category];
+      }
+    } catch {
+      serviceIds = [];
+    }
+
+    // normalize to numbers
+    serviceIds = serviceIds.map(id => Number(id)).filter(id => !isNaN(id));
+
+    if (serviceIds.length > 0) {
+      const placeholders = serviceIds.map(() => '?').join(',');
+
+      const [services] = await db.query(
+        `SELECT name as title FROM categories WHERE id IN (${placeholders})`,
+        serviceIds
+      );
+
+      serviceName = services.map(row => row.title).join(', ');
+    }
+
+    data.service_name = serviceName;
+
+    /* =========================
+       IMAGE URL FORMAT
+    ========================= */
+>>>>>>> 49d7cd4 (initial push from server)
     data.profile_photo = data.profile_photo ? `${BASE_URL}/${data.profile_photo}` : null;
     data.aadhaar_front = data.aadhaar_front ? `${BASE_URL}/${data.aadhaar_front}` : null;
     data.aadhaar_back = data.aadhaar_back ? `${BASE_URL}/${data.aadhaar_back}` : null;
@@ -455,6 +619,10 @@ export async function servicemanProfile(req, res) {
 
 
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 49d7cd4 (initial push from server)
 export async function servicemanOnlineStatus(req, res) {
   // Check body exists
   if (!req.body || Object.keys(req.body).length === 0) {
@@ -569,4 +737,43 @@ export async function servicemanOnlineStatus(req, res) {
   }
 }
 
+<<<<<<< HEAD
+=======
+export const zoneCities = async (req, res) => {
+  try {
+    const [rows] = await db.query(
+      `
+      SELECT id, zone_name
+      FROM zones
+      ORDER BY id ASC
+      `
+    );
+
+    if (!rows.length) {
+      return res.status(404).json({
+        message: "Zones not found",
+        cities: []
+      });
+    }
+
+    // same key & same structure
+    const cities = rows.map(zone => ({
+      id: zone.id,
+      name: zone.zone_name
+    }));
+
+    return res.status(200).json({
+      message: "Zone cities fetched successfully",
+      cities
+    });
+
+  } catch (err) {
+    console.log("Zone List Error:", err);
+    return res.status(500).json({
+      message: "Internal Server Error"
+    });
+  }
+};
+
+>>>>>>> 49d7cd4 (initial push from server)
 

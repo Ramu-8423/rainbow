@@ -1,0 +1,513 @@
+<style>
+  .file-box {
+    width: 50px;
+    height: 50px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    overflow: hidden;
+    background: #f1f1f1;
+    margin-right: 6px;
+    cursor: pointer;
+    vertical-align: middle;
+  }
+
+  .file-thumb {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* ===========================
+     PAGINATION
+  =========================== */
+  .pagination-container {
+    margin-top: 25px;
+    padding: 12px 10px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid #ddd;
+    gap: 12px;
+  }
+
+  .pagination-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .pagination-left select {
+    padding: 5px 8px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+  }
+
+  .pagination-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .pg-btn {
+    padding: 6px 12px;
+    border: 1px solid #007bff;
+    color: #007bff;
+    border-radius: 4px;
+    text-decoration: none;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .pg-btn:hover {
+    background: #007bff;
+    color: #fff;
+  }
+
+  .pg-input {
+    width: 45px;
+    text-align: center;
+    padding: 5px;
+    border: 1px solid #aaa;
+    border-radius: 4px;
+  }
+
+  /* HEADER + FILTER */
+  .card-header {
+    gap: 10px;
+  }
+
+  .filter-form {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  @media (max-width: 600px) {
+    .card-header {
+      flex-direction: column;
+      align-items: flex-start !important;
+    }
+
+    #tableSearch {
+      width: 100% !important;
+      margin: 0 !important;
+    }
+
+    .filter-form input {
+      width: 48% !important;
+    }
+
+    .filter-form button,
+    .filter-form a {
+      width: 100%;
+    }
+  }
+
+  .card-header .form-control {
+    border-radius: 0 !important;
+  }
+</style>
+
+
+<style>
+  /* Dropdown background black */
+  .dropdown-menu {
+    background-color: #000 !important;
+    border-radius: 0;
+    border: 1px solid #222;
+  }
+
+  /* Dropdown items */
+  .dropdown-menu .dropdown-item {
+    color: #fff !important;
+    font-size: 13px;
+  }
+
+  /* Hover */
+  .dropdown-menu .dropdown-item:hover {
+    background-color: #1f2937 !important; /* dark gray */
+    color: #fff !important;
+  }
+
+  /* Active item */
+  .dropdown-menu .dropdown-item.active {
+    background-color: #2563eb !important; /* blue highlight */
+    color: #fff !important;
+    font-weight: 600;
+  }
+
+  /* Divider */
+  .dropdown-divider {
+    border-top: 1px solid #333;
+  }
+</style>
+
+<style>
+.badge{
+color:white !important;
+font-weight:bold !important;
+}
+
+
+</style>
+
+
+<div class="main-content">
+<section class="section">
+<div class="card">
+
+
+
+
+
+
+
+<div class="col-sm-5 d-flex align-items-center mt-2">
+  <h5 class="mb-0 me-3">Booking &nbsp;</h5>
+  <div class="btn-group" role="group">
+    <!-- NOW BUTTON -->
+    <a href="/cab-orders?type=1"
+       class="btn btn-sm <%= orderType == 1 ? 'btn-primary' : 'btn-outline-primary' %>"
+       style="border-radius:0;">
+      Current Booking
+    </a>
+    <a href="/cab-orders?type=2"
+       class="btn btn-sm <%= orderType == 2 ? 'btn-primary' : 'btn-outline-primary' %>"
+       style="border-radius:0;">
+       Schedule Booking
+    </a>
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- ================= HEADER (EXACT USERS CLONE) ================= -->
+<div class="card-header d-flex justify-content-between align-items-center flex-wrap">
+
+  <h4 class="mb-0">Rides</h4>
+
+<%
+  /* 🔥 preserve booking type */
+  const baseTypeQuery = orderType == 2 ? '?type=2' : '?type=1';
+%>
+
+<div class="dropdown">
+
+  <button
+    class="btn btn-sm btn-outline-primary dropdown-toggle"
+    type="button"
+    data-bs-toggle="dropdown"
+    aria-expanded="false"
+    style="border-radius:0; min-width:180px;"
+  >
+    <%= !statusParam ? 'All Orders' :
+        statusParam == 0 ? 'Pending' :
+        statusParam == 5 ? 'Pay Done' :
+        statusParam == 6 ? 'Cancelled by User' :
+        statusParam == 7 ? 'Cancelled by Driver' :
+        statusParam == 8 ? 'Cancelled by System' :
+        'All Orders' %>
+  </button>
+
+  <ul class="dropdown-menu">
+
+    <!-- ALL -->
+    <li>
+      <a class="dropdown-item <%= !statusParam ? 'active' : '' %>"
+         href="/cab-orders<%= baseTypeQuery %>">
+        All Orders
+      </a>
+    </li>
+
+    <li><hr class="dropdown-divider"></li>
+
+    <% if(orderType == 2){ %>
+    <!-- ✅ PENDING ONLY FOR SCHEDULE -->
+    <li>
+      <a class="dropdown-item <%= statusParam == 0 ? 'active' : '' %>"
+         href="/cab-orders/0<%= baseTypeQuery %>">
+        Pending
+      </a>
+    </li>
+    <% } %>
+
+    <!-- PAY DONE -->
+    <li>
+      <a class="dropdown-item <%= statusParam == 5 ? 'active' : '' %>"
+         href="/cab-orders/5<%= baseTypeQuery %>">
+        Pay Done
+      </a>
+    </li>
+
+    <!-- USER CANCEL -->
+    <li>
+      <a class="dropdown-item <%= statusParam == 6 ? 'active' : '' %>"
+         href="/cab-orders/6<%= baseTypeQuery %>">
+        Cancelled by User
+      </a>
+    </li>
+
+    <!-- DRIVER CANCEL -->
+    <li>
+      <a class="dropdown-item <%= statusParam == 7 ? 'active' : '' %>"
+         href="/cab-orders/7<%= baseTypeQuery %>">
+        Cancelled by Driver
+      </a>
+    </li>
+
+    <!-- SYSTEM CANCEL -->
+    <li>
+      <a class="dropdown-item <%= statusParam == 8 ? 'active' : '' %>"
+         href="/cab-orders/8<%= baseTypeQuery %>">
+        Cancelled by System
+      </a>
+    </li>
+
+  </ul>
+</div>
+
+  <input
+    type="text"
+    id="tableSearch"
+    placeholder="Search..."
+    class="form-control mx-3"
+    style="width:220px;"
+  />
+
+  <form class="filter-form d-flex align-items-center" method="GET">
+    <input type="date" name="from" value="<%= from || '' %>" class="form-control" style="width:150px;" />
+    <input type="date" name="to" value="<%= to || '' %>" class="form-control" style="width:150px;" />
+
+    <button type="submit" class="btn btn-primary btn-sm" style="border-radius:0;">
+      Filter
+    </button>
+
+    <a href="/cab-orders"
+         class="btn btn-secondary btn-sm"
+         style="border-radius:0;">
+        Reset
+      </a>
+  </form>
+
+</div>
+
+<!-- ================= TABLE ================= -->
+
+
+
+
+
+
+
+<div class="card-body">
+<div class="table-responsive">
+
+<table class="table table-bordered table-striped">
+<thead>
+<tr>
+  <th>ID</th>
+  <th>User</th>
+  <th>Phone</th>
+  <th>Driver</th>
+  <th>Pickup</th>
+  <th>Drop</th>
+  <th>Vehicle Name</th>
+  <th>Amount</th>
+  <% if (orderType == 2) { %>
+    <th>Schedule Time</th>
+  <% } %>
+  <th>Status</th>
+
+  <% if (statusParam == 6 || statusParam == 7) { %>
+    <th>Cancel Reason</th>
+  <% } %>
+
+  <th>Date</th>
+
+  
+</tr>
+</thead>
+
+<tbody>
+<% if (orders.length > 0) { %>
+
+  <% orders.forEach(o => { %>
+    <tr>
+      <td><%= o.id %></td>
+      <td><%= o.user_name %></td>
+      <td><%= o.user_mobile %></td>
+      <td><%= o.driver_name || '-' %></td>
+
+      <td><%= o.pickup_location %></td>
+      <td><%= o.drop_location %></td>
+
+     <td><%= o.vehicle_name ? o.vehicle_name : "NA" %></td>
+      
+      <td>₹ <%= o.final_amount || o.estimated_amount %></td>
+
+
+<% if (orderType == 2) { %>
+  <td>
+    <% if (o.schedule_time) { 
+         const now = new Date(current_date_time);
+         const schedule = new Date(o.schedule_time);
+         const isExpired = now > schedule;
+    %>
+
+      <span style="font-weight:bold; color:<%= isExpired ? 'red' : 'green' %>;">
+        <%= o.schedule_time %>
+      </span>
+
+    <% } else { %>
+      -
+    <% } %>
+  </td>
+<% } %>
+
+
+
+      <!-- STATUS -->
+     <td class="text-center">
+  <% 
+    let statusText = '';
+    let statusClass = '';
+
+    if (o.order_status == 0) {
+      statusText = 'Pending Ride';
+      statusClass = 'bg-secondary';
+    } else if (o.order_status == 5) {
+      statusText = 'Pay Done';
+      statusClass = 'bg-success';
+    } else if (o.order_status == 6) {
+      statusText = 'Cancelled by User';
+      statusClass = 'bg-danger';
+    } else if (o.order_status == 7) {
+      statusText = 'Cancelled by Driver';
+      statusClass = 'bg-warning';
+    } else if (o.order_status == 8) {
+      statusText = 'Cancelled by System';
+      statusClass = 'bg-primary';
+    }
+  %>
+
+  <span class="badge <%= statusClass %>"
+        style="
+          display:inline-block;
+          min-width:170px;
+          text-align:center;
+          padding:8px 12px;
+          font-size:13px;
+          border-radius:20px;
+        ">
+    <%= statusText %>
+  </span>
+</td>
+
+
+      <!-- CANCEL REASON -->
+      <% if (statusParam == 6 || statusParam == 7) { %>
+        <td style="font-size:12px; white-space:normal;">
+          <%= o.cancel_reason || '-' %>
+        </td>
+      <% } %>
+
+      <!-- DATE -->
+      <td><%= o.created_at %></td>
+     
+     
+
+    </tr>
+  <% }) %>
+
+<% } else { %>
+
+  <tr>
+    <td colspan="<%= 9 + ((statusParam == 6 || statusParam == 7) ? 1 : 0) + (orderType == 2 ? 1 : 0) %>" 
+        class="text-center">
+        No orders found
+    </td>
+  </tr>
+
+<% } %>
+</tbody>
+</table>
+
+</div>
+
+<!-- ================= PAGINATION ================= -->
+<%
+function buildQuery(p) {
+  let q = `?page=${p}&perPage=${perPage}`;
+  if (from) q += `&from=${from}`;
+  if (to) q += `&to=${to}`;
+  return q;
+}
+%>
+
+<div class="pagination-container">
+
+  <div class="pagination-left">
+    <span>Items per page:</span>
+    <select onchange="changePerPage(this.value)">
+      <option value="8"  <%= perPage == 8 ? 'selected' : '' %>>8</option>
+      <option value="10" <%= perPage == 10 ? 'selected' : '' %>>10</option>
+      <option value="15" <%= perPage == 15 ? 'selected' : '' %>>15</option>
+      <option value="20" <%= perPage == 20 ? 'selected' : '' %>>20</option>
+    </select>
+
+    <span>
+      <%= (page - 1) * perPage + 1 %> –
+      <%= Math.min(page * perPage, total) %>
+      of <%= total %> items
+    </span>
+  </div>
+
+  <div class="pagination-right">
+    <a href="<%= buildQuery(1) %>" class="pg-btn">&laquo;</a>
+    <a href="<%= buildQuery(page > 1 ? page - 1 : 1) %>" class="pg-btn">Previous</a>
+    <input class="pg-input" readonly value="<%= page %>">
+    <span>of <%= totalPages %></span>
+    <a href="<%= buildQuery(page < totalPages ? page + 1 : totalPages) %>" class="pg-btn">Next</a>
+    <a href="<%= buildQuery(totalPages) %>" class="pg-btn">&raquo;</a>
+  </div>
+
+</div>
+
+</div>
+</div>
+</section>
+</div>
+
+<script>
+document.getElementById("tableSearch").addEventListener("keyup", function(){
+  const value = this.value.toLowerCase();
+  document.querySelectorAll("tbody tr").forEach(row => {
+    row.style.display = row.innerText.toLowerCase().includes(value) ? "" : "none";
+  });
+});
+
+function changePerPage(val){
+  const url = new URL(window.location.href);
+  url.searchParams.set("perPage", val);
+  url.searchParams.set("page", 1);
+  window.location.href = url.toString();
+}
+</script>

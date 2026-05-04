@@ -1,0 +1,215 @@
+<div class="main-content">
+
+<style>
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    font-family: Arial;
+  }
+  th, td {
+    padding: 10px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+    vertical-align: top;
+  }
+  th {
+    background: #f2f2f2;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+  }
+  tr.active {
+    background: #eaffea;
+  }
+  .info-box {
+    line-height: 1.5;
+  }
+  .info-box b {
+    display: inline-block;
+    min-width: 55px;
+  }
+  
+  
+.auto-scroll {
+  max-width: 220px;
+  white-space: nowrap;
+  overflow-x: hidden;
+  display: block;
+
+  /* 🔥 AUTO SCROLL MAGIC */
+  animation: scrollText 12s linear infinite;
+}
+
+/* hover par user control */
+.auto-scroll:hover {
+  overflow-x: auto;
+  animation-play-state: paused;   /* auto ruk jayega */
+}
+
+/* animation */
+@keyframes scrollText {
+  0%   { text-indent: 0; }
+  100% { text-indent: -100%; }
+}
+
+/* scrollbar */
+.auto-scroll::-webkit-scrollbar {
+  height: 4px;
+}
+
+.auto-scroll::-webkit-scrollbar-thumb {
+  background: #aaa;
+  border-radius: 10px;
+}
+
+
+</style>
+
+<!-- 🔥 Firebase CDN -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+<h2>Live Active Rides</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Order ID</th>
+      <th>User</th>
+      <th>Driver</th>
+      <th>Vehicle</th>
+      <th>Distance</th>
+      <th>Pickup</th>
+      <th>Drop</th>
+      <th>Amount</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+
+  <tbody id="rideBody">
+    <tr>
+      <td colspan="8" align="center">Waiting for live rides...</td>
+    </tr>
+  </tbody>
+</table>
+
+</div>
+
+<script>
+/* ===============================
+   🔥 Firebase Config
+================================ */
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "rainbow-f0f87.firebaseapp.com",
+  projectId: "rainbow-f0f87",
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+const rideBody = document.getElementById("rideBody");
+
+/* ===============================
+   🔥 Live Ride Listener
+================================ */
+db.collection("cab_orders")
+  .where("order_status", ">", 0)
+  .where("order_status", "<", 5)
+  .onSnapshot(snapshot => {
+
+    rideBody.innerHTML = "";
+
+    if (snapshot.empty) {
+      rideBody.innerHTML =
+        `<tr><td colspan="8" align="center">No active ride</td></tr>`;
+      return;
+    }
+
+    snapshot.forEach(doc => {
+      const d = doc.data();
+
+      rideBody.innerHTML += `
+        <tr class="active">
+          <td>${d.order_id ?? "-"}</td>
+
+          <td class="info-box">
+            
+            <b>Name:</b> ${d.user_name ?? "-"}<br>
+            <b>Mob:</b> ${d.user_mobile ?? "-"}
+          </td>
+
+          <td class="info-box">
+            
+            <b>Name:</b> ${d.driver_name ?? "-"}<br>
+            <b>Mob:</b> ${d.contact_number ?? "-"}
+          </td>
+
+          <td>${d.vehicle_name ?? "-"}</td>
+          <td>${d.distance_km ?? "-"} KM</td>
+
+ <td>
+  <div class="auto-scroll">
+    ${d.pickup_location ?? "-"}
+  </div>
+</td>
+
+<td>
+  <div class="auto-scroll">
+    ${d.drop_location ?? "-"}
+  </div>
+</td>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+          <td>₹ ${d.estimated_amount ?? 0}</td>
+          
+          
+         <td>
+  ${rideStatusText(d.order_status)}
+
+<form method="POST" action="/update-ride-status" style="margin-top:6px;">
+        <input type="hidden" name="id" value="${d.order_id}">
+        <input type="hidden" name="ride_status" value="5">
+
+        <button type="submit"
+          style="background:#28a745;color:#fff;border:none;
+          padding:5px 10px;font-size:12px;border-radius:4px;cursor:pointer;">
+          Complete Ride
+        </button>
+      </form>
+</td>
+          
+          
+          
+        </tr>
+      `;
+    });
+
+  });
+
+/* ===============================
+   🔹 Status Text
+================================ */
+function rideStatusText(status) {
+  switch (Number(status)) {
+    case 1: return "Accepted";
+    case 2: return "On the Way";
+    case 3: return "Arrived";
+    case 4: return "Started";
+    default: return "-";
+  }
+}
+</script>

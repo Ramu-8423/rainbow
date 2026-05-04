@@ -1,9 +1,31 @@
 import express from "express";
 import { uploadImageDynamic } from "../middleware/upload.js";
+<<<<<<< HEAD
+=======
+
+>>>>>>> 49d7cd4 (initial push from server)
 /* =======================
    USER PUBLIC CONTROLLERS
 ======================= */
 import {
+<<<<<<< HEAD
+=======
+  generateRideInvoice,
+  viewInvoice
+} from "../controllers/api/InvoiceController.js";
+
+
+import {
+servicePayment,
+servicePaytmCallback
+} from "../controllers/api/servicePaymentController.js";
+
+
+
+
+
+import {
+>>>>>>> 49d7cd4 (initial push from server)
   loginPolicy,
   loginAdds,
   userLogin,
@@ -22,7 +44,14 @@ import {
   applyCoupon,
   saveAddress,
   getSavedAddress,
+<<<<<<< HEAD
   deleteSavedAddressByType
+=======
+  deleteSavedAddressByType,
+  getPolicyByType,
+  getHelpSupport,
+  letter_hours
+>>>>>>> 49d7cd4 (initial push from server)
 } from "../controllers/api/userPublicController.js";
 
 /* =======================
@@ -32,12 +61,21 @@ import {
   servicemanRegister,
   servicemanLogin,
   servicemanProfile,
+<<<<<<< HEAD
   servicemanOnlineStatus
+=======
+  servicemanOnlineStatus,
+  zoneCities
+>>>>>>> 49d7cd4 (initial push from server)
 } from "../controllers/api/serviceManController.js";
 
 /* =======================
    SERVICE ORDER CONTROLLERS
 ======================= */
+<<<<<<< HEAD
+=======
+
+>>>>>>> 49d7cd4 (initial push from server)
 import {
   serviceOrder,
   acceptOrder,
@@ -45,18 +83,29 @@ import {
   myActiveOrders,
   changePaymentMode,
   addServicemanRating,
+<<<<<<< HEAD
   getServicemanRatings
+=======
+  getServicemanRatings,
+  ignoreOrder
+>>>>>>> 49d7cd4 (initial push from server)
 } from "../controllers/api/serviceOrderController.js";
 
 /* =======================
    PAYMENT / WALLET CONTROLLERS
 ======================= */
 import {
+<<<<<<< HEAD
   payment,
+=======
+  ridePayment,
+  paytmCallback,
+>>>>>>> 49d7cd4 (initial push from server)
   bankDetails,
   getBankDetails,
   bankDetailsUpdateRequest,
   getBankUpdateRequest,
+<<<<<<< HEAD
   callbackService,
   serviceman_transaction,
   user_transaction,
@@ -106,6 +155,73 @@ import { sendOtp, verifyOtp, getOTPCount} from "../controllers/api/otpVerifyCont
 router.post("/send-otp", sendOtp);
 router.post("/verify-otp", verifyOtp);
 
+=======
+  serviceman_transaction,
+  user_transaction,
+  servicemanEarnings,
+  servicemanServiceInfo
+} from "../controllers/api/cabPaymentController.js";
+
+import {
+  servicemanwithdrawServiceRequest,
+  servicemanWithdrawHistory,
+  driverWithdrawServiceRequest,
+  driverWithdrawHistory
+} from "../controllers/api/withdrawController.js";
+
+import {
+  vehicles,
+  vehicle_fuel_types,
+  getCabCancelReasons,
+  cabHistory,
+  cabEarning,
+  submitDriverRating
+} from "../controllers/api/cabBookingController.js";
+
+import {
+  driver_transactions
+} from "../controllers/api/driverTransaction.js";
+
+import {
+  driverOnlineStatus,
+  getVehicleAmountList,
+  getDriverCanDiscount,
+  cabOrder,
+  getDriverProfilePhotos,
+  addOrUpdateDriverOffer,
+  acceptCabRide,
+  deleteExpiredCabOrders,
+  changeCabOrderStatus,
+  activeRide,
+  cabchangePaymentMode,
+  letterOrderNotification,
+  laterAssignOrder,
+  acceptLaterRide,
+  driverIgnoreCabOrder,
+  updateEstimatedAmount
+} from "../controllers/api/CaborderController.js";
+
+import {
+  driverRegister,
+  getDriverProfile,
+  getBrandByVehicle,
+  getModelByBrand,
+  getColors
+} from "../controllers/api/driverController.js";
+
+import {
+  sendOtp,
+  verifyOtp
+} from "../controllers/api/otpVerifyController.js";
+
+const router = express.Router();
+
+/* =======================
+   OTP
+======================= */
+router.get("/send_otp", sendOtp);
+router.get("/verifyotp", verifyOtp);
+>>>>>>> 49d7cd4 (initial push from server)
 
 /* =======================
    USER AUTH & PROFILE
@@ -133,6 +249,10 @@ router.get("/top_services", topServices);
 router.post("/save-address", saveAddress);
 router.post("/get-saved-address", getSavedAddress);
 router.delete("/delete", deleteSavedAddressByType);
+<<<<<<< HEAD
+=======
+
+>>>>>>> 49d7cd4 (initial push from server)
 /* =======================
    JOB REQUEST
 ======================= */
@@ -156,7 +276,11 @@ router.get("/coupons/:id", getCoupons);
 router.post("/apply_coupon", applyCoupon);
 
 /* =======================
+<<<<<<< HEAD
    SERVICEMAN AUTH & PROFILE
+=======
+   SERVICEMAN AUTH
+>>>>>>> 49d7cd4 (initial push from server)
 ======================= */
 router.post(
   "/serviceman_register",
@@ -175,9 +299,24 @@ router.post("/online_status", servicemanOnlineStatus);
 
 /* =======================
    BANK / PAYMENT
+<<<<<<< HEAD
 ======================= */
 router.post("/payment", payment);
 router.post("/callback_service", callbackService);
+=======
+   
+======================= */
+router.post("/ridePayment", ridePayment);
+router.post("/callback_paytm", paytmCallback);
+
+
+router.post("/servicePayment", servicePayment);
+router.post("/service_callback_paytm", servicePaytmCallback);
+
+
+
+
+>>>>>>> 49d7cd4 (initial push from server)
 router.post("/add_bank_details", bankDetails);
 router.post("/get_bank_details", getBankDetails);
 router.post("/bank_update_request", bankDetailsUpdateRequest);
@@ -194,7 +333,11 @@ router.post("/my-orders", myActiveOrders);
 router.post("/change_payment_mode", changePaymentMode);
 
 /* =======================
+<<<<<<< HEAD
    TRANSACTIONS / WALLET
+=======
+   TRANSACTIONS
+>>>>>>> 49d7cd4 (initial push from server)
 ======================= */
 router.post("/serviceman_transaction", serviceman_transaction);
 router.post("/user-transaction", user_transaction);
@@ -207,6 +350,7 @@ router.post("/serviceman-earnings", servicemanEarnings);
 ======================= */
 router.post("/serviceman-rating", addServicemanRating);
 router.post("/serviceman-ratings", getServicemanRatings);
+<<<<<<< HEAD
 router.post("/serviceman-ratings", getServicemanRatings);
 
 
@@ -245,10 +389,33 @@ router.post(
 );
 
 
+=======
+
+/* =======================
+   VEHICLE
+======================= */
+router.get("/vehicles", vehicles);
+router.get("/vehicle_fuel_types/:id", vehicle_fuel_types);
+router.get("/cab-cancel-reasons", getCabCancelReasons);
+router.post("/cab-history", cabHistory);
+router.post("/cab-earning", cabEarning);
+
+/* =======================
+   DRIVER
+======================= */
+router.post("/driver_register", driverRegister);
+>>>>>>> 49d7cd4 (initial push from server)
 router.post("/driver_profile", getDriverProfile);
 router.post("/get-brand", getBrandByVehicle);
 router.post("/get-model", getModelByBrand);
 router.get("/colors", getColors);
+<<<<<<< HEAD
+=======
+
+/* =======================
+   CAB FLOW
+======================= */
+>>>>>>> 49d7cd4 (initial push from server)
 router.post("/driver-online-status", driverOnlineStatus);
 router.post("/vehicle-amount-list", getVehicleAmountList);
 router.post("/driver-can-discount", getDriverCanDiscount);
@@ -256,9 +423,47 @@ router.post("/cab_order", cabOrder);
 router.post("/driver-profile-photos", getDriverProfilePhotos);
 router.post("/driver-offer", addOrUpdateDriverOffer);
 
+<<<<<<< HEAD
 router.get("/count_otp", getOTPCount);
 
 
 
 
 export default router;
+=======
+router.post("/accept-cab-ride", acceptCabRide);
+router.get("/delete-expired-orders", deleteExpiredCabOrders);
+router.post("/change-cab-order-status", changeCabOrderStatus);
+router.post("/active-ride", activeRide);
+router.post("/driver_transactions", driver_transactions);
+router.post("/cab-change-payment-mode", cabchangePaymentMode);
+
+router.get("/letterOrderNotification", letterOrderNotification);
+router.get("/laterAssignOrder", laterAssignOrder);
+router.post("/submit-driver-rating", submitDriverRating);
+router.post("/accept-later-ride", acceptLaterRide);
+
+router.post("/driver-withdraw-request", driverWithdrawServiceRequest);
+router.post("/driver-withdraw-history", driverWithdrawHistory);
+router.post("/driver-ignore-ride-order", driverIgnoreCabOrder);
+router.post("/update-estimated-amount", updateEstimatedAmount);
+
+router.get("/zone_cities", zoneCities);
+
+/* =======================
+   INVOICE
+======================= */
+router.get("/ride-invoice/:ride_id", generateRideInvoice);
+router.get("/view-invoice/:ride_id", viewInvoice);
+
+/* =======================
+   OTHER
+======================= */
+router.get("/policy/:type", getPolicyByType);
+router.get("/help-support", getHelpSupport);
+router.get("/letter_hours", letter_hours);
+
+router.post("/ignore-service-order", ignoreOrder);
+
+export default router;
+>>>>>>> 49d7cd4 (initial push from server)

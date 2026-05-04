@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <div class="main-content">
    <h3>Dashboard</h3>
  
@@ -97,3 +98,742 @@
   </div>        
           
 </div>
+=======
+<div class="main-content">
+
+<style>
+ .mini-card {
+  background: #ffffff;
+  border-radius: 5px;
+  padding: 12px 14px;
+  height: 90px;
+  box-shadow:
+    0 1px 3px rgba(255, 255, 255, 0.9),
+    0 2px 6px rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.mini-card:hover {
+  transform: translateY(-3px);
+  box-shadow:
+    0 4px 6px rgba(0, 0, 0, 0.1),
+    0 2px 4px rgba(0, 0, 0, 0.06);
+}
+
+.mini-card-title {
+  font-size: 14px;
+  color: black;
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+.mini-card-body {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.mini-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.icon-green { background:#dcfce7; color:#16a34a; }
+.icon-purple { background:#ede9fe; color:#7c3aed; }
+.icon-blue { background:#e0f2fe; color:#0284c7; }
+.icon-red { background:#fee2e2; color:#dc2626; }
+.icon-orange { background:#ffedd5; color:#ea580c; }
+.icon-dark { background:#e5e7eb; color:#111827; }
+
+.mini-badge {
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 20px;
+  font-weight: 600;
+}
+
+.badge-green { background:#dcfce7; color:#16a34a; }
+.badge-red { background:#fee2e2; color:#dc2626; }
+.badge-purple { background:#ede9fe; color:#7c3aed; }
+.badge-blue { background:#e0f2fe; color:#0284c7; }
+.badge-orange { background:#ffedd5; color:#ea580c; }
+.badge-dark { background:#e5e7eb; color:#111827; }
+
+
+.btn-double {
+  min-width: 120px important;  
+  text-align: center important;
+}
+</style>
+
+<!-- ================= MAIN DASHBOARD ROW ================= -->
+
+<form method="GET" action="/dashboard" class="row g-2 align-items-end mb-3">
+
+  <!-- FROM DATE -->
+  <div class="col-sm-3">
+    <label class="form-label form-label-sm mb-1">From Date</label>
+    <input
+      type="date"
+      name="from"
+      class="form-control form-control-sm"
+      value="<%= from || '' %>"
+      required
+    >
+  </div>
+
+  <!-- TO DATE -->
+  <div class="col-sm-3">
+    <label class="form-label form-label-sm mb-1">To Date</label>
+    <input
+      type="date"
+      name="to"
+      class="form-control form-control-sm"
+      value="<%= to || '' %>"
+      required
+    >
+  </div>
+
+  <!-- BUTTONS -->
+  <div class="col-sm-3 d-flex gap-1">
+    <button type="submit" class="btn btn-sm btn-primary w-100">
+      Filter
+    </button>
+    <a href="/dashboard" class="btn btn-sm btn-secondary w-100">
+      Reset
+    </a>
+  </div>
+
+  <!-- EMPTY SPACE (RIGHT SIDE) -->
+  <div class="col-sm-4"></div>
+
+</form>
+
+
+
+<div class="row">
+
+  <div class="col-12 mb-2">
+    <h4 class="mt-2">Revenue Overview</h4>
+  </div>
+
+ <!-- 🔥 REVENUE SUMMARY -->
+<div class="col-xl-6 col-lg-6 col-md-6 col-sm-6 mb-3">
+
+  <%
+    const totalRevenue =
+      Number(service_revenue || 0) +
+      Number(cab_revenue || 0);
+
+    const gstAmount = (totalRevenue * 18) / 118;
+    const actualRevenue = totalRevenue - gstAmount;
+  %>
+
+  <div class="mini-card" style="height:auto;padding:14px;">
+    <div class="mini-card-title mb-2">
+      Revenue Summary
+    </div>
+
+    <!-- INNER FLEX -->
+    <div style="
+        display:flex;
+        gap:8px;
+        justify-content:space-between;
+    ">
+
+      <!-- TOTAL -->
+      <div style="
+          flex:1;
+          background:#e0ecff;
+          border-radius:6px;
+          padding:8px;
+          text-align:center;
+      ">
+        <div style="font-size:11px;color:#555;">Total</div>
+        <div style="font-weight:700;color:#0d6efd;">
+          ₹ <%= totalRevenue.toFixed(2) %>
+        </div>
+      </div>
+
+      <!-- GST -->
+      <div style="
+          flex:1;
+          background:#ffe3e3;
+          border-radius:6px;
+          padding:8px;
+          text-align:center;
+      ">
+        <div style="font-size:11px;color:#555;">GST</div>
+        <div style="font-weight:700;color:#dc2626;">
+          ₹ <%= gstAmount.toFixed(2) %>
+        </div>
+      </div>
+
+      <!-- NET -->
+      <div style="
+          flex:1;
+          background:#dcfce7;
+          border-radius:6px;
+          padding:8px;
+          text-align:center;
+      ">
+        <div style="font-size:11px;color:#555;">Net</div>
+        <div style="font-weight:700;color:#16a34a;">
+          ₹ <%= actualRevenue.toFixed(2) %>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+  <!-- 🔥 TODAY TOTAL REVENUE -->
+  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
+    <div class="mini-card">
+      <div class="mini-card-title">Today Total Revenue</div>
+      <div class="mini-card-body">
+        <div class="mini-icon icon-purple"><i class="bi bi-cash-stack"></i></div>
+        <span class="mini-badge badge-purple">
+          <%= (Number(today_service_revenue || 0) + Number(today_cab_revenue || 0)).toFixed(2) %>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🟢 TOTAL SERVICE REVENUE -->
+  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
+    <div class="mini-card">
+      <div class="mini-card-title">Total Service Revenue</div>
+      <div class="mini-card-body">
+        <div class="mini-icon icon-green"><i class="bi bi-tools"></i></div>
+        <span class="mini-badge badge-green">
+          <%= Number(service_revenue || 0).toFixed(2) %>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🟢 TODAY SERVICE REVENUE -->
+  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
+    <div class="mini-card">
+      <div class="mini-card-title">Today Service Revenue</div>
+      <div class="mini-card-body">
+        <div class="mini-icon icon-purple"><i class="bi bi-tools"></i></div>
+        <span class="mini-badge badge-purple">
+          <%= Number(today_service_revenue || 0).toFixed(2) %>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🚕 TOTAL CAB REVENUE -->
+  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
+    <div class="mini-card">
+      <div class="mini-card-title">Total Ride Revenue</div>
+      <div class="mini-card-body">
+        <div class="mini-icon icon-green"><i class="bi bi-car-front-fill"></i></div>
+        <span class="mini-badge badge-green">
+          <%= Number(cab_revenue || 0).toFixed(2) %>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🚕 TODAY CAB REVENUE -->
+  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
+    <div class="mini-card">
+      <div class="mini-card-title">Today Ride Revenue</div>
+      <div class="mini-card-body">
+        <div class="mini-icon icon-purple"><i class="bi bi-car-front-fill"></i></div>
+        <span class="mini-badge badge-purple">
+          <%= Number(today_cab_revenue || 0).toFixed(2) %>
+        </span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+
+
+<div class="row">
+
+  <div class="col-12 mb-2">
+    <h4>Service Section</h4>
+  </div>
+  
+
+  <!-- Total Serviceman -->
+  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='/dashboard'">
+    <div class="mini-card">
+      <div class="mini-card-title">Total Service Revenue </div>
+      <div class="mini-card-body">
+        <div class="mini-icon icon-green"><i class="bi bi-people-fill"></i></div>
+        <span class="mini-badge badge-green"><%= service_revenue  %></span>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='/serviceman'">
+    <div class="mini-card">
+      <div class="mini-card-title">Total Serviceman</div>
+      <div class="mini-card-body">
+        <div class="mini-icon icon-green"><i class="bi bi-people-fill"></i></div>
+        <span class="mini-badge badge-green"><%= total_serviceman %></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Active Serviceman -->
+  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='/serviceman?status=1'">
+    <div class="mini-card">
+      <div class="mini-card-title">Active Serviceman</div>
+      <div class="mini-card-body">
+        <div class="mini-icon icon-purple"><i class="bi bi-person-check-fill"></i></div>
+        <span class="mini-badge badge-green"><%= active_serviceman %></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Online -->
+  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='/serviceman?status=4'">
+    <div class="mini-card">
+      <div class="mini-card-title">Online</div>
+      <div class="mini-card-body">
+        <div class="mini-icon icon-blue"><i class="bi bi-wifi"></i></div>
+        <span class="mini-badge badge-purple"><%= online_serviceman %></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Offline -->
+  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='/serviceman?status=3'">
+    <div class="mini-card">
+      <div class="mini-card-title">Offline</div>
+      <div class="mini-card-body">
+        <div class="mini-icon icon-red"><i class="bi bi-wifi-off"></i></div>
+        <span class="mini-badge badge-blue"><%= offline_serviceman %></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Total Category -->
+  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='/categories'">
+    <div class="mini-card">
+      <div class="mini-card-title">Total Category</div>
+      <div class="mini-card-body">
+        <div class="mini-icon icon-green"><i class="bi bi-grid-fill"></i></div>
+        <span class="mini-badge badge-green"><%= total_category %></span>
+      </div>
+    </div>
+  </div>
+
+<!-- Inactive Category -->
+<div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3"
+     onclick="window.location.href='/categories/?status=0'">
+  <div class="mini-card">
+    <div class="mini-card-title">Inactive Category</div>
+    <div class="mini-card-body">
+      <div class="mini-icon icon-red">
+        <i class="bi bi-grid-3x3-gap-fill"></i>
+      </div>
+      <span class="mini-badge badge-red"><%= inactive_category %></span>
+    </div>
+  </div>
+</div>
+
+
+  <!-- Total Subcategory -->
+  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='/subcategories'">
+    <div class="mini-card">
+      <div class="mini-card-title">Total Subcategory</div>
+      <div class="mini-card-body">
+        <div class="mini-icon icon-purple"><i class="bi bi-diagram-3-fill"></i></div>
+        <span class="mini-badge badge-purple"><%= total_subcategory %></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Inactive Subcategory -->
+  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='/subcategories?status=inactive'">
+    <div class="mini-card">
+      <div class="mini-card-title">Inactive Subcategory</div>
+      <div class="mini-card-body">
+        <div class="mini-icon icon-red"><i class="bi bi-diagram-3"></i></div>
+        <span class="mini-badge badge-red"><%= inactive_subcategory %></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Services -->
+  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='/services/1'">
+    <div class="mini-card">
+      <div class="mini-card-title">Total Services</div>
+      <div class="mini-card-body">
+        <div class="mini-icon icon-purple"><i class="bi bi-diagram-3-fill"></i></div>
+        <span class="mini-badge badge-purple"><%= total_services %></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='service/0'">
+    <div class="mini-card">
+      <div class="mini-card-title">Inactive Services</div>
+      <div class="mini-card-body">
+        <div class="mini-icon icon-red"><i class="bi bi-diagram-3"></i></div>
+        <span class="mini-badge badge-red"><%= inactive_services %></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Orders -->
+  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='#'">
+    <div class="mini-card">
+      <div class="mini-card-title">Completed Orders</div>
+      <div class="mini-card-body">
+        <div class="mini-icon icon-green"><i class="bi bi-check-circle-fill"></i></div>
+        <span class="mini-badge badge-green"><%= completed_services %></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='#'">
+    <div class="mini-card">
+      <div class="mini-card-title">Ongoing Orders</div>
+      <div class="mini-card-body">
+        <div class="mini-icon icon-blue"><i class="bi bi-arrow-repeat"></i></div>
+        <span class="mini-badge badge-blue"><%= ongoing_services %></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Users -->
+  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='/all-users'">
+    <div class="mini-card">
+      <div class="mini-card-title">Total Users</div>
+      <div class="mini-card-body">
+        <div class="mini-icon icon-purple"><i class="bi bi-diagram-3-fill"></i></div>
+        <span class="mini-badge badge-purple"><%= total_users %></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='/all-users?status=0'">
+    <div class="mini-card">
+      <div class="mini-card-title">Inactive Users</div>
+      <div class="mini-card-body">
+        <div class="mini-icon icon-red"><i class="bi bi-diagram-3"></i></div>
+        <span class="mini-badge badge-red"><%= inactive_users %></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='/job-applications'">
+    <div class="mini-card">
+      <div class="mini-card-title">Total Job Request</div>
+      <div class="mini-card-body">
+        <div class="mini-icon icon-red"><i class="bi bi-diagram-3"></i></div>
+        <span class="mini-badge badge-red"><%= total_job_request %></span>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='/serviceman-withdraw-request'">
+    <div class="mini-card">
+      <div class="mini-card-title">Pending Withdraw</div>
+      <div class="mini-card-body">
+        <div class="mini-icon icon-red"><i class="bi bi-diagram-3"></i></div>
+        <span class="mini-badge badge-red"><%= pending_serviceman_withdraw %></span>
+      </div>
+    </div>
+  </div>
+
+
+
+
+
+</div>
+<!-- ================= END MAIN DASHBOARD ================= -->
+
+
+<!-- ================= CAB & RIDE SECTION ================= -->
+<div class="row mt-3">
+
+  <div class="col-12 mb-2">
+    <h4>Cab and Ride Section</h4>
+  </div>
+
+<div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3"
+     onclick="window.location.href='/all-drivers'">
+  <div class="mini-card">
+    <div class="mini-card-title">Total Ride Revenue  </div>
+    <div class="mini-card-body">
+      <div class="mini-icon icon-purple"><i class="bi bi-truck"></i></div>
+      <span class="mini-badge badge-purple"><%= cab_revenue  %></span>
+    </div>
+  </div>
+</div>
+
+<div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3"
+     onclick="window.location.href='/cabLiveOrdersRoutes'"
+     style="cursor:pointer;">
+  <div class="mini-card">
+    <div class="mini-card-title">Active Rides</div>
+    <div class="mini-card-body">
+      <div class="mini-icon icon-blue">
+        <i class="bi bi-arrow-repeat"></i>
+      </div>
+      <span class="mini-badge badge-blue" id="activeRideCount">
+        0
+      </span>
+    </div>
+  </div>
+</div>
+
+
+<div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3"
+     onclick="window.location.href='/all-drivers'">
+  <div class="mini-card">
+    <div class="mini-card-title">Total Drivers</div>
+    <div class="mini-card-body">
+      <div class="mini-icon icon-purple"><i class="bi bi-truck"></i></div>
+      <span class="mini-badge badge-purple"><%= total_driver %></span>
+    </div>
+  </div>
+</div>
+
+<div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3"
+     onclick="window.location.href='/all-drivers/2'">
+  <div class="mini-card">
+    <div class="mini-card-title">Active Drivers</div>
+    <div class="mini-card-body">
+      <div class="mini-icon icon-green"><i class="bi bi-check-circle-fill"></i></div>
+      <span class="mini-badge badge-green"><%= active_driver %></span>
+    </div>
+  </div>
+</div>
+
+
+<div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3"
+     onclick="window.location.href='/all-drivers/4'">
+  <div class="mini-card">
+    <div class="mini-card-title">Inactive Drivers</div>
+    <div class="mini-card-body">
+      <div class="mini-icon icon-red"><i class="bi bi-x-circle-fill"></i></div>
+      <span class="mini-badge badge-red"><%= inactive_driver %></span>
+    </div>
+  </div>
+</div>
+
+
+<div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3"
+     onclick="window.location.href='/all-drivers/1'">
+  <div class="mini-card">
+    <div class="mini-card-title">Online Drivers</div>
+    <div class="mini-card-body">
+      <div class="mini-icon icon-blue"><i class="bi bi-wifi"></i></div>
+      <span class="mini-badge badge-blue"><%= online_driver %></span>
+    </div>
+  </div>
+</div>
+
+
+<div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3"
+     onclick="window.location.href='/all-drivers/0'">
+  <div class="mini-card">
+    <div class="mini-card-title">Offline Drivers</div>
+    <div class="mini-card-body">
+      <div class="mini-icon icon-orange"><i class="bi bi-wifi-off"></i></div>
+      <span class="mini-badge badge-orange"><%= offline_driver %></span>
+    </div>
+  </div>
+</div>
+
+
+<div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3"
+     onclick="window.location.href='/all-drivers/6'">
+  <div class="mini-card">
+    <div class="mini-card-title">Drivers Pending Doc</div>
+    <div class="mini-card-body">
+      <div class="mini-icon icon-dark"><i class="bi bi-file-earmark-check-fill"></i></div>
+      <span class="mini-badge badge-dark"><%= total_register_pending_doc %></span>
+    </div>
+  </div>
+</div>
+
+
+<div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='driver-withdraw-request/1'">
+  <div class="mini-card">
+    <div class="mini-card-title">Pending Withdraw</div>
+    <div class="mini-card-body">
+      <div class="mini-icon icon-blue">
+        <i class="bi bi-car-front-fill"></i>
+      </div>
+      <span class="mini-badge badge-blue"><%= pending_driver_withdraw %></span>
+    </div>
+  </div>
+</div>
+
+
+<!-- TOTAL ORDERS -->
+<div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='/cab-orders'">
+  <div class="mini-card">
+    <div class="mini-card-title">Total Orders</div>
+    <div class="mini-card-body">
+      <div class="mini-icon icon-purple">
+        <i class="bi bi-receipt"></i>
+      </div>
+      <span class="mini-badge badge-purple"><%= total_orders %></span>
+    </div>
+  </div>
+</div>
+
+<!-- COMPLETED ORDERS -->
+<div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='/cab-orders/5'">
+  <div class="mini-card">
+    <div class="mini-card-title">Completed Orders</div>
+    <div class="mini-card-body">
+      <div class="mini-icon icon-green">
+        <i class="bi bi-check-circle-fill"></i>
+      </div>
+      <span class="mini-badge badge-green"><%= completed_orders %></span>
+    </div>
+  </div>
+</div>
+
+<!-- CANCELLED BY USER -->
+<div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='/cab-orders/6'">
+  <div class="mini-card">
+    <div class="mini-card-title">Cancelled by User</div>
+    <div class="mini-card-body">
+      <div class="mini-icon icon-red">
+        <i class="bi bi-person-x-fill"></i>
+      </div>
+      <span class="mini-badge badge-red"><%= cancelled_by_user %></span>
+    </div>
+  </div>
+</div>
+
+<!-- CANCELLED BY DRIVER -->
+<div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='//cab-orders/7'">
+  <div class="mini-card">
+    <div class="mini-card-title">Cancelled by Driver</div>
+    <div class="mini-card-body">
+      <div class="mini-icon icon-blue">
+        <i class="bi bi-car-front-fill"></i>
+      </div>
+      <span class="mini-badge badge-blue"><%= cancelled_by_driver %></span>
+    </div>
+  </div>
+</div>
+
+<div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3" onclick="window.location.href='#'">
+  <div class="mini-card">
+    <div class="mini-card-title">Cancelled by System</div>
+    <div class="mini-card-body">
+      <div class="mini-icon icon-blue">
+        <i class="bi bi-car-front-fill"></i>
+      </div>
+      <span class="mini-badge badge-blue"><%= cancelled_by_system %></span>
+    </div>
+  </div>
+</div>
+
+
+</div>
+
+
+<!-- ================= END CAB & RIDE ================= -->
+
+</div>
+
+
+<script>
+(function () {
+
+  // 1. Dashboard ko current history me replace karo
+  history.replaceState({ page: "dashboard" }, "", location.href);
+
+  // 2. Extra fake state push
+  history.pushState({ page: "dashboard" }, "", location.href);
+
+  // 3. Back dabane par turant wapas lao
+  window.addEventListener("popstate", function () {
+    location.replace(location.href);
+  });
+
+  // 4. Tab switch / minimize / back cache detect
+  document.addEventListener("visibilitychange", function () {
+    if (document.visibilityState === "visible") {
+      history.pushState({ page: "dashboard" }, "", location.href);
+    }
+  });
+
+  // 5. Page restore (Chrome bfcache killer)
+  window.addEventListener("pageshow", function (e) {
+    if (e.persisted) {
+      location.replace(location.href);
+    }
+  });
+
+})();
+</script>
+
+
+
+
+
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+
+<script>
+/* =====================================================
+   🔥 Firebase Init (PUBLIC CONFIG ONLY)
+===================================================== */
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "rainbow-f0f87.firebaseapp.com",
+  projectId: "rainbow-f0f87",
+};
+
+if (!firebase.apps.length) {
+  firebase.initializeApp(firebaseConfig);
+}
+
+const db = firebase.firestore();
+const activeRideEl = document.getElementById("activeRideCount");
+
+/* =====================================================
+   🔥 LIVE ACTIVE RIDE COUNT
+   order_status BETWEEN 1 AND 4
+===================================================== */
+db.collection("cab_orders")
+  .where("order_status", ">", 0)
+  .where("order_status", "<", 5)
+  .onSnapshot(snapshot => {
+
+    activeRideEl.textContent = snapshot.size;
+
+  }, error => {
+    console.error("Active Ride Count Error:", error);
+  });
+</script>
+>>>>>>> 49d7cd4 (initial push from server)

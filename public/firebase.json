@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 {
   "type": "service_account",
   "project_id": "rainbow-f0f87",
@@ -11,3 +12,18 @@
   "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-fbsvc%40rainbow-f0f87.iam.gserviceaccount.com",
   "universe_domain": "googleapis.com"
 }
+=======
+{
+  "type": "service_account",
+  "project_id": "rainbow-f0f87",
+  "private_key_id": "5f114bf37188b25fa9aaf4e5d87cc06c92a011c2",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCqRPzylcRbydvX\nt4XoMeqpLDBu2PPdF+6cUd/Wo05Lf+BoelUK81YqcyKlwh2MjJ2JdzJvm/TWzgg4\nWv5F6WcWMtei2B6tG31trzagzXPt+/O1OZ0dnT+U+SeBYyBvgFOt4LzDEAmk1kce\nHn+NFtE5Ygoi+0Gd3xq8BO2e4LbuMbFkhqUdtlmZ0yG8uV4ASolfh6Vuj7+Hzu/H\nrZwihWkQd98fN0hpREtiltnMZccjAD3gg2vtj6w2azHAqMiNqt0o1kjGQT83EhQF\ndlTVaAowA3oPe2Fbqzld9mP+A04R04r8HQ3hzzqdt8ucRxvQQnSlJZ+BVTZpFL64\nfqX4LAB7AgMBAAECggEAGwUz/5/Xwi81oDUuCWEz2Yvl1blqcwlzYsLgGt+IiGpZ\n0jVTnezBcvQZfqTgQT0mr47HELd28nL4vU9nWZsxXPBNkGNBSab6pSIwhkfZtV24\ng5JfMLi9wyY06DoIXC7JA2djh9sEL3CXvEZfvHlEqO66KBSntDttsoJfs8j6ZAXO\n0yvDDknyfR13DLlzHw8ao9nl0zrDafXRai8+Lr0rKZ71Ew4onRLxxgkHci0KdtDU\nwugwPhbEX7svYt0l8/Q4VUIR6up5jk1ATEJOpW5UZG97yEHSYkLXeTuQoc1+dTxp\ny0QR3LPdimohyQGaxXYv/6xZtfhnDklZOEuc+FbXGQKBgQDXHjdCYCDoEqE/HTLc\n1khRU1xLkREAtXuo+Ws3AZo4Bt5XvWWT15aSafL4YyAx6owitprSWh009Mwc1Wx+\nMbK/5ojaqSX2X/Cr/V4OaFBImZ77RzBUZrJLe7R8DHg0PpVHTmwGFTL/8vp/jRkR\nyL9PXrz/eaqxH3OA0W2KT3PeyQKBgQDKoNRf+nPUN12QiSNZ2HUvwerTovRRyLMA\n1VtduVnH6oloz1qvASNQ8uSwKfREluXpX8BCrZ/75fp1NzNcF4K5/tfmywr4NyEt\no/iEEYrDBE4/Aucq75nLcyDGAsudTOwhsW2bWvYb4hPw6SLP3/LlACHr4Z/8G5Pa\n7i45ox6zIwKBgGGxnEDtrSQYCdjC5u1591/PrtO2rvUWdnF3zGQvux0EqYdJQU9S\nElSt/yUkx2ND9J5zNX6gZDE/l07k8h+hbF9QUAiV1uK8EW3aZBPA9ezyr0vIub8q\n4H/9Tysi8pgvb9XxXIeqqv2oGHFC4Aa+l3txN/4CAC3ubaMr+UZd7O5ZAoGARy7O\nzNTgQgodLXxv1c1MBbX699REPkLiV4WcbkWB+9Ax64cElXwx2uspWZWzgTD9ncmM\nciAqlsSJAwqcWVrNCugzEpn7xY0gc7cpw8Oh2ra1gj9T1GqNvcI5Hja3LxBp18BM\nAAqpcMwwMy7DkwFahAZS5FnD6T4K6BtKU+cxDr8CgYAkmclQD0W/nE5Pok1N18A3\nJsxTmGM8BhT3UzCysRQSmbOTFVaCq8lpiSIqaEkihT/19XWpOw6u0hwh+CTNvreS\ndgRCVoGU8/M/ALyo7utSthHylIHGUDcRdjbBMF/IEwIRG2wU9TgKgGwJU9XBcQOT\nVMGdRPXWBird8Y7QBFL4IQ==\n-----END PRIVATE KEY-----\n",
+  "client_email": "firebase-adminsdk-fbsvc@rainbow-f0f87.iam.gserviceaccount.com",
+  "client_id": "112884223332538368631",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-fbsvc%40rainbow-f0f87.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
+>>>>>>> 49d7cd4 (initial push from server)
